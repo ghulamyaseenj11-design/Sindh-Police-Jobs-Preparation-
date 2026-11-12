@@ -5,7 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0b2341">
-  <title>Admin Panel | Sindh Jail Police</title>
+  <meta name="description" content="Admin Dashboard - Sindh Police Jobs Preparation">
+  <title>Admin Dashboard | Learn with Yaseen Jakhrani</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 
@@ -16,28 +17,29 @@
       <a class="brand" href="index.html">
         <span class="brand-mark">SJP</span>
         <span>
-          <strong>Sindh Jail Police</strong>
-          <small>Admin Panel</small>
+          <strong>Learn with Yaseen</strong>
+          <small>Website Administration</small>
         </span>
       </a>
-      <a class="nav-home" href="index.html">← Back to Website</a>
+      <a class="nav-home" href="index.html">← View Website</a>
     </div>
   </header>
 
   <main class="admin-main container">
 
-    <!-- ADMIN LOGIN -->
+    <!-- LOGIN SECTION -->
     <section class="admin-card" id="loginSection">
-      <span class="eyebrow">SECURE ACCESS</span>
-      <h1>Admin Login</h1>
-      <p class="muted">Sign in using your authorized administrator account.</p>
+      <span class="eyebrow">SECURE ADMIN ACCESS</span>
+      <h1>Welcome Back!</h1>
+      <p class="muted">Login to manage your website.</p>
 
       <form id="loginForm">
-        <label for="email">Email Address</label>
+        <label for="email">Admin Email</label>
         <input
           id="email"
           type="email"
           placeholder="Enter admin email"
+          autocomplete="username"
           required
         >
 
@@ -46,11 +48,12 @@
           id="password"
           type="password"
           placeholder="Enter password"
+          autocomplete="current-password"
           required
         >
 
         <button class="btn btn-gold btn-full" type="submit">
-          Login
+          Login to Dashboard
         </button>
       </form>
 
@@ -58,25 +61,42 @@
     </section>
 
 
-    <!-- ADMIN DASHBOARD -->
+    <!-- MAIN DASHBOARD -->
     <section class="dashboard hidden" id="dashboardSection">
 
       <div class="dashboard-heading">
         <div>
-          <span class="eyebrow">CONTROL CENTRE</span>
+          <span class="eyebrow">WEBSITE CONTROL CENTRE</span>
           <h1>Admin Dashboard</h1>
           <p class="muted">
-            Manage your website content and study resources.
+            Manage your educational website from one place.
           </p>
         </div>
 
-        <button
-          class="btn btn-outline-dark"
-          id="logoutButton"
-          type="button"
-        >
+        <button class="btn btn-outline-dark" id="logoutButton" type="button">
           Logout
         </button>
+      </div>
+
+
+      <!-- DASHBOARD NAVIGATION -->
+      <div class="admin-card">
+        <h2>Website Management</h2>
+        <p class="muted">Choose a section to manage.</p>
+
+        <div class="admin-actions">
+          <a class="btn btn-gold" href="#studyNotesManager">
+            Study Notes
+          </a>
+
+          <a class="btn btn-outline-dark" href="#announcementsManager">
+            Announcements
+          </a>
+
+          <a class="btn btn-outline-dark" href="index.html">
+            View Website
+          </a>
+        </div>
       </div>
 
 
@@ -87,7 +107,7 @@
         <h2>Study Notes Manager</h2>
 
         <p class="muted">
-          Create notes, upload PDF files and manage published study materials.
+          Add, update, publish or delete study notes and PDF materials.
         </p>
 
         <form id="studyNotesForm">
@@ -99,7 +119,7 @@
             id="noteTitle"
             type="text"
             maxlength="180"
-            placeholder="Enter notes title"
+            placeholder="Example: General Knowledge MCQs"
             required
           >
 
@@ -107,7 +127,7 @@
           <input
             id="noteCategory"
             type="text"
-            placeholder="e.g. General Knowledge, English, Science"
+            placeholder="Example: English, Science, GK, Mathematics"
             required
           >
 
@@ -122,7 +142,7 @@
           <textarea
             id="noteBody"
             rows="8"
-            placeholder="Write your study notes here..."
+            placeholder="Write your notes here..."
           ></textarea>
 
           <label for="notePdf">Upload PDF (Optional)</label>
@@ -133,13 +153,13 @@
           >
 
           <p class="muted">
-            PDF files only. Upload functionality will be connected in the next step.
+            PDF only. Maximum file size: 10 MB. Storage must be configured.
           </p>
 
           <label for="notePublished">Publication Status</label>
           <select id="notePublished">
             <option value="false">Save as Draft</option>
-            <option value="true">Publish</option>
+            <option value="true">Publish on Website</option>
           </select>
 
           <div class="admin-actions">
@@ -162,15 +182,10 @@
 
         </form>
 
-        <p
-          id="studyNoteMessage"
-          class="form-message"
-          aria-live="polite"
-        ></p>
+        <p id="studyNoteMessage" class="form-message" aria-live="polite"></p>
 
         <div class="admin-notes-list">
           <h3>All Study Notes</h3>
-
           <div id="adminStudyNotesList">
             <p class="muted">Study notes will appear here.</p>
           </div>
@@ -179,17 +194,19 @@
       </div>
 
 
-      <!-- ANNOUNCEMENTS - EXISTING SECTION -->
+      <!-- ANNOUNCEMENTS MANAGER -->
       <div class="admin-card" id="announcementsManager">
 
+        <span class="eyebrow">WEBSITE NOTIFICATIONS</span>
         <h2>Publish Announcement</h2>
+
+        <p class="muted">
+          Share important news, test updates and recruitment information.
+        </p>
 
         <form id="announcementForm">
 
-          <label for="announcementTitle">
-            Announcement Title
-          </label>
-
+          <label for="announcementTitle">Announcement Title</label>
           <input
             id="announcementTitle"
             type="text"
@@ -198,10 +215,7 @@
             required
           >
 
-          <label for="announcementContent">
-            Announcement Details
-          </label>
-
+          <label for="announcementContent">Announcement Details</label>
           <textarea
             id="announcementContent"
             rows="5"
@@ -215,11 +229,7 @@
 
         </form>
 
-        <p
-          id="announcementMessage"
-          class="form-message"
-          aria-live="polite"
-        ></p>
+        <p id="announcementMessage" class="form-message" aria-live="polite"></p>
 
       </div>
 
@@ -227,24 +237,41 @@
       <!-- RECENT ANNOUNCEMENTS -->
       <div class="admin-card">
 
+        <span class="eyebrow">PUBLISHED UPDATES</span>
         <h2>Recent Announcements</h2>
 
         <div id="adminAnnouncementList">
-          <p class="muted">Loading...</p>
+          <p class="muted">Loading announcements...</p>
         </div>
 
       </div>
 
-    </section>
 
+      <!-- FUTURE CMS MODULES -->
+      <div class="admin-card">
+        <span class="eyebrow">COMING NEXT</span>
+        <h2>More Website Tools</h2>
+        <p class="muted">
+          These modules will be connected in the next development steps.
+        </p>
+
+        <div class="admin-actions">
+          <span class="btn btn-outline-dark">Blogs Manager</span>
+          <span class="btn btn-outline-dark">Pages Manager</span>
+          <span class="btn btn-outline-dark">Gallery Manager</span>
+          <span class="btn btn-outline-dark">Website Settings</span>
+          <span class="btn btn-outline-dark">Navigation Manager</span>
+        </div>
+      </div>
+
+    </section>
   </main>
 
 
-  <!-- SUPABASE CONNECTION -->
+  <!-- DATABASE CONNECTION -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
   <script src="admin.js"></script>
 
 </body>
-          </html>
-          
+</html>
