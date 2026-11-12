@@ -1,4 +1,3 @@
-JavaScript
 
 document.addEventListener("DOMContentLoaded", () => {
   const db = window.supabaseClient;
@@ -8,34 +7,40 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  document.getElementById("loginForm").addEventListener("submit", handleLogin);
-  document.getElementById("logoutButton").addEventListener("click", handleLogout);
+  // Safe event listener: missing element will not crash the whole script.
+  function on(id, event, callback) {
+    const element = document.getElementById(id);
+    if (element) element.addEventListener(event, callback);
+    else console.warn("HTML element not found:", id);
+  }
 
-  document.getElementById("studyNotesForm").addEventListener("submit", saveStudyNote);
-  document.getElementById("cancelNoteEdit").addEventListener("click", resetStudyNoteForm);
+  on("loginForm", "submit", handleLogin);
+  on("logoutButton", "click", handleLogout);
 
-  document.getElementById("blogForm").addEventListener("submit", saveBlog);
-  document.getElementById("cancelBlogEdit").addEventListener("click", resetBlogForm);
+  on("studyNotesForm", "submit", saveStudyNote);
+  on("cancelNoteEdit", "click", resetStudyNoteForm);
 
-  document.getElementById("pageForm").addEventListener("submit", savePage);
-  document.getElementById("cancelPageEdit").addEventListener("click", resetPageForm);
+  on("blogForm", "submit", saveBlog);
+  on("cancelBlogEdit", "click", resetBlogForm);
 
-  document.getElementById("galleryForm").addEventListener("submit", uploadGalleryImage);
+  on("pageForm", "submit", savePage);
+  on("cancelPageEdit", "click", resetPageForm);
 
-  document.getElementById("announcementForm").addEventListener("submit", publishAnnouncement);
+  on("galleryForm", "submit", uploadGalleryImage);
+  on("announcementForm", "submit", publishAnnouncement);
 
-  document.getElementById("navigationForm").addEventListener("submit", saveNavigation);
-  document.getElementById("cancelNavigationEdit").addEventListener("click", resetNavigationForm);
+  on("navigationForm", "submit", saveNavigation);
+  on("cancelNavigationEdit", "click", resetNavigationForm);
 
-  document.getElementById("settingsForm").addEventListener("submit", saveSettings);
+  on("settingsForm", "submit", saveSettings);
 
   checkExistingSession();
 });
 
 
-// ============================================
+// ==========================================
 // COMMON HELPERS
-// ============================================
+// ==========================================
 
 function showMessage(id, message, isError = false) {
   const el = document.getElementById(id);
@@ -48,18 +53,20 @@ function showMessage(id, message, isError = false) {
 }
 
 function getValue(id) {
-  return document.getElementById(id).value.trim();
+  const el = document.getElementById(id);
+  return el ? el.value.trim() : "";
 }
 
 function getPublished(id) {
-  return document.getElementById(id).value === "true";
+  return getValue(id) === "true";
 }
 
 function setButtonLoading(id, loading, normalText) {
   const button = document.getElementById(id);
+  if (!button) return;
+
   button.disabled = loading;
-  if (loading) button.textContent = "Please wait...";
-  else button.textContent = normalText;
+  button.textContent = loading ? "Please wait..." : normalText;
 }
 
 function createElement(tag, text, className) {
@@ -67,6 +74,13 @@ function createElement(tag, text, className) {
   el.textContent = text || "";
   if (className) el.className = className;
   return el;
+}
+
+function clearList(id, message) {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  el.replaceChildren(createElement("p", message, "muted"));
 }
 
 function makeAdminCard(title, details, actions = []) {
@@ -79,6 +93,7 @@ function makeAdminCard(title, details, actions = []) {
   if (actions.length) {
     const buttons = document.createElement("div");
     buttons.className = "admin-actions";
+
     actions.forEach(button => buttons.appendChild(button));
     card.appendChild(buttons);
   }
@@ -95,17 +110,21 @@ function actionButton(label, callback) {
   return button;
 }
 
-function clearList(id, message) {
-  const el = document.getElementById(id);
-  el.replaceChildren(createElement("p", message, "muted"));
-}
-
 function safeSlug(value) {
-  return value
-    .toLowerCase()
-    .trim()
+  return value.toLowerCase().trim()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
+}
+
+function addExternalLink(container, url, label) {
+  if (!url) return;
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  link.textContent = label;
+  container.appendChild(link);
 }
 
 async function uploadMedia(file, folder, allowedTypes, maxSizeMB) {
@@ -120,11 +139,12 @@ async function uploadMedia(file, folder, allowedTypes, maxSizeMB) {
   }
 
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const path = folder + "/" + crypto.randomUUID() + "-" + safeName;
+  const uniqueName =
+    folder + "/" + Date.now() + "-" + safeName;
 
   const { error } = await window.supabaseClient.storage
     .from("site-media")
-    .upload(path, file, {
+    .upload(uniqueName, file, {
       contentType: file.type,
       upsert: false
     });
@@ -133,38 +153,37 @@ async function uploadMedia(file, folder, allowedTypes, maxSizeMB) {
 
   const { data } = window.supabaseClient.storage
     .from("site-media")
-    .getPublicUrl(path);
+    .getPublicUrl(uniqueName);
 
   return data.publicUrl;
 }
 
-function addExternalLink(container, url, label) {
-  if (!url) return;
-
-  const link = document.createElement("a");
-  link.href = url;
-  link.target = "_blank";
-  link.rel = "noopener noreferrer";
-  link.textContent = label;
-  container.appendChild(link);
+function handleError(messageId, error) {
+  console.error(error);
+  showMessage(
+    messageId,
+    error.message || "Something went wrong. Please try again.",
+    true
+  );
 }
 
 
-// ============================================
+// ==========================================
 // LOGIN AND ADMIN VERIFICATION
-// ============================================
+// ==========================================
 
 async function checkExistingSession() {
-  const { data, error } =
-    await window.supabaseClient.auth.getSession();
+  try {
+    const { data, error } =
+      await window.supabaseClient.auth.getSession();
 
-  if (error) {
-    showMessage("loginMessage", error.message, true);
-    return;
-  }
+    if (error) throw error;
 
-  if (data.session) {
-    await verifyAdmin(data.session.user);
+    if (data.session) {
+      await verifyAdmin(data.session.user);
+    }
+  } catch (error) {
+    handleError("loginMessage", error);
   }
 }
 
@@ -176,47 +195,53 @@ async function handleLogin(event) {
 
   showMessage("loginMessage", "Signing in...");
 
-  const { data, error } =
-    await window.supabaseClient.auth.signInWithPassword({
-      email,
-      password
-    });
+  try {
+    const { data, error } =
+      await window.supabaseClient.auth.signInWithPassword({
+        email,
+        password
+      });
 
-  if (error) {
-    showMessage("loginMessage", error.message, true);
-    return;
+    if (error) throw error;
+
+    await verifyAdmin(data.user);
+  } catch (error) {
+    handleError("loginMessage", error);
   }
-
-  await verifyAdmin(data.user);
 }
 
 async function verifyAdmin(user) {
-  const { data, error } =
-    await window.supabaseClient.rpc("is_admin");
+  try {
+    const { data, error } =
+      await window.supabaseClient.rpc("is_admin");
 
-  if (error || data !== true) {
-    await window.supabaseClient.auth.signOut();
+    if (error) throw error;
 
-    showMessage(
-      "loginMessage",
-      "Access denied. This account is not an authorized admin.",
-      true
-    );
-    return;
+    if (data !== true) {
+      await window.supabaseClient.auth.signOut();
+      showMessage(
+        "loginMessage",
+        "Access denied. This account is not an authorized admin.",
+        true
+      );
+      return;
+    }
+
+    document.getElementById("loginSection").classList.add("hidden");
+    document.getElementById("dashboardSection").classList.remove("hidden");
+
+    await Promise.all([
+      loadStudyNotes(),
+      loadBlogs(),
+      loadPages(),
+      loadGallery(),
+      loadAdminAnnouncements(),
+      loadNavigation(),
+      loadSettings()
+    ]);
+  } catch (error) {
+    handleError("loginMessage", error);
   }
-
-  document.getElementById("loginSection").classList.add("hidden");
-  document.getElementById("dashboardSection").classList.remove("hidden");
-
-  await Promise.all([
-    loadStudyNotes(),
-    loadBlogs(),
-    loadPages(),
-    loadGallery(),
-    loadAdminAnnouncements(),
-    loadNavigation(),
-    loadSettings()
-  ]);
 }
 
 async function handleLogout() {
@@ -225,10 +250,10 @@ async function handleLogout() {
 }
 
 
-// ============================================
+// ==========================================
 // STUDY NOTES
-// Existing table: study_materials
-// ============================================
+// Table: study_materials
+// ==========================================
 
 async function saveStudyNote(event) {
   event.preventDefault();
@@ -240,10 +265,13 @@ async function saveStudyNote(event) {
   const category = getValue("noteCategory");
   const description = getValue("noteDescription");
   const body = getValue("noteBody");
-  const published = getPublished("notePublished");
 
   if (!title || !category || (!body && !pdf && !id)) {
-    showMessage("studyNoteMessage", "Enter title, category and notes content or PDF.", true);
+    showMessage(
+      "studyNoteMessage",
+      "Enter title, category and notes content or PDF.",
+      true
+    );
     return;
   }
 
@@ -278,12 +306,14 @@ async function saveStudyNote(event) {
       description: description || null,
       body: body || null,
       file_url: fileUrl,
-      published
+      published: getPublished("notePublished")
     };
 
     const result = id
-      ? await window.supabaseClient.from("study_materials").update(note).eq("id", id)
-      : await window.supabaseClient.from("study_materials").insert([note]);
+      ? await window.supabaseClient
+          .from("study_materials").update(note).eq("id", id)
+      : await window.supabaseClient
+          .from("study_materials").insert([note]);
 
     if (result.error) throw result.error;
 
@@ -292,7 +322,7 @@ async function saveStudyNote(event) {
     await loadStudyNotes();
 
   } catch (error) {
-    showMessage("studyNoteMessage", error.message, true);
+    handleError("studyNoteMessage", error);
   } finally {
     setButtonLoading("saveNoteButton", false, "Save Notes");
   }
@@ -300,6 +330,8 @@ async function saveStudyNote(event) {
 
 async function loadStudyNotes() {
   const list = document.getElementById("adminStudyNotesList");
+  if (!list) return;
+
   clearList("adminStudyNotesList", "Loading...");
 
   const { data, error } = await window.supabaseClient
@@ -308,7 +340,7 @@ async function loadStudyNotes() {
     .order("created_at", { ascending: false });
 
   if (error) {
-    list.textContent = "Could not load notes: " + error.message;
+    list.textContent = error.message;
     return;
   }
 
@@ -320,14 +352,14 @@ async function loadStudyNotes() {
   list.replaceChildren();
 
   data.forEach(note => {
-    const edit = actionButton("Edit", () => editStudyNote(note));
-    const remove = actionButton("Delete", () => deleteStudyNote(note.id));
-
     const card = makeAdminCard(
       note.title,
       "Category: " + note.category + " | " +
       (note.published ? "Published" : "Draft"),
-      [edit, remove]
+      [
+        actionButton("Edit", () => editStudyNote(note)),
+        actionButton("Delete", () => deleteStudyNote(note.id))
+      ]
     );
 
     if (note.description) {
@@ -349,7 +381,8 @@ function editStudyNote(note) {
   document.getElementById("notePdf").value = "";
 
   document.getElementById("saveNoteButton").textContent = "Update Notes";
-  document.getElementById("studyNotesManager").scrollIntoView({ behavior: "smooth" });
+  document.getElementById("studyNotesManager")
+    .scrollIntoView({ behavior: "smooth" });
 }
 
 async function deleteStudyNote(id) {
@@ -361,7 +394,7 @@ async function deleteStudyNote(id) {
     .eq("id", id);
 
   if (error) {
-    showMessage("studyNoteMessage", error.message, true);
+    handleError("studyNoteMessage", error);
     return;
   }
 
@@ -376,10 +409,10 @@ function resetStudyNoteForm() {
 }
 
 
-// ============================================
+// ==========================================
 // BLOGS
 // Table: site_blogs
-// ============================================
+// ==========================================
 
 async function saveBlog(event) {
   event.preventDefault();
@@ -433,8 +466,10 @@ async function saveBlog(event) {
     };
 
     const result = id
-      ? await window.supabaseClient.from("site_blogs").update(blog).eq("id", id)
-      : await window.supabaseClient.from("site_blogs").insert([blog]);
+      ? await window.supabaseClient
+          .from("site_blogs").update(blog).eq("id", id)
+      : await window.supabaseClient
+          .from("site_blogs").insert([blog]);
 
     if (result.error) throw result.error;
 
@@ -443,7 +478,7 @@ async function saveBlog(event) {
     await loadBlogs();
 
   } catch (error) {
-    showMessage("blogMessage", error.message, true);
+    handleError("blogMessage", error);
   } finally {
     setButtonLoading("saveBlogButton", false, "Save Blog");
   }
@@ -451,6 +486,7 @@ async function saveBlog(event) {
 
 async function loadBlogs() {
   const list = document.getElementById("adminBlogsList");
+  if (!list) return;
 
   const { data, error } = await window.supabaseClient
     .from("site_blogs")
@@ -472,7 +508,8 @@ async function loadBlogs() {
   data.forEach(blog => {
     const card = makeAdminCard(
       blog.title,
-      "Slug: " + blog.slug + " | " + (blog.published ? "Published" : "Draft"),
+      "Slug: " + blog.slug + " | " +
+      (blog.published ? "Published" : "Draft"),
       [
         actionButton("Edit", () => editBlog(blog)),
         actionButton("Delete", () => deleteBlog(blog.id))
@@ -494,19 +531,18 @@ function editBlog(blog) {
   document.getElementById("blogImage").value = "";
   document.getElementById("saveBlogButton").textContent = "Update Blog";
 
-  document.getElementById("blogsManager").scrollIntoView({ behavior: "smooth" });
+  document.getElementById("blogsManager")
+    .scrollIntoView({ behavior: "smooth" });
 }
 
 async function deleteBlog(id) {
   if (!confirm("Delete this blog?")) return;
 
   const { error } = await window.supabaseClient
-    .from("site_blogs")
-    .delete()
-    .eq("id", id);
+    .from("site_blogs").delete().eq("id", id);
 
   if (error) {
-    showMessage("blogMessage", error.message, true);
+    handleError("blogMessage", error);
     return;
   }
 
@@ -521,10 +557,10 @@ function resetBlogForm() {
 }
 
 
-// ============================================
+// ==========================================
 // PAGES
 // Table: site_pages
-// ============================================
+// ==========================================
 
 async function savePage(event) {
   event.preventDefault();
@@ -551,8 +587,10 @@ async function savePage(event) {
     };
 
     const result = id
-      ? await window.supabaseClient.from("site_pages").update(page).eq("id", id)
-      : await window.supabaseClient.from("site_pages").insert([page]);
+      ? await window.supabaseClient
+          .from("site_pages").update(page).eq("id", id)
+      : await window.supabaseClient
+          .from("site_pages").insert([page]);
 
     if (result.error) throw result.error;
 
@@ -561,7 +599,7 @@ async function savePage(event) {
     await loadPages();
 
   } catch (error) {
-    showMessage("pageMessage", error.message, true);
+    handleError("pageMessage", error);
   } finally {
     setButtonLoading("savePageButton", false, "Save Page");
   }
@@ -569,6 +607,7 @@ async function savePage(event) {
 
 async function loadPages() {
   const list = document.getElementById("adminPagesList");
+  if (!list) return;
 
   const { data, error } = await window.supabaseClient
     .from("site_pages")
@@ -590,7 +629,8 @@ async function loadPages() {
   data.forEach(page => {
     list.appendChild(makeAdminCard(
       page.title,
-      "URL: " + page.slug + " | " + (page.published ? "Published" : "Draft"),
+      "URL: " + page.slug + " | " +
+      (page.published ? "Published" : "Draft"),
       [
         actionButton("Edit", () => editPage(page)),
         actionButton("Delete", () => deletePage(page.id))
@@ -607,19 +647,18 @@ function editPage(page) {
   document.getElementById("pagePublished").value = String(page.published);
   document.getElementById("savePageButton").textContent = "Update Page";
 
-  document.getElementById("pagesManager").scrollIntoView({ behavior: "smooth" });
+  document.getElementById("pagesManager")
+    .scrollIntoView({ behavior: "smooth" });
 }
 
 async function deletePage(id) {
   if (!confirm("Delete this page?")) return;
 
   const { error } = await window.supabaseClient
-    .from("site_pages")
-    .delete()
-    .eq("id", id);
+    .from("site_pages").delete().eq("id", id);
 
   if (error) {
-    showMessage("pageMessage", error.message, true);
+    handleError("pageMessage", error);
     return;
   }
 
@@ -634,10 +673,10 @@ function resetPageForm() {
 }
 
 
-// ============================================
+// ==========================================
 // GALLERY
 // Table: site_gallery
-// ============================================
+// ==========================================
 
 async function uploadGalleryImage(event) {
   event.preventDefault();
@@ -675,7 +714,7 @@ async function uploadGalleryImage(event) {
     await loadGallery();
 
   } catch (error) {
-    showMessage("galleryMessage", error.message, true);
+    handleError("galleryMessage", error);
   } finally {
     setButtonLoading("saveGalleryButton", false, "Upload Image");
   }
@@ -683,6 +722,7 @@ async function uploadGalleryImage(event) {
 
 async function loadGallery() {
   const list = document.getElementById("adminGalleryList");
+  if (!list) return;
 
   const { data, error } = await window.supabaseClient
     .from("site_gallery")
@@ -725,12 +765,10 @@ async function deleteGalleryImage(id) {
   if (!confirm("Delete this gallery entry?")) return;
 
   const { error } = await window.supabaseClient
-    .from("site_gallery")
-    .delete()
-    .eq("id", id);
+    .from("site_gallery").delete().eq("id", id);
 
   if (error) {
-    showMessage("galleryMessage", error.message, true);
+    handleError("galleryMessage", error);
     return;
   }
 
@@ -739,10 +777,10 @@ async function deleteGalleryImage(id) {
 }
 
 
-// ============================================
+// ==========================================
 // ANNOUNCEMENTS
-// Existing table: announcements
-// ============================================
+// Table: announcements
+// ==========================================
 
 async function publishAnnouncement(event) {
   event.preventDefault();
@@ -757,9 +795,6 @@ async function publishAnnouncement(event) {
 
   showMessage("announcementMessage", "Publishing...");
 
-  const { error } = await window.supabaseClient
-    .from("announcements")
-    .insert([{ title, content, is_active: true }]);
-
-  if (error) {
-    showMessage(
+  try {
+    const { error } = await window.supabaseClient
+      
