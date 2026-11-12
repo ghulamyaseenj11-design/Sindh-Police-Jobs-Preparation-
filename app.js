@@ -17,60 +17,57 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   loadAnnouncements();
-  createStudyNotesSection();
-  loadStudyMaterials();
+  setupStudyMaterials();
 });
 
 
 // =====================================
-// PUBLIC STUDY NOTES SECTION
+// STUDY NOTES SECTION
 // =====================================
 
-function createStudyNotesSection() {
-  if (document.getElementById("studyMaterialsSection")) return;
+function setupStudyMaterials() {
+  const section = document.getElementById("materials");
 
-  const main = document.querySelector("main");
-  if (!main) return;
+  if (!section) return;
 
-  const section = document.createElement("section");
-  section.id = "studyMaterialsSection";
-  section.className = "container";
-  section.style.padding = "40px 0";
+  const container = section.querySelector(".container");
 
-  const heading = document.createElement("h2");
-  heading.textContent = "Study Notes & PDF Materials";
+  if (!container) return;
 
-  const description = document.createElement("p");
-  description.className = "muted";
-  description.textContent =
-    "Explore published study notes and download preparation materials.";
+  const oldEmptyState = container.querySelector(".empty-state");
 
-  const list = document.createElement("div");
-  list.id = "publicStudyMaterials";
+  if (oldEmptyState) {
+    oldEmptyState.remove();
+  }
 
-  const loading = document.createElement("p");
-  loading.className = "muted";
-  loading.textContent = "Loading study materials...";
+  let list = document.getElementById("publicStudyMaterials");
 
-  list.appendChild(loading);
-  section.append(heading, description, list);
+  if (!list) {
+    list = document.createElement("div");
+    list.id = "publicStudyMaterials";
+    list.className = "study-materials-grid";
+    container.appendChild(list);
+  }
 
-  main.appendChild(section);
+  loadStudyMaterials();
 }
 
 
 // =====================================
-// LOAD PUBLISHED STUDY MATERIALS
+// LOAD PUBLISHED NOTES
 // =====================================
 
 async function loadStudyMaterials() {
   const list = document.getElementById("publicStudyMaterials");
+
   if (!list) return;
 
   if (!window.supabaseClient) {
-    list.textContent = "Study materials are temporarily unavailable.";
+    list.textContent = "Database connection unavailable.";
     return;
   }
+
+  list.textContent = "Loading study materials...";
 
   const { data, error } = await window.supabaseClient
     .from("study_materials")
@@ -79,8 +76,11 @@ async function loadStudyMaterials() {
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error("Study materials loading error:", error);
-    list.textContent = "Study materials are temporarily unavailable.";
+    console.error("Study Notes Error:", error);
+
+    list.textContent =
+      "Could not load study notes: " + error.message;
+
     return;
   }
 
@@ -93,12 +93,11 @@ async function loadStudyMaterials() {
 
   data.forEach(item => {
     const card = document.createElement("article");
-    card.className = "admin-announcement";
-    card.style.marginBottom = "18px";
-    card.style.padding = "20px";
+    card.className = "info-card";
+    card.style.marginBottom = "20px";
 
-    const heading = document.createElement("h3");
-    heading.textContent = item.title || "Study Notes";
+    const title = document.createElement("h3");
+    title.textContent = item.title || "Study Notes";
 
     const category = document.createElement("p");
     category.className = "muted";
@@ -107,26 +106,25 @@ async function loadStudyMaterials() {
     const description = document.createElement("p");
     description.textContent = item.description || "";
 
-    card.append(heading, category, description);
+    card.append(title, category, description);
 
     if (item.body) {
-      const body = document.createElement("p");
-      body.textContent = item.body;
-      body.style.whiteSpace = "pre-wrap";
-      card.appendChild(body);
+      const content = document.createElement("p");
+      content.textContent = item.body;
+      content.style.whiteSpace = "pre-wrap";
+      card.appendChild(content);
     }
 
     if (item.file_url) {
-      const pdfLink = document.createElement("a");
-      pdfLink.href = item.file_url;
-      pdfLink.target = "_blank";
-      pdfLink.rel = "noopener noreferrer";
-      pdfLink.textContent = "Open / Download PDF";
-      pdfLink.className = "btn btn-gold";
-      pdfLink.style.display = "inline-block";
-      pdfLink.style.marginTop = "12px";
+      const pdfButton = document.createElement("a");
 
-      card.appendChild(pdfLink);
+      pdfButton.href = item.file_url;
+      pdfButton.target = "_blank";
+      pdfButton.rel = "noopener noreferrer";
+      pdfButton.className = "btn btn-gold";
+      pdfButton.textContent = "Open / Download PDF";
+
+      card.appendChild(pdfButton);
     }
 
     list.appendChild(card);
@@ -140,11 +138,11 @@ async function loadStudyMaterials() {
 
 async function loadAnnouncements() {
   const list = document.getElementById("announcementList");
+
   if (!list) return;
 
   if (!window.supabaseClient) {
-    list.innerHTML =
-      '<p class="muted">Announcements will appear here after the website database is connected.</p>';
+    list.textContent = "Announcements are unavailable.";
     return;
   }
 
@@ -156,14 +154,12 @@ async function loadAnnouncements() {
 
   if (error) {
     console.error("Announcement loading error:", error);
-    list.innerHTML =
-      '<p class="muted">Announcements are temporarily unavailable.</p>';
+    list.textContent = "Announcements are temporarily unavailable.";
     return;
   }
 
   if (!data || data.length === 0) {
-    list.innerHTML =
-      '<p class="muted">No announcements have been published yet.</p>';
+    list.textContent = "No announcements have been published yet.";
     return;
   }
 
