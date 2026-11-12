@@ -1,9 +1,12 @@
-// ==========================================
-// ADMIN PANEL (short version, same features)
-// ==========================================
+JavaScript
 
-const db = () => window.supabaseClient;
+// ============================================
+// ADMIN PANEL - CLEAN FIXED VERSION
+// Matches admin.html and Supabase table names
+// ============================================
+
 const $ = id => document.getElementById(id);
+const db = () => window.supabaseClient;
 
 document.addEventListener("DOMContentLoaded", () => {
   if (!db()) {
@@ -11,90 +14,91 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  [
-    ["loginForm", "submit", handleLogin],
-    ["logoutButton", "click", handleLogout],
-    ["studyNotesForm", "submit", saveStudyNote],
-    ["cancelNoteEdit", "click", resetStudyNoteForm],
-    ["blogForm", "submit", saveBlog],
-    ["cancelBlogEdit", "click", resetBlogForm],
-    ["pageForm", "submit", savePage],
-    ["cancelPageEdit", "click", resetPageForm],
-    ["galleryForm", "submit", uploadGalleryImage],
-    ["announcementForm", "submit", publishAnnouncement],
-    ["navigationForm", "submit", saveNavigation],
-    ["cancelNavigationEdit", "click", resetNavigationForm],
-    ["settingsForm", "submit", saveSettings]
-  ].forEach(([id, event, callback]) => {
-    const el = $(id);
-    if (el) el.addEventListener(event, callback);
-    else console.warn("Missing HTML element:", id);
-  });
+  bind("loginForm", "submit", login);
+  bind("logoutButton", "click", logout);
+  bind("studyNotesForm", "submit", saveNote);
+  bind("cancelNoteEdit", "click", resetNote);
+  bind("blogForm", "submit", saveBlog);
+  bind("cancelBlogEdit", "click", resetBlog);
+  bind("pageForm", "submit", savePage);
+  bind("cancelPageEdit", "click", resetPage);
+  bind("galleryForm", "submit", uploadGallery);
+  bind("announcementForm", "submit", saveAnnouncement);
+  bind("navigationForm", "submit", saveNavigation);
+  bind("cancelNavigationEdit", "click", resetNavigation);
+  bind("settingsForm", "submit", saveSettings);
 
-  checkExistingSession();
+  checkSession();
 });
 
+function bind(id, event, callback) {
+  const el = $(id);
+  if (el) el.addEventListener(event, callback);
+}
 
-// ==========================================
-// COMMON HELPERS
-// ==========================================
+function val(id) {
+  return $(id)?.value?.trim() || "";
+}
 
-function showMessage(id, message, isError = false) {
+function showMessage(id, text, error = false) {
   const el = $(id);
   if (!el) return;
-  el.textContent = message;
-  el.className = isError ? "form-message error" : "form-message success";
-}
-
-function getValue(id) {
-  const el = $(id);
-  return el ? el.value.trim() : "";
-}
-
-function getPublished(id) {
-  return getValue(id) === "true";
-}
-
-function setButtonLoading(id, loading, normalText) {
-  const button = $(id);
-  if (!button) return;
-  button.disabled = loading;
-  button.textContent = loading ? "Please wait..." : normalText;
-}
-
-function handleError(messageId, error) {
-  console.error(error);
-  showMessage(messageId, error.message || "Something went wrong. Please try again.", true);
-}
-
-function createElement(tag, text, className) {
-  const el = document.createElement(tag);
   el.textContent = text || "";
-  if (className) el.className = className;
-  return el;
+  el.className = "form-message" +
+    (text ? (error ? " error" : " success") : "");
 }
 
-function clearList(id, message) {
+function report(id, error) {
+  console.error(error);
+  showMessage(id, error?.message || "Something went wrong.", true);
+}
+
+function setBusy(id, busy, normalText) {
   const el = $(id);
-  if (el) el.replaceChildren(createElement("p", message, "muted"));
+  if (!el) return;
+  el.disabled = busy;
+  if (busy) {
+    el.dataset.oldText = el.textContent;
+    el.textContent = "Please wait...";
+  } else {
+    el.textContent = normalText || el.dataset.oldText || "Save";
+  }
 }
 
-function makeAdminCard(title, details, actions = []) {
+function slugify(text) {
+  return String(text || "").toLowerCase().trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function status(item) {
+  return item.published ? "Published" : "Draft";
+}
+
+function makeCard(title, details, buttons = []) {
   const card = document.createElement("div");
   card.className = "admin-announcement";
-  card.appendChild(createElement("h3", title));
-  card.appendChild(createElement("p", details, "muted"));
 
-  if (actions.length) {
-    const buttons = document.createElement("div");
-    buttons.className = "admin-actions";
-    actions.forEach(button => buttons.appendChild(button));
-    card.appendChild(buttons);
+  const heading = document.createElement("h3");
+  heading.textContent = title || "";
+
+  const paragraph = document.createElement("p");
+  paragraph.className = "muted";
+  paragraph.textContent = details || "";
+
+  card.append(heading, paragraph);
+
+  if (buttons.length) {
+    const actions = document.createElement("div");
+    actions.className = "admin-actions";
+    buttons.forEach(button => actions.appendChild(button));
+    card.appendChild(actions);
   }
+
   return card;
 }
 
-function actionButton(label, callback) {
+function makeButton(label, callback) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "btn btn-outline-dark";
@@ -103,137 +107,163 @@ function actionButton(label, callback) {
   return button;
 }
 
-function safeSlug(value) {
-  return value.toLowerCase().trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
-function addExternalLink(container, url, label) {
+function addLink(parent, url, label) {
   if (!url) return;
-  const link = document.createElement("a");
-  link.href = url;
-  link.target = "_blank";
-  link.rel = "noopener noreferrer";
-  link.textContent = label;
-  container.appendChild(link);
+  const a = document.createElement("a");
+  a.href = url;
+  a.target = "_blank";
+  a.rel = "noopener noreferrer";
+  a.textContent = label;
+  parent.appendChild(a);
 }
 
-async function uploadMedia(file, folder, allowedTypes, maxSizeMB) {
+async function uploadFile(file, folder, types, maxMB) {
   if (!file) return null;
-  if (!allowedTypes.includes(file.type)) throw new Error("This file type is not allowed.");
-  if (file.size > maxSizeMB * 1024 * 1024) {
-    throw new Error("File size must be " + maxSizeMB + " MB or less.");
+
+  if (!types.includes(file.type)) {
+    throw new Error("This file type is not allowed.");
   }
 
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const path = folder + "/" + Date.now() + "-" + safeName;
+  if (file.size > maxMB * 1024 * 1024) {
+    throw new Error("File size must be " + maxMB + " MB or less.");
+  }
 
-  const { error } = await db().storage.from("site-media")
-    .upload(path, file, { contentType: file.type, upsert: false });
+  const filename = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const path = folder + "/" + Date.now() + "-" + filename;
+
+  const { error } = await db().storage
+    .from("site-media")
+    .upload(path, file, {
+      contentType: file.type,
+      upsert: false
+    });
+
   if (error) throw error;
 
-  const { data } = db().storage.from("site-media").getPublicUrl(path);
+  const { data } = db().storage
+    .from("site-media")
+    .getPublicUrl(path);
+
   return data.publicUrl;
 }
 
-// ----- shared database helpers -----
+async function saveRow(table, id, record) {
+  const query = id
+    ? db().from(table).update(record).eq("id", id)
+    : db().from(table).insert([record]);
 
-// Insert (no id) or update (with id). Throws on error.
-async function saveRecord(table, id, record) {
-  const result = id
-    ? await db().from(table).update(record).eq("id", id)
-    : await db().from(table).insert([record]);
-  if (result.error) throw result.error;
-}
-
-// Read one column of an existing row (used to keep old file/image URL).
-async function getOldValue(table, id, column) {
-  const { data, error } = await db().from(table).select(column).eq("id", id).single();
+  const { error } = await query;
   if (error) throw error;
-  return data[column];
 }
 
-// Ask, delete a row, show message, reload list.
-async function deleteRecord(table, id, question, messageId, doneText, reload) {
+async function getOldValue(table, id, column) {
+  const { data, error } = await db()
+    .from(table)
+    .select(column)
+    .eq("id", id)
+    .single();
+
+  if (error) throw error;
+  return data?.[column] || null;
+}
+
+async function deleteRow(table, id, question, messageId, reload) {
   if (!confirm(question)) return;
-  const { error } = await db().from(table).delete().eq("id", id);
+
+  const { error } = await db()
+    .from(table)
+    .delete()
+    .eq("id", id);
+
   if (error) {
-    handleError(messageId, error);
+    report(messageId, error);
     return;
   }
-  showMessage(messageId, doneText);
+
+  showMessage(messageId, "Deleted successfully.");
   await reload();
 }
 
-// Fetch rows and draw one card per row. buildCard(item) returns a card.
-async function loadList(table, listId, emptyText, orderColumn, ascending, buildCard) {
+async function loadRows(table, listId, order, ascending, emptyText, render) {
   const list = $(listId);
   if (!list) return;
 
-  const { data, error } = await db().from(table).select("*")
-    .order(orderColumn, { ascending });
+  list.textContent = "Loading...";
+
+  const { data, error } = await db()
+    .from(table)
+    .select("*")
+    .order(order, { ascending });
 
   if (error) {
     list.textContent = error.message;
+    console.error(error);
     return;
   }
-  if (!data.length) {
-    clearList(listId, emptyText);
+
+  if (!data || data.length === 0) {
+    list.textContent = emptyText;
     return;
   }
 
   list.replaceChildren();
-  data.forEach(item => list.appendChild(buildCard(item)));
+  data.forEach(item => list.appendChild(render(item)));
 }
 
-// Fill form fields. map = { elementId: "column" }
-function fillForm(map, item, buttonId, buttonText, managerId) {
-  Object.entries(map).forEach(([id, key]) => {
+function fillForm(fields, item, buttonId, buttonText, sectionId) {
+  Object.entries(fields).forEach(([id, key]) => {
     const el = $(id);
-    if (!el) return;
-    el.value = key === "published" ? String(item[key]) : (item[key] ?? "");
+    if (el) el.value = item[key] == null ? "" : String(item[key]);
   });
+
+  if (buttonId && $(buttonId)) {
+    $(buttonId).textContent = buttonText;
+  }
+
+  $(sectionId)?.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+}
+
+function resetForm(formId, hiddenId, buttonId, buttonText) {
+  $(formId)?.reset();
+  if ($(hiddenId)) $(hiddenId).value = "";
   if ($(buttonId)) $(buttonId).textContent = buttonText;
-  const manager = $(managerId);
-  if (manager) manager.scrollIntoView({ behavior: "smooth" });
 }
 
-function resetForm(formId, idFieldId, buttonId, buttonText) {
-  $(formId).reset();
-  $(idFieldId).value = "";
-  $(buttonId).textContent = buttonText;
-}
+// ============================================
+// LOGIN AND ADMIN ACCESS
+// ============================================
 
-const statusText = item => item.published ? "Published" : "Draft";
-
-
-// ==========================================
-// LOGIN AND ADMIN VERIFICATION
-// ==========================================
-
-async function checkExistingSession() {
+async function checkSession() {
   try {
     const { data, error } = await db().auth.getSession();
     if (error) throw error;
-    if (data.session) await verifyAdmin(data.session.user);
+
+    if (data.session?.user) {
+      await verifyAdmin();
+    }
   } catch (error) {
-    handleError("loginMessage", error);
+    report("loginMessage", error);
   }
 }
 
-async function handleLogin(event) {
+async function login(event) {
   event.preventDefault();
 
-  const email = getValue("email");
-  const password = $("password") ? $("password").value : "";
+  const email = val("email");
+  const password = $("password")?.value || "";
 
   if (!email || !password) {
-    showMessage("loginMessage", "Please enter email and password.", true);
+    showMessage("loginMessage", "Enter email and password.", true);
     return;
   }
 
-  const button = document.querySelector("#loginForm button[type='submit']");
+  const button = $("loginForm")?.querySelector(
+    'button[type="submit"]'
+  );
+
   if (button) {
     button.disabled = true;
     button.textContent = "Signing in...";
@@ -242,11 +272,17 @@ async function handleLogin(event) {
   showMessage("loginMessage", "Checking login details...");
 
   try {
-    const { data, error } = await db().auth.signInWithPassword({ email, password });
+    const { error } = await db().auth.signInWithPassword({
+      email,
+      password
+    });
+
     if (error) throw error;
-    await verifyAdmin(data.user);
+    await verifyAdmin();
+
   } catch (error) {
-    handleError("loginMessage", error);
+    report("loginMessage", error);
+
   } finally {
     if (button) {
       button.disabled = false;
@@ -255,1241 +291,662 @@ async function handleLogin(event) {
   }
 }
 
-async function verifyAdmin(user) {
-  try {
-    showMessage("loginMessage", "Verifying administrator access...");
+async function verifyAdmin() {
+  const { data, error } = await db().rpc("is_admin");
 
-    const { data, error } = await db().rpc("is_admin");
-    if (error) throw error;
+  if (error) throw error;
 
-    if (data !== true) {
-      await db().auth.signOut();
-      showMessage("loginMessage", "Access denied. This account is not an authorized admin.", true);
-      return;
-    }
-
-    $("loginSection").classList.add("hidden");
-    $("dashboardSection").classList.remove("hidden");
-    showMessage("loginMessage", "");
-
-    await Promise.all([
-      loadStudyNotes(),
-      loadBlogs(),
-      loadPages(),
-      loadGallery(),
-      loadAdminAnnouncements(),
-      loadNavigation(),
-      loadSettings()
-    ]);
-  } catch (error) {
-    handleError("loginMessage", error);
+  if (data !== true) {
+    await db().auth.signOut();
+    showMessage(
+      "loginMessage",
+      "Access denied. This account is not an authorized admin.",
+      true
+    );
+    return;
   }
+
+  $("loginSection")?.classList.add("hidden");
+  $("dashboardSection")?.classList.remove("hidden");
+
+  await Promise.allSettled([
+    loadNotes(),
+    loadBlogs(),
+    loadPages(),
+    loadGallery(),
+    loadAnnouncements(),
+    loadNavigation(),
+    loadSettings()
+  ]);
 }
 
-async function handleLogout() {
+async function logout() {
   await db().auth.signOut();
   location.reload();
 }
 
+// ============================================
+// STUDY NOTES
+// Table: study_materials
+// ============================================
 
-// ==========================================
-// STUDY NOTES  (Table: study_materials)
-// ==========================================
-
-async function saveStudyNote(event) {
+async function saveNote(event) {
   event.preventDefault();
 
-  const id = getValue("studyNoteId");
-  const pdf = $("notePdf").files[0];
-  const title = getValue("noteTitle");
-  const category = getValue("noteCategory");
-  const description = getValue("noteDescription");
-  const body = getValue("noteBody");
+  const id = val("studyNoteId");
+  const file = $("notePdf")?.files?.[0];
+  const title = val("noteTitle");
+  const category = val("noteCategory");
+  const body = val("noteBody");
 
-  if (!title || !category || (!body && !pdf && !id)) {
-    showMessage("studyNoteMessage", "Enter title, category and notes content or PDF.", true);
+  if (!title || !category || (!body && !file && !id)) {
+    showMessage(
+      "studyNoteMessage",
+      "Enter title, category and notes content or PDF.",
+      true
+    );
     return;
   }
 
-  setButtonLoading("saveNoteButton", true, "Save Notes");
+  setBusy("saveNoteButton", true);
 
   try {
-    let fileUrl = id ? await getOldValue("study_materials", id, "file_url") : null;
+    let file_url = id
+      ? await getOldValue("study_materials", id, "file_url")
+      : null;
 
-    if (pdf) fileUrl = await uploadMedia(pdf, "study-notes", ["application/pdf"], 10);
+    if (file) {
+      file_url = await uploadFile(
+        file,
+        "study-notes",
+        ["application/pdf"],
+        10
+      );
+    }
 
-    await saveRecord("study_materials", id, {
+    await saveRow("study_materials", id, {
       title,
       category,
-      description: description || null,
+      description: val("noteDescription") || null,
       body: body || null,
-      file_url: fileUrl,
-      published: getPublished("notePublished")
+      file_url,
+      published: val("notePublished") === "true"
     });
 
-    resetStudyNoteForm();
-    showMessage("studyNoteMessage", "Study notes saved successfully!");
-    await loadStudyNotes();
+    resetNote();
+    showMessage("studyNoteMessage", "Study notes saved successfully.");
+    await loadNotes();
+
   } catch (error) {
-    handleError("studyNoteMessage", error);
+    report("studyNoteMessage", error);
+
   } finally {
-    setButtonLoading("saveNoteButton", false, "Save Notes");
+    setBusy("saveNoteButton", false, "Save Notes");
   }
 }
 
-function loadStudyNotes() {
-  clearList("adminStudyNotesList", "Loading...");
-  return loadList("study_materials", "adminStudyNotesList", "No study notes found.",
-    "created_at", false, note => {
-      const card = makeAdminCard(
+function loadNotes() {
+  return loadRows(
+    "study_materials",
+    "adminStudyNotesList",
+    "created_at",
+    false,
+    "No study notes found.",
+    note => {
+      const card = makeCard(
         note.title,
-        "Category: " + note.category + " | " + statusText(note),
+        "Category: " + note.category + " | " + status(note),
         [
-          actionButton("Edit", () => editStudyNote(note)),
-          actionButton("Delete", () => deleteStudyNote(note.id))
+          makeButton("Edit", () => editNote(note)),
+          makeButton("Delete", () =>
+            deleteRow(
+              "study_materials",
+              note.id,
+              "Delete these study notes?",
+              "studyNoteMessage",
+              loadNotes
+            )
+          )
         ]
       );
-      if (note.description) card.appendChild(createElement("p", note.description));
-      addExternalLink(card, note.file_url, "Open PDF");
+
+      if (note.description) {
+        const p = document.createElement("p");
+        p.textContent = note.description;
+        card.appendChild(p);
+      }
+
+      addLink(card, note.file_url, "Open PDF");
       return card;
-    });
+    }
+  );
 }
 
-function editStudyNote(note) {
+function editNote(note) {
   fillForm({
-    studyNoteId: "id", noteTitle: "title", noteCategory: "category",
-    noteDescription: "description", noteBody: "body", notePublished: "published"
+    studyNoteId: "id",
+    noteTitle: "title",
+    noteCategory: "category",
+    noteDescription: "description",
+    noteBody: "body",
+    notePublished: "published"
   }, note, "saveNoteButton", "Update Notes", "studyNotesManager");
-  $("notePdf").value = "";
+
+  if ($("notePdf")) $("notePdf").value = "";
 }
 
-function deleteStudyNote(id) {
-  return deleteRecord("study_materials", id, "Delete these study notes?",
-    "studyNoteMessage", "Notes deleted.", loadStudyNotes);
+function resetNote() {
+  resetForm(
+    "studyNotesForm",
+    "studyNoteId",
+    "saveNoteButton",
+    "Save Notes"
+  );
 }
 
-function resetStudyNoteForm() {
-  resetForm("studyNotesForm", "studyNoteId", "saveNoteButton", "Save Notes");
-}
-
-
-// ==========================================
-// BLOGS  (Table: site_blogs)
-// ==========================================
+// ============================================
+// BLOGS
+// Table: site_blogs
+// ============================================
 
 async function saveBlog(event) {
   event.preventDefault();
 
-  const id = getValue("blogId");
-  const image = $("blogImage").files[0];
-  const title = getValue("blogTitle");
-  const slug = safeSlug(getValue("blogSlug") || title);
-  const excerpt = getValue("blogExcerpt");
-  const content = getValue("blogContent");
+  const id = val("blogId");
+  const file = $("blogImage")?.files?.[0];
+  const title = val("blogTitle");
+  const slug = slugify(val("blogSlug") || title);
+  const content = val("blogContent");
 
   if (!title || !slug || !content) {
     showMessage("blogMessage", "Complete all required blog fields.", true);
     return;
   }
 
-  setButtonLoading("saveBlogButton", true, "Save Blog");
+  setBusy("saveBlogButton", true);
 
   try {
-    let imageUrl = id ? await getOldValue("site_blogs", id, "image_url") : null;
+    let image_url = id
+      ? await getOldValue("site_blogs", id, "image_url")
+      : null;
 
-    if (image) {
-      imageUrl = await uploadMedia(image, "blogs", ["image/jpeg", "image/png", "image/webp"], 5);
+    if (file) {
+      image_url = await uploadFile(
+        file,
+        "blogs",
+        ["image/jpeg", "image/png", "image/webp"],
+        5
+      );
     }
 
-    await saveRecord("site_blogs", id, {
+    await saveRow("site_blogs", id, {
       title,
       slug,
-      excerpt: excerpt || null,
+      excerpt: val("blogExcerpt") || null,
       content,
-      image_url: imageUrl,
-      published: getPublished("blogPublished"),
+      image_url,
+      published: val("blogPublished") === "true",
       updated_at: new Date().toISOString()
     });
 
-    resetBlogForm();
-    showMessage("blogMessage", "Blog saved successfully!");
+    resetBlog();
+    showMessage("blogMessage", "Blog saved successfully.");
     await loadBlogs();
+
   } catch (error) {
-    handleError("blogMessage", error);
+    report("blogMessage", error);
+
   } finally {
-    setButtonLoading("saveBlogButton", false, "Save Blog");
+    setBusy("saveBlogButton", false, "Save Blog");
   }
 }
 
 function loadBlogs() {
-  return loadList("site_blogs", "adminBlogsList", "No blogs found.",
-    "created_at", false, blog => {
-      const card = makeAdminCard(
-        blog.title,
-        "Slug: " + blog.slug + " | " + statusText(blog),
-        [
-          actionButton("Edit", () => editBlog(blog)),
-          actionButton("Delete", () => deleteBlog(blog.id))
-        ]
-      );
-      addExternalLink(card, blog.image_url, "Open Blog Image");
-      return card;
-    });
+  return loadRows(
+    "site_blogs",
+    "adminBlogsList",
+    "created_at",
+    false,
+    "No blogs found.",
+    blog => makeCard(
+      blog.title,
+      "Slug: " + blog.slug + " | " + status(blog),
+      [
+        makeButton("Edit", () => editBlog(blog)),
+        makeButton("Delete", () =>
+          deleteRow(
+            "site_blogs",
+            blog.id,
+            "Delete this blog?",
+            "blogMessage",
+            loadBlogs
+          )
+        )
+      ]
+    )
+  );
 }
 
 function editBlog(blog) {
   fillForm({
-    blogId: "id", blogTitle: "title", blogSlug: "slug", blogExcerpt: "excerpt",
-    blogContent: "content", blogPublished: "published"
+    blogId: "id",
+    blogTitle: "title",
+    blogSlug: "slug",
+    blogExcerpt: "excerpt",
+    blogContent: "content",
+    blogPublished: "published"
   }, blog, "saveBlogButton", "Update Blog", "blogsManager");
-  $("blogImage").value = "";
+
+  if ($("blogImage")) $("blogImage").value = "";
 }
 
-function deleteBlog(id) {
-  return deleteRecord("site_blogs", id, "Delete this blog?",
-    "blogMessage", "Blog deleted.", loadBlogs);
-}
-
-function resetBlogForm() {
+function resetBlog() {
   resetForm("blogForm", "blogId", "saveBlogButton", "Save Blog");
 }
 
-
-// ==========================================
-// PAGES  (Table: site_pages)
-// ==========================================
+// ============================================
+// PAGES
+// Table: site_pages
+// ============================================
 
 async function savePage(event) {
   event.preventDefault();
 
-  const id = getValue("pageId");
-  const title = getValue("pageTitle");
-  const slug = safeSlug(getValue("pageSlug") || title);
-  const content = getValue("pageContent");
+  const id = val("pageId");
+  const title = val("pageTitle");
+  const slug = slugify(val("pageSlug") || title);
+  const content = val("pageContent");
 
   if (!title || !slug || !content) {
     showMessage("pageMessage", "Complete all required fields.", true);
     return;
   }
 
-  setButtonLoading("savePageButton", true, "Save Page");
+  setBusy("savePageButton", true);
 
   try {
-    await saveRecord("site_pages", id, {
+    await saveRow("site_pages", id, {
       title,
       slug,
       content,
-      published: getPublished("pagePublished"),
+      published: val("pagePublished") === "true",
       updated_at: new Date().toISOString()
     });
 
-    resetPageForm();
-    showMessage("pageMessage", "Page saved successfully!");
+    resetPage();
+    showMessage("pageMessage", "Page saved successfully.");
     await loadPages();
+
   } catch (error) {
-    handleError("pageMessage", error);
+    report("pageMessage", error);
+
   } finally {
-    setButtonLoading("savePageButton", false, "Save Page");
+    setBusy("savePageButton", false, "Save Page");
   }
 }
 
 function loadPages() {
-  return loadList("site_pages", "adminPagesList", "No pages found.",
-    "created_at", false, page => makeAdminCard(
+  return loadRows(
+    "site_pages",
+    "adminPagesList",
+    "created_at",
+    false,
+    "No pages found.",
+    page => makeCard(
       page.title,
-      "URL: " + page.slug + " | " + statusText(page),
+      "URL: " + page.slug + " | " + status(page),
       [
-        actionButton("Edit", () => editPage(page)),
-        actionButton("Delete", () => deletePage(page.id))
+        makeButton("Edit", () => editPage(page)),
+        makeButton("Delete", () =>
+          deleteRow(
+            "site_pages",
+            page.id,
+            "Delete this page?",
+            "pageMessage",
+            loadPages
+          )
+        )
       ]
-    ));
+    )
+  );
 }
 
 function editPage(page) {
   fillForm({
-    pageId: "id", pageTitle: "title", pageSlug: "slug",
-    pageContent: "content", pagePublished: "published"
+    pageId: "id",
+    pageTitle: "title",
+    pageSlug: "slug",
+    pageContent: "content",
+    pagePublished: "published"
   }, page, "savePageButton", "Update Page", "pagesManager");
 }
 
-function deletePage(id) {
-  return deleteRecord("site_pages", id, "Delete this page?",
-    "pageMessage", "Page deleted.", loadPages);
-}
-
-function resetPageForm() {
+function resetPage() {
   resetForm("pageForm", "pageId", "savePageButton", "Save Page");
 }
 
+// ============================================
+// GALLERY
+// Table: site_gallery
+// ============================================
 
-// ==========================================
-// GALLERY  (Table: site_gallery)
-// ==========================================
-
-async function uploadGalleryImage(event) {
+async function uploadGallery(event) {
   event.preventDefault();
 
-  const file = $("galleryImage").files[0];
+  const file = $("galleryImage")?.files?.[0];
 
   if (!file) {
     showMessage("galleryMessage", "Choose an image first.", true);
     return;
   }
 
-  setButtonLoading("saveGalleryButton", true, "Upload Image");
+  setBusy("saveGalleryButton", true);
 
   try {
-    const imageUrl = await uploadMedia(file, "gallery", ["image/jpeg", "image/png", "image/webp"], 5);
+    const image_url = await uploadFile(
+      file,
+      "gallery",
+      ["image/jpeg", "image/png", "image/webp"],
+      5
+    );
 
     const { error } = await db().from("site_gallery").insert([{
-      title: getValue("galleryTitle") || "Gallery Image",
-      description: getValue("galleryDescription") || null,
-      image_url: imageUrl,
+      title: val("galleryTitle") || "Gallery Image",
+      description: val("galleryDescription") || null,
+      image_url,
       published: true
     }]);
+
     if (error) throw error;
 
     $("galleryForm").reset();
-    showMessage("galleryMessage", "Image uploaded successfully!");
+    showMessage("galleryMessage", "Image uploaded successfully.");
     await loadGallery();
+
   } catch (error) {
-    handleError("galleryMessage", error);
+    report("galleryMessage", error);
+
   } finally {
-    setButtonLoading("saveGalleryButton", false, "Upload Image");
+    setBusy("saveGalleryButton", false, "Upload Image");
   }
 }
 
 function loadGallery() {
-  return loadList("site_gallery", "adminGalleryList", "No gallery images found.",
-    "created_at", false, item => {
-      const card = makeAdminCard(
+  return loadRows(
+    "site_gallery",
+    "adminGalleryList",
+    "created_at",
+    false,
+    "No gallery images found.",
+    item => {
+      const card = makeCard(
         item.title || "Gallery Image",
         item.description || "Website gallery image",
-        [actionButton("Delete", () => deleteGalleryImage(item.id))]
+        [
+          makeButton("Delete", () =>
+            deleteRow(
+              "site_gallery",
+              item.id,
+              "Delete this gallery image?",
+              "galleryMessage",
+              loadGallery
+            )
+          )
+        ]
       );
 
-      const image = document.createElement("img");
-      image.src = item.image_url;
-      image.alt = item.title || "Gallery image";
-      image.loading = "lazy";
-      image.style.maxWidth = "180px";
-      image.style.height = "auto";
-      image.style.borderRadius = "10px";
+      const img = document.createElement("img");
+      img.src = item.image_url;
+      img.alt = item.title || "Gallery image";
+      img.loading = "lazy";
+      img.style.maxWidth = "180px";
+      img.style.height = "auto";
+      img.style.borderRadius = "10px";
 
-      card.prepend(image);
+      card.prepend(img);
       return card;
-    });
-}
-
-function deleteGalleryImage(id) {
-  return deleteRecord("site_gallery", id, "Delete this gallery entry?",
-    "galleryMessage", "Gallery image deleted.", loadGallery);
-}
-
-
-// ==========================================================
-// ANNOUNCEMENTS, NAVIGATION, SETTINGS
-// NOTE: These were missing from your pasted code, so they are
-// rebuilt here. If your ORIGINAL file has them, replace this
-// block (till the end of the file) with your original versions.
-// Table and element names below are assumptions.
-// ==========================================================
-
-// ---------- ANNOUNCEMENTS (table: site_announcements) ----------
-
-async function publishAnnouncement(event) {
-  event.preventDefault();
-
-  const title = getValue("announcementTitle");
-  const message = getValue("announcementBody");
-
-  if (!title || !message) {
-    showMessage("announcementMessage", "Enter title and message.", true);
-    return;
-  }
-
-  setButtonLoading("publishAnnouncementButton", true, "Publish");
-
-  try {
-    await saveRecord("site_announcements", "", { title, message, published: true });
-    $("announcementForm").reset();
-    showMessage("announcementMessage", "Announcement published!");
-    await loadAdminAnnouncements();
-  } catch (error) {
-    handleError("announcementMessage", error);
-  } finally {
-    setButtonLoading("publishAnnouncementButton", false, "Publish");
-  }
-}
-
-function loadAdminAnnouncements() {
-  return loadList("site_announcements", "adminAnnouncementsList", "No announcements found.",
-    "created_at", false, item => {
-      const card = makeAdminCard(
-        item.title,
-        statusText(item),
-        [actionButton("Delete", () => deleteAnnouncement(item.id))]
-      );
-      if (item.message) card.appendChild(createElement("p", item.message));
-      return card;
-    });
-}
-
-function deleteAnnouncement(id) {
-  return deleteRecord("site_announcements", id, "Delete this announcement?",
-    "announcementMessage", "Announcement deleted.", loadAdminAnnouncements);
-}
-
-
-// ---------- NAVIGATION (table: site_navigation) ----------
-
-async function saveNavigation(event) {
-  event.preventDefault();
-
-  const id = getValue("navigationId");
-  const label = getValue("navigationLabel");
-  const url = getValue("navigationUrl");
-  const sortOrder = parseInt(getValue("navigationOrder"), 10) || 0;
-
-  if (!label || !url) {
-    showMessage("navigationMessage", "Enter label and URL.", true);
-    return;
-  }
-
-  setButtonLoading("saveNavigationButton", true, "Save Menu Item");
-
-  try {
-    await saveRecord("site_navigation", id, {
-      label,
-      url,
-      sort_order: sortOrder,
-      published: getPublished("navigationPublished")
-    });
-
-    resetNavigationForm();
-    showMessage("navigationMessage", "Menu item saved successfully!");
-    await loadNavigation();
-  } catch (error) {
-    handleError("navigationMessage", error);
-  } finally {
-    setButtonLoading("saveNavigationButton", false, "Save Menu Item");
-  }
-}
-
-function loadNavigation() {
-  return loadList("site_navigation", "adminNavigationList", "No menu items found.",
-    "sort_order", true, item => makeAdminCard(
-      item.label,
-      "URL: " + item.url + " | " + statusText(item),
-      [
-        actionButton("Edit", () => editNavigation(item)),
-        actionButton("Delete", () => deleteNavigation(item.id))
-      ]
-    ));
-}
-
-function editNavigation(item) {
-  fillForm({
-    navigationId: "id", navigationLabel: "label", navigationUrl: "url",
-    navigationOrder: "sort_order", navigationPublished: "published"
-  }, item, "saveNavigationButton", "Update Menu Item", "navigationManager");
-}
-
-function deleteNavigation(id) {
-  return deleteRecord("site_navigation", id, "Delete this menu item?",
-    "navigationMessage", "Menu item deleted.", loadNavigation);
-}
-
-function resetNavigationForm() {
-  resetForm("navigationForm", "navigationId", "saveNavigationButton", "Save Menu Item");
-}
-
-
-// ---------- SETTINGS (table: site_settings, columns: key, value) ----------
-// Each input in #settingsForm must have a name attribute equal to its key.
-
-async function loadSettings() {
-  const form = $("settingsForm");
-  if (!form) return;
-
-  const { data, error } = await db().from("site_settings").select("*");
-  if (error) {
-    handleError("settingsMessage", error);
-    return;
-  }
-
-  (data || []).forEach(row => {
-    const field = form.elements[row.key];
-    if (field) field.value = row.value || "";
-  });
-}
-
-async function saveSettings(event) {
-  event.preventDefault();
-
-  setButtonLoading("saveSettingsButton", true, "Save Settings");
-
-  try {
-    const rows = Array.from($("settingsForm").elements)
-      .filter(field => field.name)
-      .map(field => ({ key: field.name, value: field.value.trim() }));
-
-    if (rows.length) {
-      const { error } = await db().from("site_settings").upsert(rows, { onConflict: "key" });
-      if (error) throw error;
     }
-
-    showMessage("settingsMessage", "Settings saved successfully!");
-  } catch (error) {
-    handleError("settingsMessage", error);
-  } finally {
-    setButtonLoading("saveSettingsButton", false, "Save Settings");
-    (() => {
-// ==========================================
-// ADMIN PANEL (short version, same features)
-// ==========================================
-
-const db = () => window.supabaseClient;
-const $ = id => document.getElementById(id);
-
-document.addEventListener("DOMContentLoaded", () => {
-  if (!db()) {
-    showMessage("loginMessage", "Database connection failed. Check config.js.", true);
-    return;
-  }
-
-  [
-    ["loginForm", "submit", handleLogin],
-    ["logoutButton", "click", handleLogout],
-    ["studyNotesForm", "submit", saveStudyNote],
-    ["cancelNoteEdit", "click", resetStudyNoteForm],
-    ["blogForm", "submit", saveBlog],
-    ["cancelBlogEdit", "click", resetBlogForm],
-    ["pageForm", "submit", savePage],
-    ["cancelPageEdit", "click", resetPageForm],
-    ["galleryForm", "submit", uploadGalleryImage],
-    ["announcementForm", "submit", publishAnnouncement],
-    ["navigationForm", "submit", saveNavigation],
-    ["cancelNavigationEdit", "click", resetNavigationForm],
-    ["settingsForm", "submit", saveSettings]
-  ].forEach(([id, event, callback]) => {
-    const el = $(id);
-    if (el) el.addEventListener(event, callback);
-    else console.warn("Missing HTML element:", id);
-  });
-
-  checkExistingSession();
-});
-
-
-// ==========================================
-// COMMON HELPERS
-// ==========================================
-
-function showMessage(id, message, isError = false) {
-  const el = $(id);
-  if (!el) return;
-  el.textContent = message;
-  el.className = isError ? "form-message error" : "form-message success";
+  );
 }
 
-function getValue(id) {
-  const el = $(id);
-  return el ? el.value.trim() : "";
-}
+// ============================================
+// ANNOUNCEMENTS
+// Table: announcements
+// Columns: title, content, is_active
+// ============================================
 
-function getPublished(id) {
-  return getValue(id) === "true";
-}
-
-function setButtonLoading(id, loading, normalText) {
-  const button = $(id);
-  if (!button) return;
-  button.disabled = loading;
-  button.textContent = loading ? "Please wait..." : normalText;
-}
-
-function handleError(messageId, error) {
-  console.error(error);
-  showMessage(messageId, error.message || "Something went wrong. Please try again.", true);
-}
-
-function createElement(tag, text, className) {
-  const el = document.createElement(tag);
-  el.textContent = text || "";
-  if (className) el.className = className;
-  return el;
-}
-
-function clearList(id, message) {
-  const el = $(id);
-  if (el) el.replaceChildren(createElement("p", message, "muted"));
-}
-
-function makeAdminCard(title, details, actions = []) {
-  const card = document.createElement("div");
-  card.className = "admin-announcement";
-  card.appendChild(createElement("h3", title));
-  card.appendChild(createElement("p", details, "muted"));
-
-  if (actions.length) {
-    const buttons = document.createElement("div");
-    buttons.className = "admin-actions";
-    actions.forEach(button => buttons.appendChild(button));
-    card.appendChild(buttons);
-  }
-  return card;
-}
-
-function actionButton(label, callback) {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "btn btn-outline-dark";
-  button.textContent = label;
-  button.addEventListener("click", callback);
-  return button;
-}
-
-function safeSlug(value) {
-  return value.toLowerCase().trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
-function addExternalLink(container, url, label) {
-  if (!url) return;
-  const link = document.createElement("a");
-  link.href = url;
-  link.target = "_blank";
-  link.rel = "noopener noreferrer";
-  link.textContent = label;
-  container.appendChild(link);
-}
-
-async function uploadMedia(file, folder, allowedTypes, maxSizeMB) {
-  if (!file) return null;
-  if (!allowedTypes.includes(file.type)) throw new Error("This file type is not allowed.");
-  if (file.size > maxSizeMB * 1024 * 1024) {
-    throw new Error("File size must be " + maxSizeMB + " MB or less.");
-  }
-
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const path = folder + "/" + Date.now() + "-" + safeName;
-
-  const { error } = await db().storage.from("site-media")
-    .upload(path, file, { contentType: file.type, upsert: false });
-  if (error) throw error;
-
-  const { data } = db().storage.from("site-media").getPublicUrl(path);
-  return data.publicUrl;
-}
-
-// ----- shared database helpers -----
-
-// Insert (no id) or update (with id). Throws on error.
-async function saveRecord(table, id, record) {
-  const result = id
-    ? await db().from(table).update(record).eq("id", id)
-    : await db().from(table).insert([record]);
-  if (result.error) throw result.error;
-}
-
-// Read one column of an existing row (used to keep old file/image URL).
-async function getOldValue(table, id, column) {
-  const { data, error } = await db().from(table).select(column).eq("id", id).single();
-  if (error) throw error;
-  return data[column];
-}
-
-// Ask, delete a row, show message, reload list.
-async function deleteRecord(table, id, question, messageId, doneText, reload) {
-  if (!confirm(question)) return;
-  const { error } = await db().from(table).delete().eq("id", id);
-  if (error) {
-    handleError(messageId, error);
-    return;
-  }
-  showMessage(messageId, doneText);
-  await reload();
-}
-
-// Fetch rows and draw one card per row. buildCard(item) returns a card.
-async function loadList(table, listId, emptyText, orderColumn, ascending, buildCard) {
-  const list = $(listId);
-  if (!list) return;
-
-  const { data, error } = await db().from(table).select("*")
-    .order(orderColumn, { ascending });
-
-  if (error) {
-    list.textContent = error.message;
-    return;
-  }
-  if (!data.length) {
-    clearList(listId, emptyText);
-    return;
-  }
-
-  list.replaceChildren();
-  data.forEach(item => list.appendChild(buildCard(item)));
-}
-
-// Fill form fields. map = { elementId: "column" }
-function fillForm(map, item, buttonId, buttonText, managerId) {
-  Object.entries(map).forEach(([id, key]) => {
-    const el = $(id);
-    if (!el) return;
-    el.value = key === "published" ? String(item[key]) : (item[key] ?? "");
-  });
-  if ($(buttonId)) $(buttonId).textContent = buttonText;
-  const manager = $(managerId);
-  if (manager) manager.scrollIntoView({ behavior: "smooth" });
-}
-
-function resetForm(formId, idFieldId, buttonId, buttonText) {
-  $(formId).reset();
-  $(idFieldId).value = "";
-  $(buttonId).textContent = buttonText;
-}
-
-const statusText = item => item.published ? "Published" : "Draft";
-
-
-// ==========================================
-// LOGIN AND ADMIN VERIFICATION
-// ==========================================
-
-async function checkExistingSession() {
-  try {
-    const { data, error } = await db().auth.getSession();
-    if (error) throw error;
-    if (data.session) await verifyAdmin(data.session.user);
-  } catch (error) {
-    handleError("loginMessage", error);
-  }
-}
-
-async function handleLogin(event) {
+async function saveAnnouncement(event) {
   event.preventDefault();
 
-  const email = getValue("email");
-  const password = $("password") ? $("password").value : "";
+  const title = val("announcementTitle");
+  const content = val("announcementContent");
 
-  if (!email || !password) {
-    showMessage("loginMessage", "Please enter email and password.", true);
+  if (!title || !content) {
+    showMessage("announcementMessage", "Enter title and details.", true);
     return;
   }
 
-  const button = document.querySelector("#loginForm button[type='submit']");
+  const button = $("announcementForm")
+    ?.querySelector('button[type="submit"]');
+
   if (button) {
     button.disabled = true;
-    button.textContent = "Signing in...";
+    button.textContent = "Publishing...";
   }
 
-  showMessage("loginMessage", "Checking login details...");
-
   try {
-    const { data, error } = await db().auth.signInWithPassword({ email, password });
+    const { error } = await db().from("announcements").insert([{
+      title,
+      content,
+      is_active: true
+    }]);
+
     if (error) throw error;
-    await verifyAdmin(data.user);
+
+    $("announcementForm").reset();
+    showMessage("announcementMessage", "Announcement published.");
+    await loadAnnouncements();
+
   } catch (error) {
-    handleError("loginMessage", error);
+    report("announcementMessage", error);
+
   } finally {
     if (button) {
       button.disabled = false;
-      button.textContent = "Login";
+      button.textContent = "Publish Announcement";
     }
   }
 }
 
-async function verifyAdmin(user) {
-  try {
-    showMessage("loginMessage", "Verifying administrator access...");
-
-    const { data, error } = await db().rpc("is_admin");
-    if (error) throw error;
-
-    if (data !== true) {
-      await db().auth.signOut();
-      showMessage("loginMessage", "Access denied. This account is not an authorized admin.", true);
-      return;
-    }
-
-    $("loginSection").classList.add("hidden");
-    $("dashboardSection").classList.remove("hidden");
-    showMessage("loginMessage", "");
-
-    await Promise.all([
-      loadStudyNotes(),
-      loadBlogs(),
-      loadPages(),
-      loadGallery(),
-      loadAdminAnnouncements(),
-      loadNavigation(),
-      loadSettings()
-    ]);
-  } catch (error) {
-    handleError("loginMessage", error);
-  }
-}
-
-async function handleLogout() {
-  await db().auth.signOut();
-  location.reload();
-}
-
-
-// ==========================================
-// STUDY NOTES  (Table: study_materials)
-// ==========================================
-
-async function saveStudyNote(event) {
-  event.preventDefault();
-
-  const id = getValue("studyNoteId");
-  const pdf = $("notePdf").files[0];
-  const title = getValue("noteTitle");
-  const category = getValue("noteCategory");
-  const description = getValue("noteDescription");
-  const body = getValue("noteBody");
-
-  if (!title || !category || (!body && !pdf && !id)) {
-    showMessage("studyNoteMessage", "Enter title, category and notes content or PDF.", true);
-    return;
-  }
-
-  setButtonLoading("saveNoteButton", true, "Save Notes");
-
-  try {
-    let fileUrl = id ? await getOldValue("study_materials", id, "file_url") : null;
-
-    if (pdf) fileUrl = await uploadMedia(pdf, "study-notes", ["application/pdf"], 10);
-
-    await saveRecord("study_materials", id, {
-      title,
-      category,
-      description: description || null,
-      body: body || null,
-      file_url: fileUrl,
-      published: getPublished("notePublished")
-    });
-
-    resetStudyNoteForm();
-    showMessage("studyNoteMessage", "Study notes saved successfully!");
-    await loadStudyNotes();
-  } catch (error) {
-    handleError("studyNoteMessage", error);
-  } finally {
-    setButtonLoading("saveNoteButton", false, "Save Notes");
-  }
-}
-
-function loadStudyNotes() {
-  clearList("adminStudyNotesList", "Loading...");
-  return loadList("study_materials", "adminStudyNotesList", "No study notes found.",
-    "created_at", false, note => {
-      const card = makeAdminCard(
-        note.title,
-        "Category: " + note.category + " | " + statusText(note),
-        [
-          actionButton("Edit", () => editStudyNote(note)),
-          actionButton("Delete", () => deleteStudyNote(note.id))
-        ]
-      );
-      if (note.description) card.appendChild(createElement("p", note.description));
-      addExternalLink(card, note.file_url, "Open PDF");
-      return card;
-    });
-}
-
-function editStudyNote(note) {
-  fillForm({
-    studyNoteId: "id", noteTitle: "title", noteCategory: "category",
-    noteDescription: "description", noteBody: "body", notePublished: "published"
-  }, note, "saveNoteButton", "Update Notes", "studyNotesManager");
-  $("notePdf").value = "";
-}
-
-function deleteStudyNote(id) {
-  return deleteRecord("study_materials", id, "Delete these study notes?",
-    "studyNoteMessage", "Notes deleted.", loadStudyNotes);
-}
-
-function resetStudyNoteForm() {
-  resetForm("studyNotesForm", "studyNoteId", "saveNoteButton", "Save Notes");
-}
-
-
-// ==========================================
-// BLOGS  (Table: site_blogs)
-// ==========================================
-
-async function saveBlog(event) {
-  event.preventDefault();
-
-  const id = getValue("blogId");
-  const image = $("blogImage").files[0];
-  const title = getValue("blogTitle");
-  const slug = safeSlug(getValue("blogSlug") || title);
-  const excerpt = getValue("blogExcerpt");
-  const content = getValue("blogContent");
-
-  if (!title || !slug || !content) {
-    showMessage("blogMessage", "Complete all required blog fields.", true);
-    return;
-  }
-
-  setButtonLoading("saveBlogButton", true, "Save Blog");
-
-  try {
-    let imageUrl = id ? await getOldValue("site_blogs", id, "image_url") : null;
-
-    if (image) {
-      imageUrl = await uploadMedia(image, "blogs", ["image/jpeg", "image/png", "image/webp"], 5);
-    }
-
-    await saveRecord("site_blogs", id, {
-      title,
-      slug,
-      excerpt: excerpt || null,
-      content,
-      image_url: imageUrl,
-      published: getPublished("blogPublished"),
-      updated_at: new Date().toISOString()
-    });
-
-    resetBlogForm();
-    showMessage("blogMessage", "Blog saved successfully!");
-    await loadBlogs();
-  } catch (error) {
-    handleError("blogMessage", error);
-  } finally {
-    setButtonLoading("saveBlogButton", false, "Save Blog");
-  }
-}
-
-function loadBlogs() {
-  return loadList("site_blogs", "adminBlogsList", "No blogs found.",
-    "created_at", false, blog => {
-      const card = makeAdminCard(
-        blog.title,
-        "Slug: " + blog.slug + " | " + statusText(blog),
-        [
-          actionButton("Edit", () => editBlog(blog)),
-          actionButton("Delete", () => deleteBlog(blog.id))
-        ]
-      );
-      addExternalLink(card, blog.image_url, "Open Blog Image");
-      return card;
-    });
-}
-
-function editBlog(blog) {
-  fillForm({
-    blogId: "id", blogTitle: "title", blogSlug: "slug", blogExcerpt: "excerpt",
-    blogContent: "content", blogPublished: "published"
-  }, blog, "saveBlogButton", "Update Blog", "blogsManager");
-  $("blogImage").value = "";
-}
-
-function deleteBlog(id) {
-  return deleteRecord("site_blogs", id, "Delete this blog?",
-    "blogMessage", "Blog deleted.", loadBlogs);
-}
-
-function resetBlogForm() {
-  resetForm("blogForm", "blogId", "saveBlogButton", "Save Blog");
-}
-
-
-// ==========================================
-// PAGES  (Table: site_pages)
-// ==========================================
-
-async function savePage(event) {
-  event.preventDefault();
-
-  const id = getValue("pageId");
-  const title = getValue("pageTitle");
-  const slug = safeSlug(getValue("pageSlug") || title);
-  const content = getValue("pageContent");
-
-  if (!title || !slug || !content) {
-    showMessage("pageMessage", "Complete all required fields.", true);
-    return;
-  }
-
-  setButtonLoading("savePageButton", true, "Save Page");
-
-  try {
-    await saveRecord("site_pages", id, {
-      title,
-      slug,
-      content,
-      published: getPublished("pagePublished"),
-      updated_at: new Date().toISOString()
-    });
-
-    resetPageForm();
-    showMessage("pageMessage", "Page saved successfully!");
-    await loadPages();
-  } catch (error) {
-    handleError("pageMessage", error);
-  } finally {
-    setButtonLoading("savePageButton", false, "Save Page");
-  }
-}
-
-function loadPages() {
-  return loadList("site_pages", "adminPagesList", "No pages found.",
-    "created_at", false, page => makeAdminCard(
-      page.title,
-      "URL: " + page.slug + " | " + statusText(page),
+function loadAnnouncements() {
+  return loadRows(
+    "announcements",
+    "adminAnnouncementList",
+    "created_at",
+    false,
+    "No announcements found.",
+    item => makeCard(
+      item.title,
+      item.is_active ? "Active" : "Inactive",
       [
-        actionButton("Edit", () => editPage(page)),
-        actionButton("Delete", () => deletePage(page.id))
+        makeButton("Delete", () =>
+          deleteRow(
+            "announcements",
+            item.id,
+            "Delete this announcement?",
+            "announcementMessage",
+            loadAnnouncements
+          )
+        )
       ]
-    ));
+    )
+  );
 }
 
-function editPage(page) {
-  fillForm({
-    pageId: "id", pageTitle: "title", pageSlug: "slug",
-    pageContent: "content", pagePublished: "published"
-  }, page, "savePageButton", "Update Page", "pagesManager");
-}
-
-function deletePage(id) {
-  return deleteRecord("site_pages", id, "Delete this page?",
-    "pageMessage", "Page deleted.", loadPages);
-}
-
-function resetPageForm() {
-  resetForm("pageForm", "pageId", "savePageButton", "Save Page");
-}
-
-
-// ==========================================
-// GALLERY  (Table: site_gallery)
-// ==========================================
-
-async function uploadGalleryImage(event) {
-  event.preventDefault();
-
-  const file = $("galleryImage").files[0];
-
-  if (!file) {
-    showMessage("galleryMessage", "Choose an image first.", true);
-    return;
-  }
-
-  setButtonLoading("saveGalleryButton", true, "Upload Image");
-
-  try {
-    const imageUrl = await uploadMedia(file, "gallery", ["image/jpeg", "image/png", "image/webp"], 5);
-
-    const { error } = await db().from("site_gallery").insert([{
-      title: getValue("galleryTitle") || "Gallery Image",
-      description: getValue("galleryDescription") || null,
-      image_url: imageUrl,
-      published: true
-    }]);
-    if (error) throw error;
-
-    $("galleryForm").reset();
-    showMessage("galleryMessage", "Image uploaded successfully!");
-    await loadGallery();
-  } catch (error) {
-    handleError("galleryMessage", error);
-  } finally {
-    setButtonLoading("saveGalleryButton", false, "Upload Image");
-  }
-}
-
-function loadGallery() {
-  return loadList("site_gallery", "adminGalleryList", "No gallery images found.",
-    "created_at", false, item => {
-      const card = makeAdminCard(
-        item.title || "Gallery Image",
-        item.description || "Website gallery image",
-        [actionButton("Delete", () => deleteGalleryImage(item.id))]
-      );
-
-      const image = document.createElement("img");
-      image.src = item.image_url;
-      image.alt = item.title || "Gallery image";
-      image.loading = "lazy";
-      image.style.maxWidth = "180px";
-      image.style.height = "auto";
-      image.style.borderRadius = "10px";
-
-      card.prepend(image);
-      return card;
-    });
-}
-
-function deleteGalleryImage(id) {
-  return deleteRecord("site_gallery", id, "Delete this gallery entry?",
-    "galleryMessage", "Gallery image deleted.", loadGallery);
-}
-
-
-// ==========================================================
-// ANNOUNCEMENTS, NAVIGATION, SETTINGS
-// NOTE: These were missing from your pasted code, so they are
-// rebuilt here. If your ORIGINAL file has them, replace this
-// block (till the end of the file) with your original versions.
-// Table and element names below are assumptions.
-// ==========================================================
-
-// ---------- ANNOUNCEMENTS (table: site_announcements) ----------
-
-async function publishAnnouncement(event) {
-  event.preventDefault();
-
-  const title = getValue("announcementTitle");
-  const message = getValue("announcementBody");
-
-  if (!title || !message) {
-    showMessage("announcementMessage", "Enter title and message.", true);
-    return;
-  }
-
-  setButtonLoading("publishAnnouncementButton", true, "Publish");
-
-  try {
-    await saveRecord("site_announcements", "", { title, message, published: true });
-    $("announcementForm").reset();
-    showMessage("announcementMessage", "Announcement published!");
-    await loadAdminAnnouncements();
-  } catch (error) {
-    handleError("announcementMessage", error);
-  } finally {
-    setButtonLoading("publishAnnouncementButton", false, "Publish");
-  }
-}
-
-function loadAdminAnnouncements() {
-  return loadList("site_announcements", "adminAnnouncementsList", "No announcements found.",
-    "created_at", false, item => {
-      const card = makeAdminCard(
-        item.title,
-        statusText(item),
-        [actionButton("Delete", () => deleteAnnouncement(item.id))]
-      );
-      if (item.message) card.appendChild(createElement("p", item.message));
-      return card;
-    });
-}
-
-function deleteAnnouncement(id) {
-  return deleteRecord("site_announcements", id, "Delete this announcement?",
-    "announcementMessage", "Announcement deleted.", loadAdminAnnouncements);
-}
-
-
-// ---------- NAVIGATION (table: site_navigation) ----------
+// ============================================
+// NAVIGATION
+// Table: site_navigation
+// Columns: title, url, sort_order, is_active
+// ============================================
 
 async function saveNavigation(event) {
   event.preventDefault();
 
-  const id = getValue("navigationId");
-  const label = getValue("navigationLabel");
-  const url = getValue("navigationUrl");
-  const sortOrder = parseInt(getValue("navigationOrder"), 10) || 0;
+  const id = val("navigationId");
+  const title = val("navigationTitle");
+  const url = val("navigationUrl");
 
-  if (!label || !url) {
-    showMessage("navigationMessage", "Enter label and URL.", true);
+  if (!title || !url) {
+    showMessage("navigationMessage", "Enter menu name and URL.", true);
     return;
   }
 
-  setButtonLoading("saveNavigationButton", true, "Save Menu Item");
+  const button = $("navigationForm")
+    ?.querySelector('button[type="submit"]');
+
+  if (button) {
+    button.disabled = true;
+    button.textContent = "Saving...";
+  }
 
   try {
-    await saveRecord("site_navigation", id, {
-      label,
+    await saveRow("site_navigation", id, {
+      title,
       url,
-      sort_order: sortOrder,
-      published: getPublished("navigationPublished")
+      sort_order: parseInt(val("navigationOrder"), 10) || 0,
+      is_active: val("navigationActive") === "true"
     });
 
-    resetNavigationForm();
-    showMessage("navigationMessage", "Menu item saved successfully!");
+    resetNavigation();
+    showMessage("navigationMessage", "Menu link saved.");
     await loadNavigation();
+
   } catch (error) {
-    handleError("navigationMessage", error);
+    report("navigationMessage", error);
+
   } finally {
-    setButtonLoading("saveNavigationButton", false, "Save Menu Item");
+    if (button) {
+      button.disabled = false;
+      button.textContent = "Save Menu Link";
+    }
   }
 }
 
 function loadNavigation() {
-  return loadList("site_navigation", "adminNavigationList", "No menu items found.",
-    "sort_order", true, item => makeAdminCard(
-      item.label,
-      "URL: " + item.url + " | " + statusText(item),
+  return loadRows(
+    "site_navigation",
+    "adminNavigationList",
+    "sort_order",
+    true,
+    "No menu links found.",
+    item => makeCard(
+      item.title,
+      "URL: " + item.url + " | " +
+        (item.is_active ? "Visible" : "Hidden"),
       [
-        actionButton("Edit", () => editNavigation(item)),
-        actionButton("Delete", () => deleteNavigation(item.id))
+        makeButton("Edit", () => editNavigation(item)),
+        makeButton("Delete", () =>
+          deleteRow(
+            "site_navigation",
+            item.id,
+            "Delete this menu link?",
+            "navigationMessage",
+            loadNavigation
+          )
+        )
       ]
-    ));
+    )
+  );
 }
 
 function editNavigation(item) {
   fillForm({
-    navigationId: "id", navigationLabel: "label", navigationUrl: "url",
-    navigationOrder: "sort_order", navigationPublished: "published"
-  }, item, "saveNavigationButton", "Update Menu Item", "navigationManager");
+    navigationId: "id",
+    navigationTitle: "title",
+    navigationUrl: "url",
+    navigationOrder: "sort_order",
+    navigationActive: "is_active"
+  }, item, null, null, "navigationManager");
 }
 
-function deleteNavigation(id) {
-  return deleteRecord("site_navigation", id, "Delete this menu item?",
-    "navigationMessage", "Menu item deleted.", loadNavigation);
+function resetNavigation() {
+  $("navigationForm")?.reset();
+  if ($("navigationId")) $("navigationId").value = "";
 }
 
-function resetNavigationForm() {
-  resetForm("navigationForm", "navigationId", "saveNavigationButton", "Save Menu Item");
-}
+// ============================================
+// WEBSITE SETTINGS
+// Table: site_settings
+// Columns: setting_key, setting_value
+// ============================================
 
-
-// ---------- SETTINGS (table: site_settings, columns: key, value) ----------
-// Each input in #settingsForm must have a name attribute equal to its key.
+const settingFields = {
+  settingSiteName: "site_name",
+  settingLogo: "logo_url",
+  settingContact: "contact_number",
+  settingEmail: "public_email",
+  settingWhatsapp: "whatsapp_link",
+  settingAbout: "about_text"
+};
 
 async function loadSettings() {
-  const form = $("settingsForm");
-  if (!form) return;
+  const { data, error } = await db()
+    .from("site_settings")
+    .select("setting_key, setting_value");
 
-  const { data, error } = await db().from("site_settings").select("*");
   if (error) {
-    handleError("settingsMessage", error);
+    report("settingsMessage", error);
     return;
   }
 
   (data || []).forEach(row => {
-    const field = form.elements[row.key];
-    if (field) field.value = row.value || "";
+    const id = Object.keys(settingFields).find(
+      key => settingFields[key] === row.setting_key
+    }
+
+  (data || []).forEach(row => {
+    const id = Object.keys(settingFields).find(
+      key => settingFields[key] === row.setting_key
+    );
+
+    if (id && $(id)) {
+      $(id).value = row.setting_value || "";
+    }
   });
 }
 
 async function saveSettings(event) {
   event.preventDefault();
 
-  setButtonLoading("saveSettingsButton", true, "Save Settings");
+  const button = $("settingsForm")
+    ?.querySelector('button[type="submit"]');
+
+  if (button) {
+    button.disabled = true;
+    button.textContent = "Saving...";
+  }
 
   try {
-    const rows = Array.from($("settingsForm").elements)
-      .filter(field => field.name)
-      .map(field => ({ key: field.name, value: field.value.trim() }));
+    const rows = Object.entries(settingFields).map(([id, key]) => ({
+      setting_key: key,
+      setting_value: $(id)?.value?.trim() || ""
+    }));
 
-    if (rows.length) {
-      const { error } = await db().from("site_settings").upsert(rows, { onConflict: "key" });
-      if (error) throw error;
-    }
+    const { error } = await db()
+      .from("site_settings")
+      .upsert(rows, { onConflict: "setting_key" });
 
-    showMessage("settingsMessage", "Settings saved successfully!");
+    if (error) throw error;
+
+    showMessage("settingsMessage", "Website settings saved successfully.");
+
   } catch (error) {
-    handleError("settingsMessage", error);
+    report("settingsMessage", error);
+
   } finally {
-    setButtonLoading("saveSettingsButton", false, "Save Settings");
+    if (button) {
+      button.disabled = false;
+      button.textContent = "Save Website Settings";
+    }
   }
 }
