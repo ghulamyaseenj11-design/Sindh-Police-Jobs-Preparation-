@@ -1,0 +1,250 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b2341">
+  <title>Admin Panel | Sindh Jail Police</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="admin-page">
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">SJP</span>
+        <span>
+          <strong>Sindh Jail Police</strong>
+          <small>Admin Panel</small>
+        </span>
+      </a>
+      <a class="nav-home" href="index.html">← Back to Website</a>
+    </div>
+  </header>
+
+  <main class="admin-main container">
+
+    <!-- ADMIN LOGIN -->
+    <section class="admin-card" id="loginSection">
+      <span class="eyebrow">SECURE ACCESS</span>
+      <h1>Admin Login</h1>
+      <p class="muted">Sign in using your authorized administrator account.</p>
+
+      <form id="loginForm">
+        <label for="email">Email Address</label>
+        <input
+          id="email"
+          type="email"
+          placeholder="Enter admin email"
+          required
+        >
+
+        <label for="password">Password</label>
+        <input
+          id="password"
+          type="password"
+          placeholder="Enter password"
+          required
+        >
+
+        <button class="btn btn-gold btn-full" type="submit">
+          Login
+        </button>
+      </form>
+
+      <p id="loginMessage" class="form-message" aria-live="polite"></p>
+    </section>
+
+
+    <!-- ADMIN DASHBOARD -->
+    <section class="dashboard hidden" id="dashboardSection">
+
+      <div class="dashboard-heading">
+        <div>
+          <span class="eyebrow">CONTROL CENTRE</span>
+          <h1>Admin Dashboard</h1>
+          <p class="muted">
+            Manage your website content and study resources.
+          </p>
+        </div>
+
+        <button
+          class="btn btn-outline-dark"
+          id="logoutButton"
+          type="button"
+        >
+          Logout
+        </button>
+      </div>
+
+
+      <!-- STUDY NOTES MANAGER -->
+      <div class="admin-card" id="studyNotesManager">
+
+        <span class="eyebrow">EDUCATIONAL CONTENT</span>
+        <h2>Study Notes Manager</h2>
+
+        <p class="muted">
+          Create notes, upload PDF files and manage published study materials.
+        </p>
+
+        <form id="studyNotesForm">
+
+          <input type="hidden" id="studyNoteId">
+
+          <label for="noteTitle">Notes Title</label>
+          <input
+            id="noteTitle"
+            type="text"
+            maxlength="180"
+            placeholder="Enter notes title"
+            required
+          >
+
+          <label for="noteCategory">Category</label>
+          <input
+            id="noteCategory"
+            type="text"
+            placeholder="e.g. General Knowledge, English, Science"
+            required
+          >
+
+          <label for="noteDescription">Short Description</label>
+          <textarea
+            id="noteDescription"
+            rows="3"
+            placeholder="Write a short description..."
+          ></textarea>
+
+          <label for="noteBody">Notes Content</label>
+          <textarea
+            id="noteBody"
+            rows="8"
+            placeholder="Write your study notes here..."
+          ></textarea>
+
+          <label for="notePdf">Upload PDF (Optional)</label>
+          <input
+            id="notePdf"
+            type="file"
+            accept="application/pdf,.pdf"
+          >
+
+          <p class="muted">
+            PDF files only. Upload functionality will be connected in the next step.
+          </p>
+
+          <label for="notePublished">Publication Status</label>
+          <select id="notePublished">
+            <option value="false">Save as Draft</option>
+            <option value="true">Publish</option>
+          </select>
+
+          <div class="admin-actions">
+            <button
+              class="btn btn-gold"
+              type="submit"
+              id="saveNoteButton"
+            >
+              Save Study Notes
+            </button>
+
+            <button
+              class="btn btn-outline-dark"
+              type="button"
+              id="cancelNoteEdit"
+            >
+              Cancel Edit
+            </button>
+          </div>
+
+        </form>
+
+        <p
+          id="studyNoteMessage"
+          class="form-message"
+          aria-live="polite"
+        ></p>
+
+        <div class="admin-notes-list">
+          <h3>All Study Notes</h3>
+
+          <div id="adminStudyNotesList">
+            <p class="muted">Study notes will appear here.</p>
+          </div>
+        </div>
+
+      </div>
+
+
+      <!-- ANNOUNCEMENTS - EXISTING SECTION -->
+      <div class="admin-card" id="announcementsManager">
+
+        <h2>Publish Announcement</h2>
+
+        <form id="announcementForm">
+
+          <label for="announcementTitle">
+            Announcement Title
+          </label>
+
+          <input
+            id="announcementTitle"
+            type="text"
+            maxlength="150"
+            placeholder="Enter announcement title"
+            required
+          >
+
+          <label for="announcementContent">
+            Announcement Details
+          </label>
+
+          <textarea
+            id="announcementContent"
+            rows="5"
+            placeholder="Write announcement details..."
+            required
+          ></textarea>
+
+          <button class="btn btn-gold" type="submit">
+            Publish Announcement
+          </button>
+
+        </form>
+
+        <p
+          id="announcementMessage"
+          class="form-message"
+          aria-live="polite"
+        ></p>
+
+      </div>
+
+
+      <!-- RECENT ANNOUNCEMENTS -->
+      <div class="admin-card">
+
+        <h2>Recent Announcements</h2>
+
+        <div id="adminAnnouncementList">
+          <p class="muted">Loading...</p>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- SUPABASE CONNECTION -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="admin.js"></script>
+
+</body>
+          </html>
+          
