@@ -683,4 +683,66 @@ function loadNavigation() {
       "URL: " + item.url + " | " + statusText(item),
       [
         actionButton("Edit", () => editNavigation(item)),
-        actionButton("
+        actionButton("Delete", () => deleteNavigation(item.id))
+      ]
+    ));
+}
+
+function editNavigation(item) {
+  fillForm({
+    navigationId: "id", navigationLabel: "label", navigationUrl: "url",
+    navigationOrder: "sort_order", navigationPublished: "published"
+  }, item, "saveNavigationButton", "Update Menu Item", "navigationManager");
+}
+
+function deleteNavigation(id) {
+  return deleteRecord("site_navigation", id, "Delete this menu item?",
+    "navigationMessage", "Menu item deleted.", loadNavigation);
+}
+
+function resetNavigationForm() {
+  resetForm("navigationForm", "navigationId", "saveNavigationButton", "Save Menu Item");
+}
+
+
+// ---------- SETTINGS (table: site_settings, columns: key, value) ----------
+// Each input in #settingsForm must have a name attribute equal to its key.
+
+async function loadSettings() {
+  const form = $("settingsForm");
+  if (!form) return;
+
+  const { data, error } = await db().from("site_settings").select("*");
+  if (error) {
+    handleError("settingsMessage", error);
+    return;
+  }
+
+  (data || []).forEach(row => {
+    const field = form.elements[row.key];
+    if (field) field.value = row.value || "";
+  });
+}
+
+async function saveSettings(event) {
+  event.preventDefault();
+
+  setButtonLoading("saveSettingsButton", true, "Save Settings");
+
+  try {
+    const rows = Array.from($("settingsForm").elements)
+      .filter(field => field.name)
+      .map(field => ({ key: field.name, value: field.value.trim() }));
+
+    if (rows.length) {
+      const { error } = await db().from("site_settings").upsert(rows, { onConflict: "key" });
+      if (error) throw error;
+    }
+
+    showMessage("settingsMessage", "Settings saved successfully!");
+  } catch (error) {
+    handleError("settingsMessage", error);
+  } finally {
+    setButtonLoading("saveSettingsButton", false, "Save Settings");
+  }
+}
