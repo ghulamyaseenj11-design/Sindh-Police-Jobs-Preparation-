@@ -1,0 +1,18 @@
+// Add your Supabase Project URL and anon/public key below.
+// Never put your service_role key or password in this file.
+
+window.SUPABASE_URL = "YOUR_SUPABASE_PROJECT_URL";
+window.SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_PUBLIC_KEY";
+
+if (
+  window.supabase &&
+  window.SUPABASE_URL !== "YOUR_SUPABASE_PROJECT_URL" &&
+  window.SUPABASE_ANON_KEY !== "YOUR_SUPABASE_ANON_PUBLIC_KEY"
+) {
+  window.supabaseClient = window.supabase.createClient(
+    window.SUPABASE_URL,
+    window.SUPABASE_ANON_KEY
+  );
+} else {
+  console.warn("Supabase is not configured. Add your project URL and anon public key in config.js.");
+}
