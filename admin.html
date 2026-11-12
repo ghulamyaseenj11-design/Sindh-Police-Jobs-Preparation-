@@ -3,275 +3,341 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b2341">
-  <meta name="description" content="Admin Dashboard - Sindh Police Jobs Preparation">
-  <title>Admin Dashboard | Learn with Yaseen Jakhrani</title>
+  <title>Admin Dashboard | Learn with Yaseen</title>
   <link rel="stylesheet" href="styles.css">
 </head>
-
 <body class="admin-page">
 
-  <header class="site-header">
-    <div class="container nav-wrap">
-      <a class="brand" href="index.html">
-        <span class="brand-mark">SJP</span>
-        <span>
-          <strong>Learn with Yaseen</strong>
-          <small>Website Administration</small>
-        </span>
-      </a>
-      <a class="nav-home" href="index.html">← View Website</a>
+<header class="site-header">
+  <div class="container nav-wrap">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">SJP</span>
+      <span>
+        <strong>Learn with Yaseen</strong>
+        <small>Admin Dashboard</small>
+      </span>
+    </a>
+    <a class="nav-home" href="index.html">← View Website</a>
+  </div>
+</header>
+
+<main class="admin-main container">
+
+  <!-- LOGIN -->
+  <section class="admin-card" id="loginSection">
+    <span class="eyebrow">SECURE ACCESS</span>
+    <h1>Admin Login</h1>
+    <p class="muted">Login with your authorized admin account.</p>
+
+    <form id="loginForm">
+      <label for="email">Email Address</label>
+      <input id="email" type="email" autocomplete="username" required>
+
+      <label for="password">Password</label>
+      <input id="password" type="password"
+        autocomplete="current-password" required>
+
+      <button class="btn btn-gold btn-full" type="submit">
+        Login
+      </button>
+    </form>
+    <p id="loginMessage" class="form-message" aria-live="polite"></p>
+  </section>
+
+
+  <!-- DASHBOARD -->
+  <section class="dashboard hidden" id="dashboardSection">
+
+    <div class="dashboard-heading">
+      <div>
+        <span class="eyebrow">CONTROL CENTRE</span>
+        <h1>Admin Dashboard</h1>
+        <p class="muted">Manage your complete website.</p>
+      </div>
+      <button class="btn btn-outline-dark" id="logoutButton">
+        Logout
+      </button>
     </div>
-  </header>
 
-  <main class="admin-main container">
+    <!-- DASHBOARD MENU -->
+    <div class="admin-card">
+      <h2>Management Sections</h2>
+      <div class="admin-actions">
+        <a class="btn btn-gold" href="#studyNotesManager">Study Notes</a>
+        <a class="btn btn-outline-dark" href="#blogsManager">Blogs</a>
+        <a class="btn btn-outline-dark" href="#pagesManager">Pages</a>
+        <a class="btn btn-outline-dark" href="#galleryManager">Gallery</a>
+        <a class="btn btn-outline-dark" href="#announcementsManager">Announcements</a>
+        <a class="btn btn-outline-dark" href="#navigationManager">Navigation</a>
+        <a class="btn btn-outline-dark" href="#settingsManager">Settings</a>
+      </div>
+    </div>
 
-    <!-- LOGIN SECTION -->
-    <section class="admin-card" id="loginSection">
-      <span class="eyebrow">SECURE ADMIN ACCESS</span>
-      <h1>Welcome Back!</h1>
-      <p class="muted">Login to manage your website.</p>
 
-      <form id="loginForm">
-        <label for="email">Admin Email</label>
-        <input
-          id="email"
-          type="email"
-          placeholder="Enter admin email"
-          autocomplete="username"
-          required
-        >
+    <!-- STUDY NOTES -->
+    <div class="admin-card" id="studyNotesManager">
+      <h2>Study Notes Manager</h2>
+      <p class="muted">Add notes and PDF study materials.</p>
 
-        <label for="password">Password</label>
-        <input
-          id="password"
-          type="password"
-          placeholder="Enter password"
-          autocomplete="current-password"
-          required
-        >
+      <form id="studyNotesForm">
+        <input type="hidden" id="studyNoteId">
 
-        <button class="btn btn-gold btn-full" type="submit">
-          Login to Dashboard
+        <label for="noteTitle">Notes Title</label>
+        <input id="noteTitle" type="text" maxlength="180" required>
+
+        <label for="noteCategory">Category</label>
+        <input id="noteCategory" type="text" required>
+
+        <label for="noteDescription">Description</label>
+        <textarea id="noteDescription" rows="3"></textarea>
+
+        <label for="noteBody">Notes Content</label>
+        <textarea id="noteBody" rows="7"></textarea>
+
+        <label for="notePdf">PDF File (Optional)</label>
+        <input id="notePdf" type="file" accept=".pdf,application/pdf">
+
+        <label for="notePublished">Status</label>
+        <select id="notePublished">
+          <option value="false">Draft</option>
+          <option value="true">Published</option>
+        </select>
+
+        <div class="admin-actions">
+          <button class="btn btn-gold" id="saveNoteButton" type="submit">
+            Save Notes
+          </button>
+          <button class="btn btn-outline-dark" id="cancelNoteEdit" type="button">
+            Cancel
+          </button>
+        </div>
+      </form>
+
+      <p id="studyNoteMessage" class="form-message" aria-live="polite"></p>
+      <h3>All Study Notes</h3>
+      <div id="adminStudyNotesList">Loading...</div>
+    </div>
+
+
+    <!-- BLOGS -->
+    <div class="admin-card" id="blogsManager">
+      <h2>Blogs Manager</h2>
+      <p class="muted">Write articles, preparation tips and educational blogs.</p>
+
+      <form id="blogForm">
+        <input type="hidden" id="blogId">
+
+        <label for="blogTitle">Blog Title</label>
+        <input id="blogTitle" type="text" maxlength="200" required>
+
+        <label for="blogSlug">URL Slug</label>
+        <input id="blogSlug" type="text"
+          placeholder="example: prison-constable-preparation" required>
+
+        <label for="blogExcerpt">Short Introduction</label>
+        <textarea id="blogExcerpt" rows="3"></textarea>
+
+        <label for="blogContent">Full Blog Content</label>
+        <textarea id="blogContent" rows="9" required></textarea>
+
+        <label for="blogImage">Blog Image (Optional)</label>
+        <input id="blogImage" type="file" accept="image/*">
+
+        <label for="blogPublished">Status</label>
+        <select id="blogPublished">
+          <option value="false">Save as Draft</option>
+          <option value="true">Publish Blog</option>
+        </select>
+
+        <div class="admin-actions">
+          <button class="btn btn-gold" id="saveBlogButton" type="submit">
+            Save Blog
+          </button>
+          <button class="btn btn-outline-dark" id="cancelBlogEdit" type="button">
+            Cancel
+          </button>
+        </div>
+      </form>
+
+      <p id="blogMessage" class="form-message" aria-live="polite"></p>
+      <h3>All Blogs</h3>
+      <div id="adminBlogsList">Loading...</div>
+    </div>
+
+
+    <!-- PAGES -->
+    <div class="admin-card" id="pagesManager">
+      <h2>Pages Manager</h2>
+      <p class="muted">Create additional website pages.</p>
+
+      <form id="pageForm">
+        <input type="hidden" id="pageId">
+
+        <label for="pageTitle">Page Title</label>
+        <input id="pageTitle" type="text" required>
+
+        <label for="pageSlug">Page URL Slug</label>
+        <input id="pageSlug" type="text"
+          placeholder="about-us" required>
+
+        <label for="pageContent">Page Content</label>
+        <textarea id="pageContent" rows="9" required></textarea>
+
+        <label for="pagePublished">Status</label>
+        <select id="pagePublished">
+          <option value="false">Draft</option>
+          <option value="true">Publish Page</option>
+        </select>
+
+        <div class="admin-actions">
+          <button class="btn btn-gold" id="savePageButton" type="submit">
+            Save Page
+          </button>
+          <button class="btn btn-outline-dark" id="cancelPageEdit" type="button">
+            Cancel
+          </button>
+        </div>
+      </form>
+
+      <p id="pageMessage" class="form-message" aria-live="polite"></p>
+      <h3>All Pages</h3>
+      <div id="adminPagesList">Loading...</div>
+    </div>
+
+
+    <!-- GALLERY -->
+    <div class="admin-card" id="galleryManager">
+      <h2>Gallery Manager</h2>
+      <p class="muted">Upload and manage website images.</p>
+
+      <form id="galleryForm">
+        <label for="galleryTitle">Image Title</label>
+        <input id="galleryTitle" type="text">
+
+        <label for="galleryDescription">Description</label>
+        <textarea id="galleryDescription" rows="3"></textarea>
+
+        <label for="galleryImage">Select Image</label>
+        <input id="galleryImage" type="file"
+          accept="image/jpeg,image/png,image/webp" required>
+
+        <button class="btn btn-gold" id="saveGalleryButton" type="submit">
+          Upload Image
         </button>
       </form>
 
-      <p id="loginMessage" class="form-message" aria-live="polite"></p>
-    </section>
+      <p id="galleryMessage" class="form-message" aria-live="polite"></p>
+      <h3>Uploaded Images</h3>
+      <div id="adminGalleryList">Loading...</div>
+    </div>
 
 
-    <!-- MAIN DASHBOARD -->
-    <section class="dashboard hidden" id="dashboardSection">
+    <!-- ANNOUNCEMENTS -->
+    <div class="admin-card" id="announcementsManager">
+      <h2>Announcements Manager</h2>
 
-      <div class="dashboard-heading">
-        <div>
-          <span class="eyebrow">WEBSITE CONTROL CENTRE</span>
-          <h1>Admin Dashboard</h1>
-          <p class="muted">
-            Manage your educational website from one place.
-          </p>
-        </div>
+      <form id="announcementForm">
+        <label for="announcementTitle">Announcement Title</label>
+        <input id="announcementTitle" type="text" maxlength="150" required>
 
-        <button class="btn btn-outline-dark" id="logoutButton" type="button">
-          Logout
+        <label for="announcementContent">Announcement Details</label>
+        <textarea id="announcementContent" rows="5" required></textarea>
+
+        <button class="btn btn-gold" type="submit">
+          Publish Announcement
         </button>
-      </div>
+      </form>
+
+      <p id="announcementMessage" class="form-message" aria-live="polite"></p>
+      <h3>Recent Announcements</h3>
+      <div id="adminAnnouncementList">Loading...</div>
+    </div>
 
 
-      <!-- DASHBOARD NAVIGATION -->
-      <div class="admin-card">
-        <h2>Website Management</h2>
-        <p class="muted">Choose a section to manage.</p>
+    <!-- NAVIGATION -->
+    <div class="admin-card" id="navigationManager">
+      <h2>Navigation Menu Manager</h2>
+      <p class="muted">Add menu links to your website.</p>
+
+      <form id="navigationForm">
+        <input type="hidden" id="navigationId">
+
+        <label for="navigationTitle">Menu Name</label>
+        <input id="navigationTitle" type="text" required>
+
+        <label for="navigationUrl">Menu URL</label>
+        <input id="navigationUrl" type="text"
+          placeholder="index.html or https://example.com" required>
+
+        <label for="navigationOrder">Display Order</label>
+        <input id="navigationOrder" type="number" value="0">
+
+        <label for="navigationActive">Visibility</label>
+        <select id="navigationActive">
+          <option value="true">Visible</option>
+          <option value="false">Hidden</option>
+        </select>
 
         <div class="admin-actions">
-          <a class="btn btn-gold" href="#studyNotesManager">
-            Study Notes
-          </a>
-
-          <a class="btn btn-outline-dark" href="#announcementsManager">
-            Announcements
-          </a>
-
-          <a class="btn btn-outline-dark" href="index.html">
-            View Website
-          </a>
-        </div>
-      </div>
-
-
-      <!-- STUDY NOTES MANAGER -->
-      <div class="admin-card" id="studyNotesManager">
-
-        <span class="eyebrow">EDUCATIONAL CONTENT</span>
-        <h2>Study Notes Manager</h2>
-
-        <p class="muted">
-          Add, update, publish or delete study notes and PDF materials.
-        </p>
-
-        <form id="studyNotesForm">
-
-          <input type="hidden" id="studyNoteId">
-
-          <label for="noteTitle">Notes Title</label>
-          <input
-            id="noteTitle"
-            type="text"
-            maxlength="180"
-            placeholder="Example: General Knowledge MCQs"
-            required
-          >
-
-          <label for="noteCategory">Category</label>
-          <input
-            id="noteCategory"
-            type="text"
-            placeholder="Example: English, Science, GK, Mathematics"
-            required
-          >
-
-          <label for="noteDescription">Short Description</label>
-          <textarea
-            id="noteDescription"
-            rows="3"
-            placeholder="Write a short description..."
-          ></textarea>
-
-          <label for="noteBody">Notes Content</label>
-          <textarea
-            id="noteBody"
-            rows="8"
-            placeholder="Write your notes here..."
-          ></textarea>
-
-          <label for="notePdf">Upload PDF (Optional)</label>
-          <input
-            id="notePdf"
-            type="file"
-            accept="application/pdf,.pdf"
-          >
-
-          <p class="muted">
-            PDF only. Maximum file size: 10 MB. Storage must be configured.
-          </p>
-
-          <label for="notePublished">Publication Status</label>
-          <select id="notePublished">
-            <option value="false">Save as Draft</option>
-            <option value="true">Publish on Website</option>
-          </select>
-
-          <div class="admin-actions">
-            <button
-              class="btn btn-gold"
-              type="submit"
-              id="saveNoteButton"
-            >
-              Save Study Notes
-            </button>
-
-            <button
-              class="btn btn-outline-dark"
-              type="button"
-              id="cancelNoteEdit"
-            >
-              Cancel Edit
-            </button>
-          </div>
-
-        </form>
-
-        <p id="studyNoteMessage" class="form-message" aria-live="polite"></p>
-
-        <div class="admin-notes-list">
-          <h3>All Study Notes</h3>
-          <div id="adminStudyNotesList">
-            <p class="muted">Study notes will appear here.</p>
-          </div>
-        </div>
-
-      </div>
-
-
-      <!-- ANNOUNCEMENTS MANAGER -->
-      <div class="admin-card" id="announcementsManager">
-
-        <span class="eyebrow">WEBSITE NOTIFICATIONS</span>
-        <h2>Publish Announcement</h2>
-
-        <p class="muted">
-          Share important news, test updates and recruitment information.
-        </p>
-
-        <form id="announcementForm">
-
-          <label for="announcementTitle">Announcement Title</label>
-          <input
-            id="announcementTitle"
-            type="text"
-            maxlength="150"
-            placeholder="Enter announcement title"
-            required
-          >
-
-          <label for="announcementContent">Announcement Details</label>
-          <textarea
-            id="announcementContent"
-            rows="5"
-            placeholder="Write announcement details..."
-            required
-          ></textarea>
-
-          <button class="btn btn-gold" type="submit">
-            Publish Announcement
+          <button class="btn btn-gold" type="submit">Save Menu Link</button>
+          <button class="btn btn-outline-dark" id="cancelNavigationEdit" type="button">
+            Cancel
           </button>
-
-        </form>
-
-        <p id="announcementMessage" class="form-message" aria-live="polite"></p>
-
-      </div>
-
-
-      <!-- RECENT ANNOUNCEMENTS -->
-      <div class="admin-card">
-
-        <span class="eyebrow">PUBLISHED UPDATES</span>
-        <h2>Recent Announcements</h2>
-
-        <div id="adminAnnouncementList">
-          <p class="muted">Loading announcements...</p>
         </div>
+      </form>
 
-      </div>
-
-
-      <!-- FUTURE CMS MODULES -->
-      <div class="admin-card">
-        <span class="eyebrow">COMING NEXT</span>
-        <h2>More Website Tools</h2>
-        <p class="muted">
-          These modules will be connected in the next development steps.
-        </p>
-
-        <div class="admin-actions">
-          <span class="btn btn-outline-dark">Blogs Manager</span>
-          <span class="btn btn-outline-dark">Pages Manager</span>
-          <span class="btn btn-outline-dark">Gallery Manager</span>
-          <span class="btn btn-outline-dark">Website Settings</span>
-          <span class="btn btn-outline-dark">Navigation Manager</span>
-        </div>
-      </div>
-
-    </section>
-  </main>
+      <p id="navigationMessage" class="form-message" aria-live="polite"></p>
+      <h3>All Menu Links</h3>
+      <div id="adminNavigationList">Loading...</div>
+    </div>
 
 
-  <!-- DATABASE CONNECTION -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js"></script>
-  <script src="admin.js"></script>
+    <!-- WEBSITE SETTINGS -->
+    <div class="admin-card" id="settingsManager">
+      <h2>Website Settings</h2>
+      <p class="muted">Update your public website information.</p>
+
+      <form id="settingsForm">
+        <label for="settingSiteName">Website Name</label>
+        <input id="settingSiteName" type="text"
+          placeholder="Learn with Yaseen Jakhrani">
+
+        <label for="settingLogo">Logo Image URL</label>
+        <input id="settingLogo" type="url"
+          placeholder="https://example.com/logo.png">
+
+        <label for="settingContact">Contact Number</label>
+        <input id="settingContact" type="tel"
+          placeholder="0333-7363359">
+
+        <label for="settingEmail">Public Email</label>
+        <input id="settingEmail" type="email"
+          placeholder="your-public-email@example.com">
+
+        <label for="settingWhatsapp">WhatsApp Group Link</label>
+        <input id="settingWhatsapp" type="url"
+          placeholder="https://chat.whatsapp.com/...">
+
+        <label for="settingAbout">About Website</label>
+        <textarea id="settingAbout" rows="4"></textarea>
+
+        <button class="btn btn-gold" type="submit">
+          Save Website Settings
+        </button>
+      </form>
+
+      <p id="settingsMessage" class="form-message" aria-live="polite"></p>
+    </div>
+
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="admin.js"></script>
 
 </body>
-</html>
+          </html>
+          
