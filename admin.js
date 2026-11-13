@@ -1,188 +1,151 @@
-JavaScript
 
 document.addEventListener("DOMContentLoaded", () => {
-  const menuToggle = document.getElementById("menuToggle");
-  const mainNav = document.getElementById("mainNav");
-  const year = document.getElementById("year");
+  const loginForm = document.getElementById("loginForm");
+  const loginSection = document.getElementById("loginSection");
+  const dashboardSection = document.getElementById("dashboardSection");
+  const loginMessage = document.getElementById("loginMessage");
+  const logoutButton = document.getElementById("logoutButton");
 
-  if (year) year.textContent = new Date().getFullYear();
+  const supabase = window.supabaseClient;
 
-  if (menuToggle && mainNav) {
-    menuToggle.addEventListener("click", () => {
-      mainNav.classList.toggle("open");
-    });
+  function showMessage(message, isError = true) {
+    if (!loginMessage) return;
 
-    mainNav.querySelectorAll("a").forEach(link => {
-      link.addEventListener("click", () => mainNav.classList.remove("open"));
+    loginMessage.textContent = message;
+    loginMessage.style.color = isError ? "#c0392b" : "#16803c";
+  }
+
+  function showLogin() {
+    loginSection?.classList.remove("hidden");
+    dashboardSection?.classList.add("hidden");
+  }
+
+  function showDashboard() {
+    loginSection?.classList.add("hidden");
+    dashboardSection?.classList.remove("hidden");
+  }
+
+  async function verifyAdmin() {
+    if (!supabase) {
+      showLogin();
+      showMessage("Database connection unavailable.");
+      return false;
+    }
+
+    const { data: sessionData, error: sessionError } =
+      await supabase.auth.getSession();
+
+    if (sessionError || !sessionData.session) {
+      showLogin();
+      return false;
+    }
+
+    const { data, error } = await supabase.rpc("is_admin");
+
+    if (error) {
+      console.error("Admin verification error:", error);
+      await supabase.auth.signOut();
+      showLogin();
+      showMessage("Admin verification failed. Please contact support.");
+      return false;
+    }
+
+    const isAdmin =
+      data === true ||
+      data?.is_admin === true ||
+      (Array.isArray(data) && data.some(row =>
+        row?.is_admin === true
+      ));
+
+    if (!isAdmin) {
+      await supabase.auth.signOut();
+      showLogin();
+      showMessage("Access denied. This account is not an admin.");
+      return false;
+    }
+
+    showDashboard();
+    return true;
+  }
+
+  // LOGIN
+  if (loginForm) {
+    loginForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      if (!supabase) {
+        showMessage("Supabase connection is not available.");
+        return;
+      }
+
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const button = loginForm.querySelector('button[type="submit"]');
+
+      if (!email || !password) {
+        showMessage("Please enter your email and password.");
+        return;
+      }
+
+      button.disabled = true;
+      button.textContent = "Checking...";
+      showMessage("Please wait...", false);
+
+      try {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+
+        if (error) {
+          showMessage(error.message);
+          return;
+        }
+
+        const verified = await verifyAdmin();
+
+        if (verified) {
+          loginForm.reset();
+        }
+
+      } catch (error) {
+        console.error("Login error:", error);
+        showMessage("Something went wrong. Please try again.");
+      } finally {
+        button.disabled = false;
+        button.textContent = "Login";
+      }
     });
   }
 
-  loadAnnouncements();
-  setupStudyMaterials();
+  // LOGOUT
+  if (logoutButton) {
+    logoutButton.addEventListener("click", async () => {
+      if (!supabase) return;
+
+      logoutButton.disabled = true;
+
+      const { error } = await supabase.auth.signOut();
+
+      logoutButton.disabled = false;
+
+      if (error) {
+        console.error("Logout error:", error);
+        alert("Could not log out. Please try again.");
+        return;
+      }
+
+      showLogin();
+      loginForm?.reset();
+      showMessage("You have logged out successfully.", false);
+    });
+  }
+
+  // CHECK EXISTING SESSION
+  showLogin();
+
+  verifyAdmin().catch(error => {
+    console.error("Session verification error:", error);
+    showLogin();
+  });
 });
-
-
-// =====================================
-// STUDY NOTES SECTION
-// =====================================
-
-function setupStudyMaterials() {
-  const section = document.getElementById("materials");
-
-  if (!section) return;
-
-  const container = section.querySelector(".container");
-
-  if (!container) return;
-
-  const oldEmptyState = container.querySelector(".empty-state");
-
-  if (oldEmptyState) {
-    oldEmptyState.remove();
-  }
-
-  let list = document.getElementById("publicStudyMaterials");
-
-  if (!list) {
-    list = document.createElement("div");
-    list.id = "publicStudyMaterials";
-    list.className = "study-materials-grid";
-    container.appendChild(list);
-  }
-
-  loadStudyMaterials();
-}
-
-
-// =====================================
-// LOAD PUBLISHED NOTES
-// =====================================
-
-async function loadStudyMaterials() {
-  const list = document.getElementById("publicStudyMaterials");
-
-  if (!list) return;
-
-  if (!window.supabaseClient) {
-    list.textContent = "Database connection unavailable.";
-    return;
-  }
-
-  list.textContent = "Loading study materials...";
-
-  const { data, error } = await window.supabaseClient
-    .from("study_materials")
-    .select("id, title, category, description, body, file_url, created_at")
-    .eq("published", true)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("Study Notes Error:", error);
-
-    list.textContent =
-      "Could not load study notes: " + error.message;
-
-    return;
-  }
-
-  if (!data || data.length === 0) {
-    list.textContent = "No study notes have been published yet.";
-    return;
-  }
-
-  list.innerHTML = "";
-
-  data.forEach(item => {
-    const card = document.createElement("article");
-    card.className = "info-card";
-    card.style.marginBottom = "20px";
-
-    const title = document.createElement("h3");
-    title.textContent = item.title || "Study Notes";
-
-    const category = document.createElement("p");
-    category.className = "muted";
-    category.textContent = "Category: " + (item.category || "General");
-
-    const description = document.createElement("p");
-    description.textContent = item.description || "";
-
-    card.append(title, category, description);
-
-    if (item.body) {
-      const content = document.createElement("p");
-      content.textContent = item.body;
-      content.style.whiteSpace = "pre-wrap";
-      card.appendChild(content);
-    }
-
-    if (item.file_url) {
-      const pdfButton = document.createElement("a");
-
-      pdfButton.href = item.file_url;
-      pdfButton.target = "_blank";
-      pdfButton.rel = "noopener noreferrer";
-      pdfButton.className = "btn btn-gold";
-      pdfButton.textContent = "Open / Download PDF";
-
-      card.appendChild(pdfButton);
-    }
-
-    list.appendChild(card);
-  });
-}
-
-
-// =====================================
-// ANNOUNCEMENTS - EXISTING CODE
-// =====================================
-
-async function loadAnnouncements() {
-  const list = document.getElementById("announcementList");
-
-  if (!list) return;
-
-  if (!window.supabaseClient) {
-    list.textContent = "Announcements are unavailable.";
-    return;
-  }
-
-  const { data, error } = await window.supabaseClient
-    .from("announcements")
-    .select("title, content, created_at")
-    .eq("is_active", true)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("Announcement loading error:", error);
-    list.textContent = "Announcements are temporarily unavailable.";
-    return;
-  }
-
-  if (!data || data.length === 0) {
-    list.textContent = "No announcements have been published yet.";
-    return;
-  }
-
-  list.innerHTML = "";
-
-  data.forEach(item => {
-    const article = document.createElement("article");
-    article.className = "announcement-card";
-
-    const heading = document.createElement("h3");
-    heading.textContent = item.title || "Announcement";
-
-    const content = document.createElement("p");
-    content.textContent = item.content || "";
-
-    const date = document.createElement("div");
-    date.className = "announcement-date";
-    date.textContent = item.created_at
-      ? new Date(item.created_at).toLocaleDateString()
-      : "";
-
-    article.append(heading, content, date);
-    list.appendChild(article);
-  });
-}
