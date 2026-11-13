@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sindh Jail Police preparation, study notes and recruitment updates.">
+  <title>Sindh Jail Police | Preparation & Updates</title>
+  <script>
+    /* Saved theme ko page load se pehle lagao (flash se bachne ke liye) */
+    try { var t = localStorage.getItem("sjp_theme"); if (t === "dark") document.documentElement.setAttribute("data-theme", "dark"); } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="effects.css">
+
+  <style>
+    /* ===================== THEME TOGGLE BUTTON ===================== */
+    .theme-toggle{width:40px;height:40px;border-radius:50%;border:1px solid rgba(128,128,128,.35);background:transparent;color:inherit;font-size:1.05rem;cursor:pointer;display:inline-grid;place-items:center;flex:none;margin-left:8px;transition:.2s}
+    .theme-toggle:hover{border-color:#f5b83d;transform:rotate(15deg)}
+
+    /* ===================== DARK MODE ===================== */
+    [data-theme="dark"] body{background:#0b1426;color:#e8eefc}
+    [data-theme="dark"] main,
+    [data-theme="dark"] .section{background:#0b1426;color:#e8eefc}
+    [data-theme="dark"] .section-light{background:#101d35}
+    [data-theme="dark"] .section-dark{background:#070d1b}
+    [data-theme="dark"] .section h2,
+    [data-theme="dark"] .section h3,
+    [data-theme="dark"] .section h4{color:#f1f5ff}
+    [data-theme="dark"] .section p,
+    [data-theme="dark"] .section li,
+    [data-theme="dark"] .muted{color:#9fb0cf}
+    [data-theme="dark"] .site-header{background:rgba(11,20,38,.92);border-bottom:1px solid rgba(255,255,255,.09)}
+    [data-theme="dark"] .site-header,
+    [data-theme="dark"] .site-header a,
+    [data-theme="dark"] .brand small,
+    [data-theme="dark"] .menu-toggle{color:#e8eefc}
+    [data-theme="dark"] .main-nav{background:transparent}
+    [data-theme="dark"] .info-card,
+    [data-theme="dark"] .category-card,
+    [data-theme="dark"] .option-button,
+    [data-theme="dark"] .announcement-list > *,
+    [data-theme="dark"] #publicStudyMaterials > *,
+    [data-theme="dark"] #publicBlogs > *,
+    [data-theme="dark"] .gallery-grid > *{background:#14243f;border-color:rgba(255,255,255,.09);color:#e8eefc;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+    [data-theme="dark"] .info-card h3,
+    [data-theme="dark"] .category-card h3,
+    [data-theme="dark"] .announcement-list h3,
+    [data-theme="dark"] #publicStudyMaterials h3,
+    [data-theme="dark"] #publicBlogs h3{color:#fff}
+    [data-theme="dark"] .info-card p,
+    [data-theme="dark"] .category-card p,
+    [data-theme="dark"] .announcement-list p,
+    [data-theme="dark"] #publicStudyMaterials p,
+    [data-theme="dark"] #publicBlogs p{color:#9fb0cf}
+
+    /* ===================== SINGLE WHATSAPP REQUEST BUTTON ===================== */
+    .wa-request{text-align:center;margin-top:28px}
+    .btn-wa{display:inline-flex;align-items:center;gap:8px;padding:13px 28px;border-radius:50px;background:#25d366;color:#07261a;font-weight:700;font-size:.95rem;text-decoration:none;box-shadow:0 8px 22px rgba(37,211,102,.3);transition:.25s}
+    .btn-wa:hover{transform:translateY(-2px);filter:brightness(1.05)}
+    .wa-request small{display:block;margin-top:8px;opacity:.75}
+
+    /* ===================== CONTACT & JOIN US ===================== */
+    .cx-grid{display:grid;gap:22px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));margin-top:30px}
+    .cx-card{background:#fff;border:1px solid rgba(16,29,53,.1);border-radius:20px;padding:28px 22px;text-align:center;box-shadow:0 10px 30px rgba(16,29,53,.1);transition:.3s;color:#0f1b33}
+    .cx-card:hover{transform:translateY(-5px);border-color:rgba(245,184,61,.55)}
+    .cx-ico{width:56px;height:56px;margin:0 auto 14px;border-radius:16px;display:grid;place-items:center;font-size:1.7rem;background:rgba(245,184,61,.16)}
+    .cx-card h3{font-size:1.1rem;margin-bottom:6px}
+    .cx-card p{font-size:.92rem;opacity:.8;word-break:break-word}
+    .cx-btn{display:inline-block;margin-top:14px;padding:9px 20px;border-radius:50px;font-weight:600;font-size:.86rem;text-decoration:none}
+    .cx-green{background:#25d366;color:#07261a}
+    .cx-gold{background:linear-gradient(135deg,#f5b83d,#ff9f1c);color:#10192e}
+    [data-theme="dark"] .cx-card{background:#14243f;border-color:rgba(255,255,255,.09);color:#e8eefc;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+
+    /* ===================== DARK FOOTER ===================== */
+    .cx-footer{background:#070d1b;color:#9fb0cf;padding:48px 0 24px;font-size:.9rem}
+    .cx-fgrid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:32px;margin-bottom:28px}
+    .cx-footer h4{color:#fff;margin-bottom:12px;font-size:1.05rem}
+    .cx-footer p{line-height:1.7}
+    .cx-footer a{display:block;padding:4px 0;color:#9fb0cf;text-decoration:none;transition:.2s}
+    .cx-footer a:hover{color:#f5b83d;padding-left:4px}
+    .cx-copy{border-top:1px solid rgba(255,255,255,.1);padding-top:18px;text-align:center;font-size:.82rem}
+    @media(max-width:760px){.cx-fgrid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">SJP</span>
+        <span><strong>Sindh Jail Police</strong><small>Preparation & Information</small></span>
+      </a>
+      <button class="theme-toggle" id="themeToggle" aria-label="Switch dark or light mode" title="Dark / Light mode">🌙</button>
+      <button class="menu-toggle" id="menuToggle" aria-label="Open navigation">☰</button>
+      <nav class="main-nav" id="mainNav">
+        <a href="#home">Home</a>
+        <a href="#about">About</a>
+        <a href="#preparation">Preparation</a>
+        <a href="#materials">Notes</a>
+        <a href="mock-tests.html">Mock Tests</a>
+        <a href="#announcements">Updates</a>
+        <a href="#contact">Contact</a>
+        <a href="admin.html">Admin</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="home">
+      <div class="container hero-content">
+        <span class="eyebrow">LEARN • PREPARE • SUCCEED</span>
+        <h1>Sindh Jail Police</h1>
+        <h2>Preparation, Notes and Latest Updates</h2>
+        <p>Your learning platform for preparation resources, practice tests and recruitment information.</p>
+        <div class="hero-actions">
+          <a class="btn btn-gold" href="#preparation">Start Preparation</a>
+          <a class="btn btn-outline" href="#announcements">Latest Updates</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="about">
+      <div class="container">
+        <div class="section-heading">
+          <span class="eyebrow">WELCOME</span>
+          <h2>About This Website</h2>
+          <p>A learning and information platform created to help candidates prepare for Sindh Jail Police recruitment tests and interviews.</p>
+        </div>
+        <div class="info-grid">
+          <article class="info-card">
+            <div class="card-icon">📚</div>
+            <h3>Study Resources</h3>
+            <p>Find useful notes, subject-wise preparation material and practice resources.</p>
+          </article>
+          <article class="info-card">
+            <div class="card-icon">📝</div>
+            <h3>Test Preparation</h3>
+            <p>Improve your knowledge with MCQs, mock tests and preparation tips.</p>
+          </article>
+          <article class="info-card">
+            <div class="card-icon">📢</div>
+            <h3>Recruitment Updates</h3>
+            <p>Check announcements and always verify important information through official sources.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-dark" id="preparation">
+      <div class="container">
+        <div class="section-heading">
+          <span class="eyebrow">YOUR PREPARATION</span>
+          <h2>Preparation Categories</h2>
+          <p>Explore the main areas of recruitment preparation.</p>
+        </div>
+        <div class="category-grid">
+          <a class="category-card" href="prison-constable-male.html"><span>👮</span><h3>Prison Constable (Male)</h3><p>Preparation resources for male candidates.</p></a>
+          <a class="category-card" href="lady-prison-constable.html"><span>👮‍♀️</span><h3>Lady Prison Constable</h3><p>Preparation resources for female candidates.</p></a>
+          <a class="category-card" href="eligibility.html"><span>📋</span><h3>Eligibility</h3><p>Check official recruitment notices for current criteria.</p></a>
+          <a class="category-card" href="physical-test.html"><span>🏃</span><h3>Physical Test</h3><p>General preparation guidance for physical tests.</p></a>
+          <a class="category-card" href="written-test.html"><span>✍️</span><h3>Written Test</h3><p>Subject-wise study and MCQ practice.</p></a>
+          <a class="category-card" href="interview.html"><span>🎤</span><h3>Interview</h3><p>Interview preparation and sample questions.</p></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="materials">
+      <div class="container">
+        <div class="section-heading">
+          <span class="eyebrow">STUDY CORNER</span>
+          <h2>Notes & Study Materials</h2>
+          <p>Study materials and downloadable notes will be published here.</p>
+        </div>
+        <div id="publicStudyMaterials" class="info-grid"><p class="muted">Loading study materials...</p></div>
+
+        <!-- Sirf ik WhatsApp request option -->
+        <div class="wa-request">
+          <a class="btn-wa" id="waRequest" href="#" target="_blank" rel="noopener">💬 Request Notes on WhatsApp</a>
+          <small>Need any note or PDF? Send us a message on WhatsApp.</small>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-light" id="announcements">
+      <div class="container">
+        <div class="section-heading">
+          <span class="eyebrow">STAY INFORMED</span>
+          <h2>Latest Announcements</h2>
+          <p>Updates published on this website. Always confirm recruitment details from official sources.</p>
+        </div>
+        <div id="announcementList" class="announcement-list">
+          <p class="muted">Loading announcements...</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="blogs">
+      <div class="container">
+        <div class="section-heading">
+          <span class="eyebrow">ARTICLES</span>
+          <h2>Blogs &amp; Preparation Tips</h2>
+          <p>Articles, tips and guidance to help your preparation.</p>
+        </div>
+        <div id="publicBlogs" class="info-grid"><p class="muted">Loading blogs...</p></div>
+      </div>
+    </section>
+
+    <section class="section section-light" id="gallery">
+      <div class="container">
+        <div class="section-heading">
+          <span class="eyebrow">GALLERY</span>
+          <h2>Photo Gallery</h2>
+        </div>
+        <div id="publicGallery" class="gallery-grid"><p class="muted">Loading gallery...</p></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-heading">
+          <span class="eyebrow">KEEP EXPLORING</span>
+          <h2>More Options for You</h2>
+          <p>Choose an area to continue your preparation.</p>
+        </div>
+        <div class="more-options">
+          <a href="#preparation" class="option-button">Preparation Tips</a>
+          <a href="#materials" class="option-button">Study Notes</a>
+          <a href="mock-tests.html" class="option-button">Mock Tests</a>
+          <a href="#announcements" class="option-button">Announcements</a>
+          <a href="#contact" class="option-button">Contact Us</a>
+          <a href="admin.html" class="option-button">Admin Panel</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== CONTACT & JOIN US ===================== -->
+    <section class="section section-light" id="contact">
+      <div class="container">
+        <div class="section-heading" style="text-align:center">
+          <span class="eyebrow">GET IN TOUCH</span>
+          <h2>Contact &amp; Join Us</h2>
+          <p>Learn with Yaseen Jakhrani. Join our learning community for preparation notes and mock tests.</p>
+        </div>
+        <div class="cx-grid">
+          <div class="cx-card">
+            <div class="cx-ico">📱</div>
+            <h3>WhatsApp Contact</h3>
+            <p>0333-7363359</p>
+            <a class="cx-btn cx-green" id="cWa" href="#" target="_blank" rel="noopener">Contact on WhatsApp</a>
+          </div>
+          <div class="cx-card">
+            <div class="cx-ico">✉️</div>
+            <h3>Email</h3>
+            <p>ghulamyasinj11@gmail.com</p>
+            <a class="cx-btn cx-gold" href="mailto:ghulamyasinj11@gmail.com">Send Email</a>
+          </div>
+          <div class="cx-card">
+            <div class="cx-ico">👥</div>
+            <h3>WhatsApp Group</h3>
+            <p>Join for study material and preparation updates.</p>
+            <a class="cx-btn cx-green" id="cGroup" href="#" target="_blank" rel="noopener">Join Group</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================== DARK FOOTER ===================== -->
+  <footer class="cx-footer">
+    <div class="container">
+      <div class="cx-fgrid">
+        <div>
+          <h4>🛡️ Sindh Jail Police</h4>
+          <p>Learn with Yaseen Jakhrani. A preparation and educational information website. This is <b>not</b> the official website of Sindh Prisons and Corrections Service. Always check official notices on the official department and testing service websites.</p>
+        </div>
+        <div>
+          <h4>Quick Links</h4>
+          <a href="#home">Home</a>
+          <a href="#preparation">Preparation Categories</a>
+          <a href="#materials">Study Notes</a>
+          <a href="mock-tests.html">Mock Tests</a>
+          <a href="#announcements">Latest Updates</a>
+          <a href="#contact">Contact</a>
+        </div>
+        <div>
+          <h4>Contact</h4>
+          <a href="tel:03337363359">📞 0333-7363359</a>
+          <a href="mailto:ghulamyasinj11@gmail.com">✉️ ghulamyasinj11@gmail.com</a>
+          <a id="fGroup" href="#" target="_blank" rel="noopener">💬 Join WhatsApp Group</a>
+        </div>
+      </div>
+      <div class="cx-copy">© <span id="year"></span> Sindh Jail Police Preparation · For educational and informational purposes.</div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+  <script src="effects.js"></script>
+
+  <script>
+    /* ===================== SETTINGS (yahan change karein) ===================== */
+    var SITE = {
+      whatsapp: "923337363359",
+      group: "https://chat.whatsapp.com/C2YS9qW3RZVICPiYdhuLpS?s=cl&p=a&iam=2"
+    };
+
+    function waLink(msg){ return "https://wa.me/" + SITE.whatsapp + (msg ? "?text=" + encodeURIComponent(msg) : ""); }
+
+    /* WhatsApp links */
+    document.getElementById("waRequest").href = waLink("Assalam o Alaikum, I need Sindh Jail Police preparation notes.");
+    document.getElementById("cWa").href = waLink("Assalam o Alaikum, I need help with Sindh Jail Police preparation.");
+    document.getElementById("cGroup").href = SITE.group;
+    document.getElementById("fGroup").href = SITE.group;
+
+    /* Footer year */
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    /* Dark / Light theme */
+    (function(){
+      var btn = document.getElementById("themeToggle");
+      var root = document.documentElement;
+      function apply(mode){
+        if (mode === "dark") root.setAttribute("data-theme", "dark");
+        else root.removeAttribute("data-theme");
+        btn.textContent = mode === "dark" ? "☀️" : "🌙";
+        try { localStorage.setItem("sjp_theme", mode); } catch (e) {}
+      }
+      apply(root.getAttribute("data-theme") === "dark" ? "dark" : "light");
+      btn.addEventListener("click", function(){
+        apply(root.getAttribute("data-theme") === "dark" ? "light" : "dark");
+      });
+    })();
+  </script>
+</body>
+</html>
