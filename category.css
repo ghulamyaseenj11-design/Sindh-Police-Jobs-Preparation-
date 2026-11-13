@@ -1,0 +1,39 @@
+/* Category pages (works together with styles.css) */
+.cp-hero{background:linear-gradient(135deg,#0b2341 0%,#12345e 100%);color:#fff;padding:56px 0 48px;text-align:center}
+.cp-hero .cp-icon{font-size:56px;line-height:1;display:block;margin-bottom:12px}
+.cp-hero h1{margin:6px 0 10px;font-size:clamp(1.8rem,5vw,2.8rem);color:#fff}
+.cp-hero p{max-width:640px;margin:0 auto 18px;color:#d7e0ee;font-size:1.02rem}
+.cp-crumbs{font-size:.9rem;margin-bottom:10px;color:#b9c7dc}
+.cp-crumbs a{color:#f0c96a;text-decoration:none}
+.cp-body{background:#f4f6fa;padding:36px 0 56px;color:#1a2433}
+.cp-layout{display:grid;grid-template-columns:240px 1fr;gap:28px;align-items:start}
+.cp-side{position:sticky;top:90px;background:#fff;border:1px solid #e2e7ef;border-radius:14px;padding:16px}
+.cp-side h2{margin:0 0 10px;font-size:.8rem;letter-spacing:.08em;color:#6b7a90;text-transform:uppercase}
+.cp-side a{display:block;padding:7px 8px;border-radius:8px;color:#1a2433;text-decoration:none;font-size:.95rem}
+.cp-side a:hover{background:#eef2f8}
+.cp-filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.cp-chip{border:1px solid #cdd6e3;background:#fff;color:#1a2433;border-radius:99px;padding:7px 16px;font:inherit;font-size:.9rem;cursor:pointer}
+.cp-chip.active{background:#0b2341;border-color:#0b2341;color:#fff}
+.cp-card{background:#fff;border:1px solid #e2e7ef;border-left:5px solid #0b2341;border-radius:14px;padding:20px 22px;margin-bottom:18px;box-shadow:0 2px 8px rgba(11,35,65,.05);scroll-margin-top:90px}
+.cp-card.tip{border-left-color:#2e9e6b}
+.cp-card.trick{border-left-color:#d9982b}
+.cp-card h3{margin:8px 0 10px;font-size:1.25rem;color:#0b2341}
+.cp-badge{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.04em;padding:3px 10px;border-radius:99px;background:#e6edf8;color:#0b2341}
+.cp-card.tip .cp-badge{background:#e1f4ea;color:#1c6b47}
+.cp-card.trick .cp-badge{background:#fdf0d6;color:#8a5a00}
+.cp-text p{margin:0 0 12px;line-height:1.7}
+.cp-text h4{margin:16px 0 6px;color:#0b2341}
+.cp-text ul{margin:0 0 12px;padding-left:22px;line-height:1.7}
+.cp-empty{background:#fff;border:1px dashed #b9c4d6;border-radius:14px;padding:40px 20px;text-align:center;color:#51607a}
+.cp-empty .cp-icon{font-size:44px;display:block;margin-bottom:8px}
+.cp-more{margin-top:34px}
+.cp-more h2{font-size:1.2rem;color:#0b2341;margin:0 0 14px}
+.cp-more-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.cp-more-grid a{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e2e7ef;border-radius:12px;padding:12px 14px;color:#0b2341;text-decoration:none;font-weight:600;font-size:.95rem}
+.cp-more-grid a:hover{border-color:#d9982b}
+.cp-note{margin-top:26px;font-size:.85rem;color:#51607a}
+@media(max-width:800px){
+  .cp-layout{grid-template-columns:1fr}
+  .cp-side{position:static}
+  .cp-hero{padding:40px 0 34px}
+}
