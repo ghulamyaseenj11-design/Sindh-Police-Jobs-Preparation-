@@ -1,0 +1,87 @@
+/* Add-on animations, colors and public blog/gallery styles.
+   Safe to remove: delete the <link> and <script> lines from the pages. */
+
+@keyframes fx-flow    { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+@keyframes fx-slide-l { from { opacity: 0; translate: -40px 0; } to { opacity: 1; translate: 0 0; } }
+@keyframes fx-pulse   { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+
+/* ---- Announcements: colorful text flowing left -> right ---- */
+#announcementList > .announcement-card {
+  animation: fx-slide-l .7s ease both;
+  border-left: 5px solid #c9a227;
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+#announcementList > .announcement-card:nth-child(4n+2) { border-left-color: #e0457b; animation-delay: .1s; }
+#announcementList > .announcement-card:nth-child(4n+3) { border-left-color: #2d7be5; animation-delay: .2s; }
+#announcementList > .announcement-card:nth-child(4n+4) { border-left-color: #1fa971; animation-delay: .3s; }
+#announcementList > .announcement-card:hover { transform: translateX(6px); box-shadow: 0 12px 28px rgba(11,35,65,.2); }
+
+#announcementList .announcement-card h3 {
+  background: linear-gradient(90deg, #c9a227, #e0457b, #2d7be5, #1fa971, #c9a227);
+  background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  animation: fx-flow 4s linear infinite;
+}
+#announcementList .announcement-card p {
+  background: linear-gradient(90deg, #1f5fbf, #7a3fc4, #c2410c, #0f8a5f, #1f5fbf);
+  background-size: 250% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  animation: fx-flow 8s linear infinite;
+}
+.fx-new-badge {
+  display: inline-block; margin-left: 8px; padding: 2px 9px; border-radius: 99px;
+  font-size: .7rem; font-weight: 700; letter-spacing: .05em; vertical-align: middle;
+  background: #e0457b; -webkit-text-fill-color: #fff; color: #fff;
+  animation: fx-pulse 1.4s ease-in-out infinite;
+}
+
+/* ---- Hero title: moving color ---- */
+.hero h1, .cp-hero h1 {
+  background: linear-gradient(90deg, #ffffff, #f3d982, #ffffff, #f3d982);
+  background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  animation: fx-flow 6s linear infinite;
+}
+
+/* ---- Hover lift ---- */
+.info-card, .category-card, .option-button, .mt-card, .cp-card, .cp-more-grid a, .gallery-card {
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+.info-card:hover, .category-card:hover, .mt-card:hover, .cp-card:hover, .cp-more-grid a:hover, .gallery-card:hover {
+  transform: translateY(-6px); box-shadow: 0 14px 28px rgba(11,35,65,.22);
+}
+.card-icon, .category-card > span { display: inline-block; transition: transform .3s ease; }
+.info-card:hover .card-icon, .category-card:hover > span { transform: scale(1.25) rotate(-6deg); }
+
+/* ---- Scroll reveal (class added by effects.js). Uses `translate` so it never fights hover `transform`. ---- */
+.fx-reveal {
+  opacity: 0; translate: 0 28px;
+  transition: opacity .7s ease, translate .7s ease, transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+.fx-reveal.fx-left { translate: -40px 0; }
+.fx-reveal.fx-in { opacity: 1; translate: 0 0; }
+
+/* ---- Public blogs / notes / gallery (these had no styles before) ---- */
+.content-image { display: block; width: 100%; height: 180px; object-fit: cover; border-radius: 8px; margin-bottom: 12px; }
+.blog-details { margin-top: 12px; }
+.blog-details summary { cursor: pointer; color: #c9a227; font-weight: 700; }
+.blog-details summary:hover { color: #0b2341; }
+.content-text, .material-body { margin-top: 10px; }
+.gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 18px; }
+.gallery-card { background: #fff; border: 1px solid #e1e6ed; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(11,35,65,.09); }
+.gallery-card img { display: block; width: 100%; height: 190px; object-fit: cover; }
+.gallery-card h3 { color: #0b2341; font-size: 1rem; padding: 12px 14px 2px; }
+.gallery-card p { color: #718096; font-size: 14px; padding: 0 14px 14px; }
+#publicBlogs, #publicStudyMaterials { max-width: 1120px; margin: 0 auto; }
+#publicBlogs > :not(article), #publicStudyMaterials > :not(article), #publicGallery > :not(article) { grid-column: 1 / -1; text-align: center; color: #718096; }
+
+@media (max-width: 850px) { .gallery-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .gallery-grid { grid-template-columns: 1fr; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .fx-reveal { opacity: 1; translate: 0 0; }
+}
