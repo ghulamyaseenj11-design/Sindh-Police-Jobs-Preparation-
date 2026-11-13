@@ -1,151 +1,150 @@
-
 document.addEventListener("DOMContentLoaded", () => {
   const loginForm = document.getElementById("loginForm");
-  const loginSection = document.getElementById("loginSection");
-  const dashboardSection = document.getElementById("dashboardSection");
-  const loginMessage = document.getElementById("loginMessage");
   const logoutButton = document.getElementById("logoutButton");
+  const announcementForm = document.getElementById("announcementForm");
 
-  const supabase = window.supabaseClient;
-
-  function showMessage(message, isError = true) {
-    if (!loginMessage) return;
-
-    loginMessage.textContent = message;
-    loginMessage.style.color = isError ? "#c0392b" : "#16803c";
+  if (!window.supabaseClient) {
+    showMessage("loginMessage", "Database is not connected. Please configure config.js.", true);
+    return;
   }
 
-  function showLogin() {
-    loginSection?.classList.remove("hidden");
-    dashboardSection?.classList.add("hidden");
-  }
+  loginForm.addEventListener("submit", handleLogin);
+  logoutButton.addEventListener("click", handleLogout);
+  announcementForm.addEventListener("submit", publishAnnouncement);
 
-  function showDashboard() {
-    loginSection?.classList.add("hidden");
-    dashboardSection?.classList.remove("hidden");
-  }
-
-  async function verifyAdmin() {
-    if (!supabase) {
-      showLogin();
-      showMessage("Database connection unavailable.");
-      return false;
-    }
-
-    const { data: sessionData, error: sessionError } =
-      await supabase.auth.getSession();
-
-    if (sessionError || !sessionData.session) {
-      showLogin();
-      return false;
-    }
-
-    const { data, error } = await supabase.rpc("is_admin");
-
-    if (error) {
-      console.error("Admin verification error:", error);
-      await supabase.auth.signOut();
-      showLogin();
-      showMessage("Admin verification failed. Please contact support.");
-      return false;
-    }
-
-    const isAdmin =
-      data === true ||
-      data?.is_admin === true ||
-      (Array.isArray(data) && data.some(row =>
-        row?.is_admin === true
-      ));
-
-    if (!isAdmin) {
-      await supabase.auth.signOut();
-      showLogin();
-      showMessage("Access denied. This account is not an admin.");
-      return false;
-    }
-
-    showDashboard();
-    return true;
-  }
-
-  // LOGIN
-  if (loginForm) {
-    loginForm.addEventListener("submit", async (event) => {
-      event.preventDefault();
-
-      if (!supabase) {
-        showMessage("Supabase connection is not available.");
-        return;
-      }
-
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value;
-      const button = loginForm.querySelector('button[type="submit"]');
-
-      if (!email || !password) {
-        showMessage("Please enter your email and password.");
-        return;
-      }
-
-      button.disabled = true;
-      button.textContent = "Checking...";
-      showMessage("Please wait...", false);
-
-      try {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
-
-        if (error) {
-          showMessage(error.message);
-          return;
-        }
-
-        const verified = await verifyAdmin();
-
-        if (verified) {
-          loginForm.reset();
-        }
-
-      } catch (error) {
-        console.error("Login error:", error);
-        showMessage("Something went wrong. Please try again.");
-      } finally {
-        button.disabled = false;
-        button.textContent = "Login";
-      }
-    });
-  }
-
-  // LOGOUT
-  if (logoutButton) {
-    logoutButton.addEventListener("click", async () => {
-      if (!supabase) return;
-
-      logoutButton.disabled = true;
-
-      const { error } = await supabase.auth.signOut();
-
-      logoutButton.disabled = false;
-
-      if (error) {
-        console.error("Logout error:", error);
-        alert("Could not log out. Please try again.");
-        return;
-      }
-
-      showLogin();
-      loginForm?.reset();
-      showMessage("You have logged out successfully.", false);
-    });
-  }
-
-  // CHECK EXISTING SESSION
-  showLogin();
-
-  verifyAdmin().catch(error => {
-    console.error("Session verification error:", error);
-    showLogin();
-  });
+  checkExistingSession();
 });
+
+function showMessage(elementId, message, isError = false) {
+  const element = document.getElementById(elementId);
+  if (!element) return;
+
+  element.textContent = message;
+  element.className = isError
+    ? "form-message error"
+    : "form-message success";
+}
+
+async function checkExistingSession() {
+  const { data } = await window.supabaseClient.auth.getSession();
+
+  if (data.session) {
+    await verifyAdmin(data.session.user);
+  }
+}
+
+async function handleLogin(event) {
+  event.preventDefault();
+
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+
+  showMessage("loginMessage", "Signing in...");
+
+  const { data, error } = await window.supabaseClient.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) {
+    showMessage("loginMessage", error.message, true);
+    return;
+  }
+
+  await verifyAdmin(data.user);
+}
+
+async function verifyAdmin(user) {
+  // The database function public.is_admin() must already exist.
+  const { data, error } = await window.supabaseClient.rpc("is_admin");
+
+  if (error || data !== true) {
+    await window.supabaseClient.auth.signOut();
+    showMessage("loginMessage", "Access denied. This account is not an authorized admin.", true);
+    return;
+  }
+
+  document.getElementById("loginSection").classList.add("hidden");
+  document.getElementById("dashboardSection").classList.remove("hidden");
+
+  loadAdminAnnouncements();
+}
+
+async function handleLogout() {
+  await window.supabaseClient.auth.signOut();
+  location.reload();
+}
+
+async function publishAnnouncement(event) {
+  event.preventDefault();
+
+  const title = document.getElementById("announcementTitle").value.trim();
+  const content = document.getElementById("announcementContent").value.trim();
+
+  if (!title || !content) {
+    showMessage("announcementMessage", "Please complete both fields.", true);
+    return;
+  }
+
+  showMessage("announcementMessage", "Publishing...");
+
+  const { error } = await window.supabaseClient
+    .from("announcements")
+    .insert([{
+      title,
+      content,
+      is_active: true
+    }]);
+
+  if (error) {
+    console.error(error);
+    showMessage("announcementMessage", "Could not publish. Check your database columns and admin permissions.", true);
+    return;
+  }
+
+  document.getElementById("announcementForm").reset();
+  showMessage("announcementMessage", "Announcement published successfully!");
+  loadAdminAnnouncements();
+}
+
+async function loadAdminAnnouncements() {
+  const list = document.getElementById("adminAnnouncementList");
+
+  const { data, error } = await window.supabaseClient
+    .from("announcements")
+    .select("title, content, created_at")
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  if (error) {
+    list.textContent = "Could not load announcements. Check admin read permissions.";
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    list.textContent = "No announcements found.";
+    return;
+  }
+
+  list.innerHTML = "";
+
+  data.forEach(item => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "admin-announcement";
+
+    const heading = document.createElement("h3");
+    heading.textContent = item.title || "Announcement";
+
+    const content = document.createElement("p");
+    content.textContent = item.content || "";
+
+    const date = document.createElement("small");
+    date.className = "muted";
+    date.textContent = item.created_at
+      ? new Date(item.created_at).toLocaleString()
+      : "";
+
+    wrapper.append(heading, content, date);
+    list.appendChild(wrapper);
+  });
+  }
