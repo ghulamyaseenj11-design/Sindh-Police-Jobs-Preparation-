@@ -780,7 +780,6 @@ function renderList(container, data, getLines, editCallback, deleteCallback) {
 
     getLines(item).forEach(line => {
       const p = document.createElement("p");
-      const p = document.createElement("p");
       p.textContent = line ?? "";
       card.appendChild(p);
     });
