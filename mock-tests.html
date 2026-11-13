@@ -94,17 +94,7 @@
       if (!nav.style.display || nav.style.display === 'none') { /* styles.css decides */ }
     });
 
-    // Reuse the Supabase client from config.js if it exists; otherwise build one from its constants.
-    function getClient() {
-      var g = window;
-      var existing = g.supabaseClient || g.sb || g.db || g.client;
-      if (existing && existing.from) return existing;
-      if (g.supabase && g.supabase.from) return g.supabase; // config.js may have replaced the global
-      var url = g.SUPABASE_URL || g.supabaseUrl || (g.CONFIG && g.CONFIG.SUPABASE_URL);
-      var key = g.SUPABASE_ANON_KEY || g.supabaseKey || g.SUPABASE_KEY || (g.CONFIG && g.CONFIG.SUPABASE_ANON_KEY);
-      if (url && key && g.supabase && g.supabase.createClient) return g.supabase.createClient(url, key);
-      return null;
-    }
+    function getClient() { return window.supabaseClient || null; } // same client as admin.js
 
     var list = document.getElementById('mockList');
     function msg(t) { list.innerHTML = ''; var p = document.createElement('p'); p.className = 'muted'; p.textContent = t; list.appendChild(p); }

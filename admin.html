@@ -71,6 +71,7 @@
         <a class="btn btn-outline-dark" href="#galleryManager">Gallery</a>
         <a class="btn btn-outline-dark" href="#announcementsManager">Announcements</a>
         <a class="btn btn-outline-dark" href="#navigationManager">Navigation</a>
+        <a class="btn btn-outline-dark" href="#mockTestsManager">Mock Tests</a>
         <a class="btn btn-outline-dark" href="#settingsManager">Settings</a>
       </div>
     </div>
@@ -256,6 +257,61 @@
     </div>
 
 
+    <!-- MOCK TESTS -->
+    <div class="admin-card" id="mockTestsManager">
+      <h2>Manage Mock Tests</h2>
+      <p class="muted">Add Google Forms / other test links, or paste your own HTML test.</p>
+
+      <form id="mockTestForm">
+        <input type="hidden" id="mockTestId">
+
+        <label for="mockType">Test Type</label>
+        <select id="mockType">
+          <option value="link">External Link (Google Form, etc.)</option>
+          <option value="html">HTML Test</option>
+        </select>
+
+        <label for="mockTitle">Title</label>
+        <input id="mockTitle" type="text" maxlength="200" required>
+
+        <label for="mockDescription">Description</label>
+        <textarea id="mockDescription" rows="3"></textarea>
+
+        <div id="mockLinkFields">
+          <label for="mockUrl">Test Link (URL)</label>
+          <input id="mockUrl" type="url" placeholder="https://forms.gle/...">
+        </div>
+
+        <div id="mockHtmlFields" class="hidden">
+          <label for="mockHtml">HTML Code</label>
+          <textarea id="mockHtml" rows="16" spellcheck="false"
+            style="font-family:monospace" placeholder="Paste the complete HTML of your test here"></textarea>
+        </div>
+
+        <label for="mockThumb">Thumbnail (Optional)</label>
+        <input id="mockThumb" type="file" accept="image/*">
+
+        <label for="mockOrder">Display Order</label>
+        <input id="mockOrder" type="number" value="0">
+
+        <label for="mockPublished">Status</label>
+        <select id="mockPublished">
+          <option value="false">Draft (hidden)</option>
+          <option value="true">Published</option>
+        </select>
+
+        <div class="admin-actions">
+          <button class="btn btn-gold" id="saveMockButton" type="submit">Save Mock Test</button>
+          <button class="btn btn-outline-dark" id="cancelMockEdit" type="button">Cancel</button>
+        </div>
+      </form>
+
+      <p id="mockTestMessage" class="form-message" aria-live="polite"></p>
+      <h3>All Mock Tests</h3>
+      <div id="adminMockTestsList">Loading...</div>
+    </div>
+
+
     <!-- NAVIGATION -->
     <div class="admin-card" id="navigationManager">
       <h2>Navigation Menu Manager</h2>
@@ -337,6 +393,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script src="admin.js"></script>
+<script src="mock-tests-admin.js"></script>
 
 </body>
           </html>
