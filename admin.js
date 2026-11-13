@@ -1,5 +1,3 @@
-JavaScript
-
 // ============================================
 // ADMIN PANEL - CLEAN FIXED VERSION
 // Matches admin.html and Supabase table names
