@@ -70,6 +70,16 @@
         <p class="muted" style="margin-top:20px">Departments come from the published preparation sections. To add a new department, publish sections for it and it appears here by itself.</p>
       </div>
     </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-heading">
+          <span class="eyebrow">EXAM SECTIONS</span>
+          <h2>Test Sections</h2>
+        </div>
+        <div id="examList" class="mt-grid"><p class="muted">Loading test sections...</p></div>
+      </div>
+    </section>
   </main>
 
   <footer class="site-footer">
@@ -112,13 +122,10 @@
     var KNOWN = {
       'prison-constable-male': { icon: '👮', title: 'Prison Constable (Male)', intro: 'Preparation resources for male candidates.', file: 'prison-constable-male.html', thumb: 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/site-media/departments/male-constable.webp' },
       'lady-prison-constable': { icon: '👮‍♀️', title: 'Lady Prison Constable', intro: 'Preparation resources for female candidates.', file: 'lady-prison-constable.html', thumb: 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/site-media/departments/lady-constable.webp' },
-      'eligibility': { icon: '📋', title: 'Eligibility', intro: 'Check official recruitment notices for current criteria.', file: 'eligibility.html', thumb: 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/site-media/departments/eligibility.webp' },
-      'physical-test': { icon: '🏃', title: 'Physical Test', intro: 'General preparation guidance for physical tests.', file: 'physical-test.html', thumb: 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/site-media/departments/physical-test.webp' },
-      'written-test': { icon: '✍️', title: 'Written Test', intro: 'Subject-wise study and MCQ practice.', file: 'written-test.html', thumb: 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/site-media/departments/written-test.webp' },
-      'interview': { icon: '🎤', title: 'Interview', intro: 'Interview preparation and sample questions.', file: 'interview.html', thumb: 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/site-media/departments/interview.webp' }
+      'written-test': { icon: '✍️', title: 'Written Test', intro: 'Subject-wise study and MCQ practice.', file: 'written-test.html', thumb: 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/site-media/departments/written-test.webp' }
     };
     function pretty(slug) { return String(slug || '').split('-').map(function (w) { return w ? w.charAt(0).toUpperCase() + w.slice(1) : w; }).join(' '); }
-    var ORDER = ['prison-constable-male', 'lady-prison-constable', 'eligibility', 'physical-test', 'written-test', 'interview'];
+    var ORDER = ['prison-constable-male', 'lady-prison-constable', 'written-test'];
     function getClient() { return window.supabaseClient || null; }
     function el(tag, cls, text) {
       var e = document.createElement(tag);
@@ -194,6 +201,56 @@
           list.appendChild(card(slug, desc, thumbs));
         });
       })();
+    });
+
+    // Exam sections (admin-controlled test sections) also appear here.
+    var examList = document.getElementById('examList');
+    Promise.all([
+      client.from('site_settings').select('setting_key,setting_value').like('setting_key', 'mock_section_%'),
+      client.from('site_settings').select('setting_key,setting_value').like('setting_key', 'mock_test_section_%'),
+      client.from('mock_tests').select('id').eq('published', true)
+    ]).then(function (rs) {
+      var sections = [];
+      (rs[0].data || []).forEach(function (row) {
+        try {
+          var v = JSON.parse(row.setting_value || '{}');
+          if (v.title) sections.push({ slug: String(row.setting_key).replace('mock_section_', ''), title: v.title, icon: v.icon || '📝', sort: Number(v.sort) || 0 });
+        } catch (e) {}
+      });
+      sections.sort(function (a, b) { return a.sort - b.sort || (a.title < b.title ? -1 : 1); });
+      var knownSlugs = {};
+      sections.forEach(function (s) { knownSlugs[s.slug] = true; });
+      var assign = {};
+      (rs[1].data || []).forEach(function (row) {
+        if (row.setting_key && row.setting_value) assign[String(row.setting_key).replace('mock_test_section_', '')] = row.setting_value;
+      });
+      var publishedIds = {};
+      (rs[2].data || []).forEach(function (t) { publishedIds[t.id] = true; });
+      var counts = {};
+      var firstSlug = sections.length ? sections[0].slug : null;
+      Object.keys(assign).forEach(function (tid) {
+        if (!publishedIds[tid]) return;
+        var s = (assign[tid] && knownSlugs[assign[tid]]) ? assign[tid] : firstSlug;
+        if (s) counts[s] = (counts[s] || 0) + 1;
+      });
+      var assignedTotal = Object.keys(counts).reduce(function (n, k) { return n + counts[k]; }, 0);
+      if (firstSlug) counts[firstSlug] = (counts[firstSlug] || 0) + (((rs[2].data || []).length) - assignedTotal);
+      examList.innerHTML = '';
+      if (!sections.length) { examList.appendChild(el('p', 'muted', 'No test sections yet.')); return; }
+      sections.forEach(function (s) {
+        var c = el('article', 'mt-card');
+        c.appendChild(el('div', 'mt-thumb', s.icon));
+        var b = el('div', 'mt-body');
+        b.appendChild(el('span', 'mt-badge', 'Test Section'));
+        b.appendChild(el('h3', null, s.title));
+        var n = counts[s.slug] || 0;
+        b.appendChild(el('p', null, n + (n === 1 ? ' test' : ' tests')));
+        var a = el('a', 'btn btn-gold mt-btn', 'Open');
+        a.href = 'mock-tests.html?section=' + encodeURIComponent(s.slug);
+        b.appendChild(a);
+        c.appendChild(b);
+        examList.appendChild(c);
+      });
     });
   })();
   </script>

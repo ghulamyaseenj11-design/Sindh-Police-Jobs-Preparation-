@@ -26,6 +26,43 @@
     toggleFields();
   }
 
+  async function loadSections() {
+    const sel = $("mockSection");
+    if (!sel || !sb()) return;
+    const { data, error } = await sb()
+      .from("site_settings")
+      .select("setting_key,setting_value")
+      .like("setting_key", "mock_section_%");
+    if (error || !data) return;
+    const sections = data.map(row => {
+      try {
+        const v = JSON.parse(row.setting_value || "{}");
+        return { slug: row.setting_key.replace("mock_section_", ""), title: v.title || "", sort: Number(v.sort) || 0 };
+      } catch (e) { return null; }
+    }).filter(Boolean).sort((a, b) => a.sort - b.sort || (a.title < b.title ? -1 : 1));
+    window.__mockTestSections = sections;
+    sel.replaceChildren();
+    sections.forEach(s => {
+      const o = document.createElement("option");
+      o.value = s.slug;
+      o.textContent = s.title;
+      sel.appendChild(o);
+    });
+  }
+
+  async function saveAssignment(testId, slug) {
+    if (!slug) return;
+    const key = "mock_test_section_" + testId;
+    const { data: existing } = await sb().from("site_settings").select("id").eq("setting_key", key).maybeSingle();
+    if (existing) {
+      const { error } = await sb().from("site_settings").update({ setting_value: slug }).eq("id", existing.id);
+      if (error) throw error;
+    } else {
+      const { error } = await sb().from("site_settings").insert([{ setting_key: key, setting_value: slug }]);
+      if (error) throw error;
+    }
+  }
+
   async function save(event) {
     event.preventDefault();
     const id = $("mockTestId").value;
@@ -57,12 +94,18 @@
         payload.thumbnail_url = await uploadFile(file, "mock-tests"); // existing helper in admin.js
       }
       const q = id
-        ? sb().from("mock_tests").update(payload).eq("id", id)
-        : sb().from("mock_tests").insert([payload]);
-      const { error } = await q;
+        ? sb().from("mock_tests").update(payload).eq("id", id).select("id")
+        : sb().from("mock_tests").insert([payload]).select("id");
+      const { data: saved, error } = await q;
       if (error) throw error;
+      const testId = id || (saved && saved[0] && saved[0].id);
+      let assignWarn = null;
+      if (testId) {
+        try { await saveAssignment(testId, $("mockSection").value); }
+        catch (e) { console.error(e); assignWarn = "Test saved, but the section could not be saved."; }
+      }
       resetForm();
-      msg("Mock test saved successfully!", false);
+      msg(assignWarn || "Mock test saved successfully!", !!assignWarn);
       await load();
     } catch (e) {
       console.error(e);
@@ -84,6 +127,9 @@
     $("mockHtml").value = data.html_content || "";
     $("mockPublished").value = String(!!data.published);
     $("mockOrder").value = data.sort_order ?? 0;
+    if (!$("mockSection").options.length) await loadSections();
+    const { data: assign } = await sb().from("site_settings").select("setting_value").eq("setting_key", "mock_test_section_" + data.id).maybeSingle();
+    if (assign && assign.setting_value) $("mockSection").value = assign.setting_value;
     $("saveMockButton").textContent = "Update Mock Test";
     toggleFields();
     $("mockTestsManager").scrollIntoView({ behavior: "smooth" });
@@ -116,6 +162,13 @@
   async function load() {
     const list = $("adminMockTestsList");
     if (!list || !sb()) return;
+    const sections = window.__mockTestSections || [];
+    const bySlug = {};
+    sections.forEach(s => { bySlug[s.slug] = s.title; });
+    const { data: assigns } = await sb().from("site_settings").select("setting_key,setting_value").like("setting_key", "mock_test_section_%");
+    const assignMap = {};
+    (assigns || []).forEach(r => { assignMap[r.setting_key.replace("mock_test_section_", "")] = r.setting_value; });
+    const firstSlug = sections.length ? sections[0].slug : null;
     const { data, error } = await sb()
       .from("mock_tests")
       .select("id,title,description,test_type,test_url,published,sort_order,created_at")
@@ -129,6 +182,7 @@
       card.className = "admin-announcement";
       [item.title,
        item.test_type === "html" ? "HTML Test" : "External Link: " + (item.test_url || ""),
+       "Section: " + (bySlug[assignMap[item.id] || firstSlug] || "—"),
        item.published ? "Published" : "Draft",
        "Order: " + item.sort_order].forEach(t => {
         const p = document.createElement("p");
@@ -157,7 +211,7 @@
 
     // Load the list whenever the dashboard becomes visible (i.e. after a successful admin login).
     const dash = $("dashboardSection");
-    const maybeLoad = () => { if (!dash.classList.contains("hidden")) load(); };
+    const maybeLoad = () => { if (!dash.classList.contains("hidden")) { loadSections(); load(); } };
     new MutationObserver(maybeLoad).observe(dash, { attributes: true, attributeFilter: ["class"] });
     maybeLoad();
   });

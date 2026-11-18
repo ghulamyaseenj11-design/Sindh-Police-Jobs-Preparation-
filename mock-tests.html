@@ -140,27 +140,16 @@
       b.append(badge, h, p, btn); c.append(media, b); return c;
     }
 
-    var SUBJECTS = [
-      { slug: 'english', title: 'English', icon: '📖', keywords: ['english'] },
-      { slug: 'science', title: 'Science', icon: '🔬', keywords: ['science'] },
-      { slug: 'mathematics', title: 'Mathematics', icon: '🔢', keywords: ['mathematics', 'maths'] },
-      { slug: 'computer', title: 'Computer', icon: '💻', keywords: ['computer'] },
-      { slug: 'gk', title: 'General Knowledge', icon: '🌍', keywords: ['gk', 'general knowledge'] },
-      { slug: 'general', title: 'General', icon: '📝', keywords: [] }
-    ];
-    function subjectOf(t) {
-      var title = String(t.title || '').toLowerCase();
-      for (var i = 0; i < SUBJECTS.length; i++) {
-        var s = SUBJECTS[i];
-        for (var j = 0; j < s.keywords.length; j++) {
-          if (title.indexOf(s.keywords[j]) !== -1) return s.slug;
-        }
-      }
-      return 'general';
-    }
-    function subjectBySlug(slug) {
-      for (var i = 0; i < SUBJECTS.length; i++) if (SUBJECTS[i].slug === slug) return SUBJECTS[i];
-      return null;
+    // Test sections come from the admin panel (site_settings rows mock_section_<slug>,
+    // value JSON {title, icon, sort}). A test belongs to the section saved for it
+    // (site_settings mock_test_section_<test-id>); a test with no section saved
+    // belongs to the first section. ?section=<slug> opens that section's page.
+    function parseSection(row) {
+      try {
+        var v = JSON.parse(row.setting_value || '{}');
+        if (!v.title) return null;
+        return { slug: String(row.setting_key).replace('mock_section_', ''), title: v.title, icon: v.icon || '📝', sort: Number(v.sort) || 0 };
+      } catch (e) { return null; }
     }
     function sectionCard(s, count) {
       var c = document.createElement('article'); c.className = 'mt-card';
@@ -170,37 +159,65 @@
       var h = document.createElement('h3'); h.textContent = s.title;
       var p = document.createElement('p'); p.textContent = count + (count === 1 ? ' test' : ' tests');
       var a = document.createElement('a'); a.className = 'btn btn-gold mt-btn';
-      a.href = 'mock-tests.html?subject=' + s.slug; a.textContent = 'Open Section';
+      a.href = 'mock-tests.html?section=' + s.slug; a.textContent = 'Open Section';
       b.append(badge, h, p, a); c.append(media, b); return c;
     }
 
     var client = getClient();
     if (!client) { msg('Mock tests could not be loaded (Supabase config not found).'); }
     else {
-      client.from('mock_tests')
-        .select('id,title,description,test_type,test_url,thumbnail_url,sort_order')
-        .eq('published', true)
-        .order('sort_order', { ascending: true })
-        .order('created_at', { ascending: false })
-        .then(function (r) {
-          if (r.error) { msg('Could not load mock tests. Please try again later.'); return; }
-          if (!r.data.length) { msg('No mock tests published yet. Please check back soon.'); return; }
-          var params = new URLSearchParams(window.location.search);
-          var subject = subjectBySlug(params.get('subject'));
-          list.innerHTML = '';
-          if (subject) {
-            document.getElementById('listEyebrow').textContent = 'MOCK TESTS • ' + subject.title.toUpperCase();
-            document.getElementById('listHeading').textContent = subject.title + ' Tests';
-            document.getElementById('backRow').style.display = '';
-            var shown = 0;
-            r.data.forEach(function (t) { if (subjectOf(t) === subject.slug) { list.appendChild(card(t)); shown++; } });
-            if (!shown) msg('No tests in this section yet.');
-          } else {
-            var counts = {};
-            r.data.forEach(function (t) { var s = subjectOf(t); counts[s] = (counts[s] || 0) + 1; });
-            SUBJECTS.forEach(function (s) { if (counts[s.slug]) list.appendChild(sectionCard(s, counts[s.slug])); });
-          }
+      Promise.all([
+        client.from('mock_tests')
+          .select('id,title,description,test_type,test_url,thumbnail_url,sort_order')
+          .eq('published', true)
+          .order('sort_order', { ascending: true })
+          .order('created_at', { ascending: false }),
+        client.from('site_settings')
+          .select('setting_key,setting_value')
+          .like('setting_key', 'mock_section_%'),
+        client.from('site_settings')
+          .select('setting_key,setting_value')
+          .like('setting_key', 'mock_test_section_%')
+      ]).then(function (results) {
+        var r = results[0];
+        if (r.error) { msg('Could not load mock tests. Please try again later.'); return; }
+        if (!r.data.length) { msg('No mock tests published yet. Please check back soon.'); return; }
+        var sections = [];
+        (results[1].data || []).forEach(function (row) { var s = parseSection(row); if (s) sections.push(s); });
+        sections.sort(function (a, b) { return a.sort - b.sort || (a.title < b.title ? -1 : 1); });
+        var knownSlugs = {};
+        sections.forEach(function (s) { knownSlugs[s.slug] = true; });
+        var assign = {};
+        (results[2].data || []).forEach(function (row) {
+          if (row.setting_key && row.setting_value) assign[String(row.setting_key).replace('mock_test_section_', '')] = row.setting_value;
         });
+        var firstSlug = sections.length ? sections[0].slug : null;
+        function sectionOf(t) {
+          var s = assign[t.id];
+          return (s && knownSlugs[s]) ? s : firstSlug;
+        }
+        var params = new URLSearchParams(window.location.search);
+        var slug = params.get('section');
+        var section = null;
+        sections.forEach(function (s) { if (s.slug === slug) section = s; });
+        list.innerHTML = '';
+        if (!sections.length) {
+          r.data.forEach(function (t) { list.appendChild(card(t)); });
+          return;
+        }
+        if (section) {
+          document.getElementById('listEyebrow').textContent = 'MOCK TESTS • ' + section.title.toUpperCase();
+          document.getElementById('listHeading').textContent = section.title + ' Tests';
+          document.getElementById('backRow').style.display = '';
+          var shown = 0;
+          r.data.forEach(function (t) { if (sectionOf(t) === section.slug) { list.appendChild(card(t)); shown++; } });
+          if (!shown) msg('No tests in this section yet.');
+        } else {
+          var counts = {};
+          r.data.forEach(function (t) { var s = sectionOf(t); if (s) counts[s] = (counts[s] || 0) + 1; });
+          sections.forEach(function (s) { list.appendChild(sectionCard(s, counts[s.slug] || 0)); });
+        }
+      });
     }
 
     // HTML tests: fetched on demand, shown in an iframe WITHOUT allow-same-origin,

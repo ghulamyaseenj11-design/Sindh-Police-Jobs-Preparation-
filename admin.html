@@ -321,10 +321,7 @@
         <select id="deptPhotoCategory">
           <option value="prison-constable-male">Prison Constable (Male)</option>
           <option value="lady-prison-constable">Lady Prison Constable</option>
-          <option value="eligibility">Eligibility</option>
-          <option value="physical-test">Physical Test</option>
           <option value="written-test">Written Test</option>
-          <option value="interview">Interview</option>
         </select>
 
         <label for="deptPhotoFile">Select Photo</label>
@@ -337,6 +334,38 @@
       <p id="deptPhotoMessage" class="form-message" aria-live="polite"></p>
       <h3>Current Photo</h3>
       <div id="deptPhotoPreview"><p class="muted">Select a department to see its current photo.</p></div>
+    </div>
+
+
+    <!-- TEST SECTIONS -->
+    <div class="admin-card" id="testSectionsManager">
+      <h2>Test Sections</h2>
+      <p class="muted">Sections for the Mock Tests page, e.g. Jail Police, Vaccinators, Islamabad Police, PST JST. Tests are put in a section from the mock test form below.</p>
+
+      <form id="testSectionForm">
+        <input type="hidden" id="testSectionKey">
+
+        <label for="testSectionSlug">Section Slug</label>
+        <input id="testSectionSlug" type="text" maxlength="60" placeholder="jail-police" required>
+
+        <label for="testSectionTitle">Section Title</label>
+        <input id="testSectionTitle" type="text" maxlength="100" placeholder="Jail Police" required>
+
+        <label for="testSectionIcon">Icon (emoji)</label>
+        <input id="testSectionIcon" type="text" maxlength="10" placeholder="🚨">
+
+        <label for="testSectionOrder">Display Order</label>
+        <input id="testSectionOrder" type="number" value="0">
+
+        <div class="admin-actions">
+          <button class="btn btn-gold" id="saveSectionButton" type="submit">Save Section</button>
+          <button class="btn btn-outline-dark" id="cancelSectionEdit" type="button">Cancel</button>
+        </div>
+      </form>
+
+      <p id="testSectionMessage" class="form-message" aria-live="polite"></p>
+      <h3>All Test Sections</h3>
+      <div id="adminTestSectionsList">Loading...</div>
     </div>
 
 
@@ -359,6 +388,9 @@
 
         <label for="mockDescription">Description</label>
         <textarea id="mockDescription" rows="3"></textarea>
+
+        <label for="mockSection">Section</label>
+        <select id="mockSection"></select>
 
         <div id="mockLinkFields">
           <label for="mockUrl">Test Link (URL)</label>
@@ -479,6 +511,7 @@
 <script src="mock-tests-admin.js"></script>
 <script src="category-admin.js"></script>
 <script src="department-photos-admin.js"></script>
+<script src="test-sections-admin.js"></script>
 
 </body>
           </html>
