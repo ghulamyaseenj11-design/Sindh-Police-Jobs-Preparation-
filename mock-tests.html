@@ -150,9 +150,15 @@
       var btn;
       if (t.test_type === 'link' && safeUrl(t.test_url)) {
         btn = document.createElement('a'); btn.href = t.test_url; btn.target = '_blank'; btn.rel = 'noopener noreferrer';
+        btn.addEventListener('click', function (e) {
+          if (!loggedIn) { e.preventDefault(); window.location.href = 'auth.html'; }
+        });
       } else {
         btn = document.createElement('button'); btn.type = 'button';
-        btn.addEventListener('click', function () { openHtml(t); });
+        btn.addEventListener('click', function () {
+          if (!loggedIn) { window.location.href = 'auth.html'; return; }
+          openHtml(t);
+        });
       }
       btn.className = 'btn btn-gold mt-btn'; btn.textContent = 'Open Test';
       b.append(badge, h, p, btn); c.append(media, b); return c;
@@ -190,23 +196,11 @@
 
     var client = getClient();
 
-    // Mock tests open only after login. Without a login, nothing here opens.
-    function showLocked() {
-      document.getElementById('listEyebrow').textContent = 'MOCK TESTS • LOGIN REQUIRED';
-      document.getElementById('listHeading').textContent = 'Login to Take Mock Tests';
-      list.innerHTML = '';
-      var box = document.createElement('div');
-      box.className = 'admin-card';
-      var h = document.createElement('h2');
-      h.textContent = 'Please log in first';
-      var p = document.createElement('p');
-      p.textContent = 'Mock tests open only after login. Create a free account or log in, then come back here — your tests will be waiting.';
-      var a = document.createElement('a');
-      a.className = 'btn btn-gold';
-      a.href = 'auth.html';
-      a.textContent = 'Login / Sign Up';
-      box.append(h, p, a);
-      list.appendChild(box);
+    // Tests are shown to everyone, but starting a test needs a login.
+    var loggedIn = false;
+    if (client) {
+      client.auth.getSession().then(function (r) { loggedIn = !!(r.data && r.data.session); }).catch(function () {});
+      client.auth.onAuthStateChange(function (event, session) { loggedIn = !!session; });
     }
 
     function loadTests() {
@@ -266,14 +260,7 @@
       });
     }
 
-    // Gate: check the login before loading any test.
-    (function () {
-      if (!client) { msg('Mock tests could not be loaded (Supabase config not found).'); return; }
-      client.auth.getSession().then(function (r) {
-        if (r.data && r.data.session) loadTests();
-        else showLocked();
-      }).catch(function () { showLocked(); });
-    })();
+    loadTests();
 
     // HTML tests: fetched on demand, shown in an iframe WITHOUT allow-same-origin,
     // so test code cannot read this site's cookies, storage, Supabase keys or admin session.
