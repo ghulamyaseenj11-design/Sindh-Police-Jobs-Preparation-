@@ -283,7 +283,8 @@ button, input, textarea { font: inherit; }
   .admin-nav { top: 76px; padding: 8px 10px; }
 }
 
-/* Footer explore links — connect every page to every other page */
-.footer-explore { display: flex; flex-wrap: wrap; gap: 6px 16px; justify-content: center; margin: 16px 0 4px; padding-top: 14px; border-top: 1px solid #30445d; font-size: 14px; }
-.footer-explore a { color: #d8e0ea; font-weight: 700; }
-.footer-explore a:hover { color: var(--gold); }
+/* Footer explore links — real tappable buttons, not plain text */
+.footer-explore { display: flex; flex-wrap: wrap; gap: 8px 10px; justify-content: center; margin: 16px 0 4px; padding-top: 16px; border-top: 1px solid #30445d; font-size: 14px; }
+.footer-explore a { color: #ffffff; font-weight: 700; background: #123a6e; border: 1.5px solid var(--gold); border-radius: 999px; padding: 9px 16px; box-shadow: 0 2px 8px rgba(0, 0, 0, .35); }
+.footer-explore a:hover { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+.footer-explore a:active { transform: scale(.97); }
