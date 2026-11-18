@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Watch preparation videos for Jail Police, Vaccinators, Islamabad Police and PST JST. YouTube videos that play right here on the website.">
+  <title>Videos | Study with GYJ</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .mt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px}
+    .mt-card{background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+    @keyframes mtFadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+    .mt-card{animation:mtFadeUp .55s ease both;transition:transform .25s ease,box-shadow .25s ease}
+    .mt-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(11,35,65,.16)}
+    .mt-thumb{width:100%;height:150px;object-fit:cover;background:#eef1f5;display:flex;align-items:center;justify-content:center;font-size:48px}
+    img.mt-thumb{display:block}
+    .mt-body{padding:16px;display:flex;flex-direction:column;gap:8px;flex:1}
+    .mt-body h3{margin:0;font-size:1.1rem}
+    .mt-body p{margin:0;color:#555;font-size:.95rem;flex:1}
+    .mt-badge{align-self:flex-start;font-size:.75rem;font-weight:700;padding:3px 10px;border-radius:99px;background:#fff4d6;color:#7a5a00}
+    .mt-btn{cursor:pointer;border:0;font:inherit;font-weight:700;text-align:center;text-decoration:none;display:inline-block}
+    .vid-section{margin-bottom:36px}
+    .vid-section>h2{margin:0 0 16px;font-size:1.35rem;color:#0B2341}
+    .vid-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+    .vid-card{background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06);animation:mtFadeUp .55s ease both}
+    .vid-frame{position:relative;width:100%;aspect-ratio:16/9;background:#000}
+    .vid-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+    .vid-body{padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+    .vid-body h3{margin:0;font-size:1rem;line-height:1.4}
+    .vid-body p{margin:0;color:#555;font-size:.9rem}
+    .vid-body a{font-size:.9rem;font-weight:700;color:#0B2341}
+    body{padding-bottom:84px}
+    #sjp-bottomnav{position:static;width:100%;max-width:560px;display:flex;background:#fff;border:1px solid rgba(11,35,65,.12);border-radius:20px;box-shadow:0 8px 24px rgba(11,35,65,.18);pointer-events:auto;padding-bottom:env(safe-area-inset-bottom,0)}
+    #sjp-bottomnav a,#sjp-bottomnav .sjp-bn-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 9px;text-decoration:none;color:#5b6b82;font-size:11px;font-weight:600}
+    #sjp-bottomnav .sjp-bn-icon{font-size:22px;line-height:1}
+    #sjp-bottomnav a.sjp-bn-active{color:#C9A227}
+    #sjp-bottomnav .sjp-bn-item{opacity:.55}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="index.html">
+        <img id="siteLogo" class="brand-logo" src="https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/site-media/app-icon/sindh-police-logo.png" alt="Sindh Jail Police logo" width="46" height="46">
+        <span><strong>Study with GYJ</strong><small>Preparation & Information</small></span>
+      </a>
+      <button class="menu-toggle" id="menuToggle" aria-label="Open navigation">☰</button>
+      <nav class="main-nav" id="mainNav">
+        <a href="index.html">Dashboard</a>
+        <a href="index.html#about">About</a>
+        <a href="index.html#preparation">Preparation</a>
+        <a href="index.html#materials">Notes</a>
+        <a href="mock-tests.html">Mock Tests</a>
+        <a href="papers.html">Papers</a>
+        <a href="videos.html" aria-current="page">Videos</a>
+        <a href="index.html#announcements">Updates</a>
+        <a href="admin.html">Admin</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-content">
+        <span class="eyebrow">VIDEOS</span>
+        <h1>Preparation Videos</h1>
+        <p>YouTube videos in Sindhi, picked for each test. They belong to their creators — they play here on this website, no need to open YouTube.</p>
+        <div class="hero-actions">
+          <a class="btn btn-outline" href="index.html">← Back to Dashboard</a>
+          <a class="btn btn-gold" href="mock-tests.html">📝 Mock Tests</a>
+          <a class="btn btn-outline" href="papers.html">📄 Papers</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div id="backRow" style="display:none;margin-bottom:16px"><a class="btn btn-outline-dark" href="videos.html">← All Videos</a></div>
+        <div id="videoList"><p class="muted">Loading videos...</p></div>
+        <p class="muted" style="margin-top:20px">These videos are on YouTube and belong to their creators. They are shown here through YouTube's own player so you can watch them without leaving this website. To add a video, send its YouTube link to the admin.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <a class="footer-brand" href="index.html">Sindh Jail Police</a>
+      <p>This is a preparation and information website. It is not the official website of Sindh Prisons and Corrections Service. Always check official notices on the official department and testing service websites</p>
+      <div class="footer-explore">
+        <a href="index.html">Home</a>
+        <a href="mock-tests.html">Mock Tests</a>
+        <a href="papers.html">Papers</a>
+        <a href="videos.html">Videos</a>
+        <a href="departments.html">Departments</a>
+        <a href="mock-tests.html?section=jail-police">Jail Police Tests</a>
+        <a href="mock-tests.html?section=vaccinators">Vaccinators Tests</a>
+        <a href="mock-tests.html?section=islamabad-police">Islamabad Police Tests</a>
+        <a href="mock-tests.html?section=pst-jst">PST JST Tests</a>
+        <a href="privacy-policy.html">Privacy Policy</a>
+        <a href="terms.html">Terms of Service</a>
+        <a href="about.html">About Us</a>
+      </div>
+      <div class="footer-bottom">© <span id="year"></span> Study with GYJ. For educational and informational purposes.</div>
+    </div>
+  </footer>
+
+  <div class="dock" id="sjp-bottomnav-wrap">
+  <nav id="sjp-bottomnav">
+    <a href="index.html"><span class="sjp-bn-icon">🏠</span><span>Home</span></a>
+    <a href="mock-tests.html"><span class="sjp-bn-icon">📝</span><span>MCQs</span></a>
+    <a href="papers.html"><span class="sjp-bn-icon">📄</span><span>Papers</span></a>
+    <a href="departments.html"><span class="sjp-bn-icon">🏛️</span><span>Depts</span></a>
+    <a href="profile.html"><span class="sjp-bn-icon">👤</span><span>Profile</span></a>
+  </nav>
+  </div>
+
+  <script>
+  (function () {
+    document.getElementById('year').textContent = new Date().getFullYear();
+    var toggle = document.getElementById('menuToggle'), nav = document.getElementById('mainNav');
+    toggle.addEventListener('click', function () {
+      ['open', 'active', 'show'].forEach(function (c) { nav.classList.toggle(c); });
+    });
+  })();
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="auth-ui.js"></script>
+  <script>
+  // Videos load live from site_settings: one row per exam section,
+  // key section_videos_<slug>, value a JSON list of {id, title, channel}
+  // where id is the YouTube video id. Add a video by inserting or editing
+  // that row — no file change needed. ?section=<slug> shows one section.
+  (function () {
+    var SECTIONS = [
+      { slug: 'jail-police', icon: '🚨', title: 'Jail Police' },
+      { slug: 'vaccinators', icon: '💉', title: 'Vaccinators' },
+      { slug: 'islamabad-police', icon: '🚓', title: 'Islamabad Police' },
+      { slug: 'pst-jst', icon: '📚', title: 'PST JST' }
+    ];
+    function getClient() { return window.supabaseClient || null; }
+    function el(tag, cls, text) {
+      var e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (text != null) e.textContent = text;
+      return e;
+    }
+    function videoCard(v) {
+      var c = el('article', 'vid-card');
+      var f = el('div', 'vid-frame');
+      var fr = document.createElement('iframe');
+      fr.src = 'https://www.youtube-nocookie.com/embed/' + v.id + '?rel=0&modestbranding=1';
+      fr.title = v.title || 'Preparation video';
+      fr.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+      fr.setAttribute('allowfullscreen', '');
+      fr.loading = 'lazy';
+      f.appendChild(fr);
+      c.appendChild(f);
+      var b = el('div', 'vid-body');
+      b.appendChild(el('h3', null, v.title || 'Preparation video'));
+      b.appendChild(el('p', null, 'By ' + (v.channel || 'YouTube')));
+      var a = el('a', null, 'Watch on YouTube ↗');
+      a.href = 'https://www.youtube.com/watch?v=' + v.id;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      b.appendChild(a);
+      c.appendChild(b);
+      return c;
+    }
+    var list = document.getElementById('videoList');
+    var client = getClient();
+    if (!client) { list.innerHTML = ''; list.appendChild(el('p', 'muted', 'Videos could not be loaded (Supabase config not found).')); return; }
+    var only = null;
+    try { only = new URLSearchParams(window.location.search).get('section'); } catch (e) {}
+    if (only) document.getElementById('backRow').style.display = 'block';
+    client.from('site_settings')
+      .select('setting_key,setting_value')
+      .like('setting_key', 'section_videos_%')
+      .then(function (r) {
+        var map = {};
+        if (r.data) r.data.forEach(function (s) {
+          try { map[String(s.setting_key).replace('section_videos_', '')] = JSON.parse(s.setting_value || '[]'); } catch (e) {}
+        });
+        list.innerHTML = '';
+        var shown = SECTIONS.filter(function (s) { return !only || s.slug === only; });
+        if (!shown.length) {
+          list.appendChild(el('p', 'muted', 'No videos in this section yet.'));
+          return;
+        }
+        shown.forEach(function (sec) {
+          var vids = map[sec.slug] || [];
+          var block = el('div', 'vid-section');
+          block.appendChild(el('h2', null, sec.icon + ' ' + sec.title + ' Videos'));
+          if (!vids.length) {
+            block.appendChild(el('p', 'muted', 'No videos added for this section yet.'));
+          } else {
+            var grid = el('div', 'vid-grid');
+            vids.forEach(function (v) { if (v && v.id) grid.appendChild(videoCard(v)); });
+            block.appendChild(grid);
+          }
+          list.appendChild(block);
+        });
+      });
+  })();
+  </script>
+</body>
+</html>

@@ -83,6 +83,7 @@ a.cp-link{display:inline-block;background:#0B2341;color:#fff!important;padding:9
     row.className = 'footer-explore';
     [
       ['Home', 'index.html'], ['Mock Tests', 'mock-tests.html'], ['Papers', 'papers.html'],
+      ['Videos', 'videos.html'],
       ['Departments', 'departments.html'],
       ['Jail Police Tests', 'mock-tests.html?section=jail-police'],
       ['Vaccinators Tests', 'mock-tests.html?section=vaccinators'],
@@ -256,7 +257,11 @@ a.cp-link{display:inline-block;background:#0B2341;color:#fff!important;padding:9
     tests.className = 'btn btn-outline';
     tests.href = 'mock-tests.html?section=' + sectionSlug;
     tests.textContent = '📝 Mock Tests';
-    row.append(papers, tests);
+    var videos = document.createElement('a');
+    videos.className = 'btn btn-outline';
+    videos.href = 'videos.html?section=' + sectionSlug;
+    videos.textContent = '🎬 Videos';
+    row.append(papers, tests, videos);
     hero.appendChild(row);
   })();
 
