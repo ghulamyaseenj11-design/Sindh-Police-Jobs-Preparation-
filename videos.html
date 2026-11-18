@@ -64,7 +64,7 @@
       <div class="container hero-content">
         <span class="eyebrow">VIDEOS</span>
         <h1>Preparation Videos</h1>
-        <p>YouTube videos in Sindhi, picked for each test. They belong to their creators — they play here on this website, no need to open YouTube.</p>
+        <p>YouTube videos in Sindhi, picked for each test. They belong to their creators — they play here on this website, no need to open YouTube. Videos show here for everyone — playing one needs a login.</p>
         <div class="hero-actions">
           <a class="btn btn-outline" href="index.html">← Back to Dashboard</a>
           <a class="btn btn-gold" href="mock-tests.html">📝 Mock Tests</a>
@@ -149,35 +149,56 @@
     function videoCard(v) {
       var c = el('article', 'vid-card');
       var f = el('div', 'vid-frame');
-      var fr = document.createElement('iframe');
-      fr.src = 'https://www.youtube-nocookie.com/embed/' + v.id + '?rel=0&modestbranding=1';
-      fr.title = v.title || 'Preparation video';
-      fr.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
-      fr.setAttribute('allowfullscreen', '');
-      fr.loading = 'lazy';
-      f.appendChild(fr);
+      if (loggedIn) {
+        var fr = document.createElement('iframe');
+        fr.src = 'https://www.youtube-nocookie.com/embed/' + v.id + '?rel=0&modestbranding=1';
+        fr.title = v.title || 'Preparation video';
+        fr.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+        fr.setAttribute('allowfullscreen', '');
+        fr.loading = 'lazy';
+        f.appendChild(fr);
+      } else {
+        var im = document.createElement('img');
+        im.src = 'https://i.ytimg.com/vi/' + v.id + '/hqdefault.jpg';
+        im.alt = v.title || 'Preparation video';
+        im.loading = 'lazy';
+        im.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover';
+        f.appendChild(im);
+        var lock = el('a', 'btn btn-gold', '🔒 Login to Watch');
+        lock.href = 'auth.html';
+        lock.style.cssText = 'position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);white-space:nowrap';
+        f.appendChild(lock);
+      }
       c.appendChild(f);
       var b = el('div', 'vid-body');
       b.appendChild(el('h3', null, v.title || 'Preparation video'));
       b.appendChild(el('p', null, 'By ' + (v.channel || 'YouTube')));
-      var a = el('a', null, 'Watch on YouTube ↗');
-      a.href = 'https://www.youtube.com/watch?v=' + v.id;
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
-      b.appendChild(a);
+      if (loggedIn) {
+        var a = el('a', null, 'Watch on YouTube ↗');
+        a.href = 'https://www.youtube.com/watch?v=' + v.id;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        b.appendChild(a);
+      }
       c.appendChild(b);
       return c;
     }
     var list = document.getElementById('videoList');
     var client = getClient();
     if (!client) { list.innerHTML = ''; list.appendChild(el('p', 'muted', 'Videos could not be loaded (Supabase config not found).')); return; }
+    // Videos show to everyone, but playing one needs a login.
+    var loggedIn = false;
+    var sessionPromise = client.auth.getSession().then(function (r) { loggedIn = !!(r.data && r.data.session); }).catch(function () {});
+    client.auth.onAuthStateChange(function (event, session) { loggedIn = !!session; });
     var only = null;
     try { only = new URLSearchParams(window.location.search).get('section'); } catch (e) {}
     if (only) document.getElementById('backRow').style.display = 'block';
-    client.from('site_settings')
+    var settingsPromise = client.from('site_settings')
       .select('setting_key,setting_value')
-      .like('setting_key', 'section_videos_%')
-      .then(function (r) {
+      .like('setting_key', 'section_videos_%');
+    Promise.all([settingsPromise, sessionPromise])
+      .then(function (results) {
+        var r = results[0];
         var map = {};
         if (r.data) r.data.forEach(function (s) {
           try { map[String(s.setting_key).replace('section_videos_', '')] = JSON.parse(s.setting_value || '[]'); } catch (e) {}

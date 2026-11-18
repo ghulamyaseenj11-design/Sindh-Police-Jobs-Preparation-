@@ -1,3 +1,13 @@
+// Department pages open only after login. The department list stays
+// visible everywhere else; opening a department sends you to log in.
+(function () {
+  var client = window.supabaseClient || null;
+  if (!client) return;
+  client.auth.getSession().then(function (r) {
+    if (!(r.data && r.data.session)) window.location.href = 'auth.html';
+  }).catch(function () { window.location.href = 'auth.html'; });
+})();
+
 // Load the shared account UI on every page that uses this script,
 // including the thin department shell pages.
 (function () {
