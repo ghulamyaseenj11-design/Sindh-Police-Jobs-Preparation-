@@ -189,8 +189,28 @@
     }
 
     var client = getClient();
-    if (!client) { msg('Mock tests could not be loaded (Supabase config not found).'); }
-    else {
+
+    // Mock tests open only after login. Without a login, nothing here opens.
+    function showLocked() {
+      document.getElementById('listEyebrow').textContent = 'MOCK TESTS • LOGIN REQUIRED';
+      document.getElementById('listHeading').textContent = 'Login to Take Mock Tests';
+      list.innerHTML = '';
+      var box = document.createElement('div');
+      box.className = 'admin-card';
+      var h = document.createElement('h2');
+      h.textContent = 'Please log in first';
+      var p = document.createElement('p');
+      p.textContent = 'Mock tests open only after login. Create a free account or log in, then come back here — your tests will be waiting.';
+      var a = document.createElement('a');
+      a.className = 'btn btn-gold';
+      a.href = 'auth.html';
+      a.textContent = 'Login / Sign Up';
+      box.append(h, p, a);
+      list.appendChild(box);
+    }
+
+    function loadTests() {
+      if (!client) { msg('Mock tests could not be loaded (Supabase config not found).'); return; }
       Promise.all([
         client.from('mock_tests')
           .select('id,title,description,test_type,test_url,thumbnail_url,sort_order,created_at')
@@ -245,6 +265,15 @@
         }
       });
     }
+
+    // Gate: check the login before loading any test.
+    (function () {
+      if (!client) { msg('Mock tests could not be loaded (Supabase config not found).'); return; }
+      client.auth.getSession().then(function (r) {
+        if (r.data && r.data.session) loadTests();
+        else showLocked();
+      }).catch(function () { showLocked(); });
+    })();
 
     // HTML tests: fetched on demand, shown in an iframe WITHOUT allow-same-origin,
     // so test code cannot read this site's cookies, storage, Supabase keys or admin session.
