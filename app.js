@@ -357,18 +357,6 @@ function parseAnnouncementLink(content) {
   return { text: text.replace(m[0], "").trim(), link: (parts[0] || "").trim(), linkText: (parts[1] || "Click here").trim() };
 }
 
-function announcementSeenIds() {
-  try { return JSON.parse(localStorage.getItem("sjp_ann_popup_seen") || "[]"); } catch (e) { return []; }
-}
-
-function markAnnouncementsPopupSeen(ids) {
-  try {
-    var seen = announcementSeenIds();
-    ids.forEach(function (id) { if (seen.indexOf(id) === -1) seen.push(id); });
-    localStorage.setItem("sjp_ann_popup_seen", JSON.stringify(seen.slice(-50)));
-  } catch (e) {}
-}
-
 // Fast popup styles: the overlay fades in .15s, the card pops in .25s.
 function injectAnnouncementPopupStyles() {
   if (document.getElementById("sjp-ann-popup-style")) return;
@@ -387,9 +375,9 @@ function injectAnnouncementPopupStyles() {
   document.head.appendChild(style);
 }
 
-// New announcements pop up first, before the home screen, like a public
-// notice. Closing it remembers the announcement, so it does not pop up
-// again — a new announcement still pops up the next time.
+// Announcements pop up first, before the home screen, like a public
+// notice, every time the site opens. Closing it only hides it for this
+// visit — it pops up again on the next open or refresh.
 function showAnnouncementPopup(items) {
   if (!items.length || document.getElementById("sjp-ann-overlay")) return;
   injectAnnouncementPopupStyles();
@@ -414,7 +402,6 @@ function showAnnouncementPopup(items) {
   var close = makeElement("button", "sjp-ann-close", "Close");
   close.type = "button";
   close.addEventListener("click", function () {
-    markAnnouncementsPopupSeen(items.map(function (x) { return x.id; }));
     if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
   });
   card.appendChild(close);
@@ -479,12 +466,9 @@ async function loadAnnouncements() {
     list.appendChild(card);
   });
 
-  // New announcements pop up first, before the home screen.
-  try {
-    var popupSeen = announcementSeenIds();
-    var fresh = data.filter(function (x) { return popupSeen.indexOf(x.id) === -1; });
-    if (fresh.length) showAnnouncementPopup(fresh);
-  } catch (e) {}
+  // Announcements pop up first, before the home screen, every time the
+  // site opens — closing it only hides it for this visit.
+  try { showAnnouncementPopup(data); } catch (e) {}
 
   try { if (window.SJPAuth) SJPAuth.markSeen('announcements', data.map(function (x) { return x.id; })); } catch (e) {}
 }
