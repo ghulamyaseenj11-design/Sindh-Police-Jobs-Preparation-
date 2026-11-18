@@ -67,9 +67,10 @@
     <section class="section">
       <div class="container">
         <div class="section-heading">
-          <span class="eyebrow">AVAILABLE TESTS</span>
-          <h2>Choose a Mock Test</h2>
+          <span class="eyebrow" id="listEyebrow">AVAILABLE TESTS</span>
+          <h2 id="listHeading">Choose a Section</h2>
         </div>
+        <div id="backRow" style="display:none;margin-bottom:16px"><a class="btn btn-outline" href="mock-tests.html">← All Sections</a></div>
         <div id="mockList" class="mt-grid"><p class="muted">Loading mock tests...</p></div>
       </div>
     </section>
@@ -139,6 +140,40 @@
       b.append(badge, h, p, btn); c.append(media, b); return c;
     }
 
+    var SUBJECTS = [
+      { slug: 'english', title: 'English', icon: '📖', keywords: ['english'] },
+      { slug: 'science', title: 'Science', icon: '🔬', keywords: ['science'] },
+      { slug: 'mathematics', title: 'Mathematics', icon: '🔢', keywords: ['mathematics', 'maths'] },
+      { slug: 'computer', title: 'Computer', icon: '💻', keywords: ['computer'] },
+      { slug: 'gk', title: 'General Knowledge', icon: '🌍', keywords: ['gk', 'general knowledge'] },
+      { slug: 'general', title: 'General', icon: '📝', keywords: [] }
+    ];
+    function subjectOf(t) {
+      var title = String(t.title || '').toLowerCase();
+      for (var i = 0; i < SUBJECTS.length; i++) {
+        var s = SUBJECTS[i];
+        for (var j = 0; j < s.keywords.length; j++) {
+          if (title.indexOf(s.keywords[j]) !== -1) return s.slug;
+        }
+      }
+      return 'general';
+    }
+    function subjectBySlug(slug) {
+      for (var i = 0; i < SUBJECTS.length; i++) if (SUBJECTS[i].slug === slug) return SUBJECTS[i];
+      return null;
+    }
+    function sectionCard(s, count) {
+      var c = document.createElement('article'); c.className = 'mt-card';
+      var media = document.createElement('div'); media.className = 'mt-thumb'; media.textContent = s.icon;
+      var b = document.createElement('div'); b.className = 'mt-body';
+      var badge = document.createElement('span'); badge.className = 'mt-badge'; badge.textContent = 'Section';
+      var h = document.createElement('h3'); h.textContent = s.title;
+      var p = document.createElement('p'); p.textContent = count + (count === 1 ? ' test' : ' tests');
+      var a = document.createElement('a'); a.className = 'btn btn-gold mt-btn';
+      a.href = 'mock-tests.html?subject=' + s.slug; a.textContent = 'Open Section';
+      b.append(badge, h, p, a); c.append(media, b); return c;
+    }
+
     var client = getClient();
     if (!client) { msg('Mock tests could not be loaded (Supabase config not found).'); }
     else {
@@ -150,7 +185,21 @@
         .then(function (r) {
           if (r.error) { msg('Could not load mock tests. Please try again later.'); return; }
           if (!r.data.length) { msg('No mock tests published yet. Please check back soon.'); return; }
-          list.innerHTML = ''; r.data.forEach(function (t) { list.appendChild(card(t)); });
+          var params = new URLSearchParams(window.location.search);
+          var subject = subjectBySlug(params.get('subject'));
+          list.innerHTML = '';
+          if (subject) {
+            document.getElementById('listEyebrow').textContent = 'MOCK TESTS • ' + subject.title.toUpperCase();
+            document.getElementById('listHeading').textContent = subject.title + ' Tests';
+            document.getElementById('backRow').style.display = '';
+            var shown = 0;
+            r.data.forEach(function (t) { if (subjectOf(t) === subject.slug) { list.appendChild(card(t)); shown++; } });
+            if (!shown) msg('No tests in this section yet.');
+          } else {
+            var counts = {};
+            r.data.forEach(function (t) { var s = subjectOf(t); counts[s] = (counts[s] || 0) + 1; });
+            SUBJECTS.forEach(function (s) { if (counts[s.slug]) list.appendChild(sectionCard(s, counts[s.slug])); });
+          }
         });
     }
 
