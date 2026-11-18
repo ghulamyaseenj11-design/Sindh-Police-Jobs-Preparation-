@@ -13,6 +13,7 @@
     .mt-card{animation:mtFadeUp .55s ease both;transition:transform .25s ease,box-shadow .25s ease}
     .mt-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(11,35,65,.16)}
     .mt-thumb{width:100%;height:150px;object-fit:cover;background:#eef1f5;display:flex;align-items:center;justify-content:center;font-size:48px}
+    img.mt-thumb{display:block}
     .mt-body{padding:16px;display:flex;flex-direction:column;gap:8px;flex:1}
     .mt-body h3{margin:0;font-size:1.1rem}
     .mt-body p{margin:0;color:#555;font-size:.95rem;flex:1}
@@ -107,12 +108,12 @@
   // its page opens through category.html?category=<slug> with no new file.
   (function () {
     var KNOWN = {
-      'prison-constable-male': { icon: '👮', title: 'Prison Constable (Male)', intro: 'Preparation resources for male candidates.', file: 'prison-constable-male.html' },
-      'lady-prison-constable': { icon: '👮‍♀️', title: 'Lady Prison Constable', intro: 'Preparation resources for female candidates.', file: 'lady-prison-constable.html' },
-      'eligibility': { icon: '📋', title: 'Eligibility', intro: 'Check official recruitment notices for current criteria.', file: 'eligibility.html' },
-      'physical-test': { icon: '🏃', title: 'Physical Test', intro: 'General preparation guidance for physical tests.', file: 'physical-test.html' },
-      'written-test': { icon: '✍️', title: 'Written Test', intro: 'Subject-wise study and MCQ practice.', file: 'written-test.html' },
-      'interview': { icon: '🎤', title: 'Interview', intro: 'Interview preparation and sample questions.', file: 'interview.html' }
+      'prison-constable-male': { icon: '👮', title: 'Prison Constable (Male)', intro: 'Preparation resources for male candidates.', file: 'prison-constable-male.html', thumb: 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/site-media/departments/male-constable.webp' },
+      'lady-prison-constable': { icon: '👮‍♀️', title: 'Lady Prison Constable', intro: 'Preparation resources for female candidates.', file: 'lady-prison-constable.html', thumb: 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/site-media/departments/lady-constable.webp' },
+      'eligibility': { icon: '📋', title: 'Eligibility', intro: 'Check official recruitment notices for current criteria.', file: 'eligibility.html', thumb: 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/site-media/departments/eligibility.webp' },
+      'physical-test': { icon: '🏃', title: 'Physical Test', intro: 'General preparation guidance for physical tests.', file: 'physical-test.html', thumb: 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/site-media/departments/physical-test.webp' },
+      'written-test': { icon: '✍️', title: 'Written Test', intro: 'Subject-wise study and MCQ practice.', file: 'written-test.html', thumb: 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/site-media/departments/written-test.webp' },
+      'interview': { icon: '🎤', title: 'Interview', intro: 'Interview preparation and sample questions.', file: 'interview.html', thumb: 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/site-media/departments/interview.webp' }
     };
     function pretty(slug) { return String(slug || '').split('-').map(function (w) { return w ? w.charAt(0).toUpperCase() + w.slice(1) : w; }).join(' '); }
     var ORDER = ['prison-constable-male', 'lady-prison-constable', 'eligibility', 'physical-test', 'written-test', 'interview'];
@@ -126,7 +127,16 @@
     function card(slug, desc) {
       var known = KNOWN[slug];
       var c = el('article', 'mt-card');
-      c.appendChild(el('div', 'mt-thumb', known ? known.icon : '🏛️'));
+      if (known && known.thumb) {
+        var im = document.createElement('img');
+        im.className = 'mt-thumb';
+        im.src = known.thumb;
+        im.alt = known.title;
+        im.loading = 'lazy';
+        c.appendChild(im);
+      } else {
+        c.appendChild(el('div', 'mt-thumb', known ? known.icon : '🏛️'));
+      }
       var b = el('div', 'mt-body');
       b.appendChild(el('span', 'mt-badge', 'Department'));
       b.appendChild(el('h3', null, known ? known.title : pretty(slug)));
