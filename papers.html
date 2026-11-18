@@ -13,6 +13,7 @@
     .mt-card{animation:mtFadeUp .55s ease both;transition:transform .25s ease,box-shadow .25s ease}
     .mt-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(11,35,65,.16)}
     .mt-thumb{width:100%;height:150px;object-fit:cover;background:#eef1f5;display:flex;align-items:center;justify-content:center;font-size:48px}
+    img.mt-thumb{display:block}
     .mt-body{padding:16px;display:flex;flex-direction:column;gap:8px;flex:1}
     .mt-body h3{margin:0;font-size:1.1rem}
     .mt-body p{margin:0;color:#555;font-size:.95rem;flex:1}
@@ -203,9 +204,26 @@
       document.body.appendChild(link); link.click(); link.remove();
       setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
     }
+    var PAPER_THUMBS = {
+      'Jail Police': 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/mock-test-thumbnails/section-jail-police.webp',
+      'Vaccinators': 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/mock-test-thumbnails/section-vaccinators.webp',
+      'Islamabad Police': 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/mock-test-thumbnails/section-islamabad-police.webp',
+      'PST JST': 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/mock-test-thumbnails/section-pst-jst.webp'
+    };
+    var PAPER_THUMB_DEFAULT = 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/mock-test-thumbnails/cbt-exam-hall.webp';
+    function thumbFor(item) {
+      if (item.category && PAPER_THUMBS[item.category]) return PAPER_THUMBS[item.category];
+      var t = String(item.title || '').toLowerCase();
+      if (t.indexOf('prison') !== -1 || t.indexOf('jail') !== -1 || t.indexOf('interview') !== -1) return PAPER_THUMBS['Jail Police'];
+      return PAPER_THUMB_DEFAULT;
+    }
     function card(item) {
       var c = el('article', 'mt-card');
-      var media = el('div', 'mt-thumb', item.category === 'Past Papers' ? '📄' : '📝');
+      var media = document.createElement('img');
+      media.className = 'mt-thumb';
+      media.src = thumbFor(item);
+      media.alt = item.title || 'Note';
+      media.loading = 'lazy';
       var b = el('div', 'mt-body');
       b.appendChild(el('span', 'mt-badge', item.category || 'Notes'));
       b.appendChild(el('h3', null, item.title || 'Untitled'));
