@@ -45,7 +45,6 @@
         <a href="mock-tests.html">Mock Tests</a>
         <a href="papers.html" aria-current="page">Papers</a>
         <a href="index.html#announcements">Updates</a>
-        <a href="admin.html">Admin</a>
       </nav>
     </div>
   </header>
@@ -55,7 +54,7 @@
       <div class="container hero-content">
         <span class="eyebrow">PRACTICE • PAPERS • IMPROVE</span>
         <h1>Practice Papers</h1>
-        <p>Notes and past papers for Sindh Jail Police recruitment preparation. New items are added from the admin panel — no file upload needed. Notes show here for everyone — reading the full note or downloading needs a login.</p>
+        <p>Notes and past papers for Sindh Jail Police recruitment preparation. New items are added from the admin panel — no file upload needed.</p>
         <div class="hero-actions">
           <a class="btn btn-outline" href="index.html">← Back to Dashboard</a>
         </div>
@@ -219,10 +218,7 @@
       if (safeUrl(item.file_url)) {
         var a = el('a', 'btn btn-gold mt-btn', 'Open / Download PDF');
         a.href = item.file_url; a.target = '_blank'; a.rel = 'noopener noreferrer';
-        a.addEventListener('click', function (e) {
-          if (!loggedIn) { e.preventDefault(); window.location.href = 'auth.html'; return; }
-          if (window.SJPAuth) { try { SJPAuth.recordRecentNote({ id: item.id, title: item.title, category: item.category }); } catch (e) {} }
-        });
+        a.addEventListener('click', function () { if (window.SJPAuth) { try { SJPAuth.recordRecentNote({ id: item.id, title: item.title, category: item.category }); } catch (e) {} } });
         b.appendChild(a);
       } else if (bodyText) {
         var row = el('div', 'note-actions');
@@ -230,7 +226,6 @@
           var readBtn = el('button', 'btn btn-gold mt-btn', 'Read Full Note');
           readBtn.type = 'button';
           readBtn.addEventListener('click', function () {
-            if (!loggedIn) { window.location.href = 'auth.html'; return; }
             var open = bodyP.classList.toggle('open');
             bodyP.textContent = open ? bodyText : bodyText.slice(0, 200) + '…';
             readBtn.textContent = open ? 'Show Less' : 'Read Full Note';
@@ -240,7 +235,7 @@
         }
         var dlBtn = el('button', 'btn btn-outline mt-btn', 'Download PDF');
         dlBtn.type = 'button';
-        dlBtn.addEventListener('click', function () { if (!loggedIn) { window.location.href = 'auth.html'; return; } downloadNote(item, bodyText); });
+        dlBtn.addEventListener('click', function () { downloadNote(item, bodyText); });
         row.appendChild(dlBtn);
         b.appendChild(row);
       }
@@ -254,12 +249,6 @@
       items.forEach(function (it) { list.appendChild(card(it)); });
     }
     var client = getClient();
-    // Notes show to everyone, but opening one needs a login.
-    var loggedIn = false;
-    if (client) {
-      client.auth.getSession().then(function (r) { loggedIn = !!(r.data && r.data.session); }).catch(function () {});
-      client.auth.onAuthStateChange(function (event, session) { loggedIn = !!session; });
-    }
     if (!client) {
       fill('notesList', [], 'Notes could not be loaded (Supabase config not found).');
       fill('papersList', [], 'Past papers could not be loaded (Supabase config not found).');

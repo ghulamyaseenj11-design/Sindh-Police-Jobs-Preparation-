@@ -1,18 +1,4 @@
 
-// Everything shows to everyone, but opening it needs a login.
-let sjpLoggedIn = false;
-let sjpLoginReady = null;
-function initSjpLogin() {
-  if (!window.supabaseClient) return;
-  sjpLoginReady = window.supabaseClient.auth.getSession().then(function (r) {
-    sjpLoggedIn = !!(r.data && r.data.session);
-    return sjpLoggedIn;
-  }).catch(function () { return false; });
-  window.supabaseClient.auth.onAuthStateChange(function (event, session) {
-    sjpLoggedIn = !!session;
-  });
-}
-
 document.addEventListener("DOMContentLoaded", () => {
   injectAnimations();
   injectBottomNav();
@@ -32,24 +18,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Department pages open only after login (the list stays visible).
-  document.addEventListener("click", function (event) {
-    var a = event.target && event.target.closest ? event.target.closest('a[href*="category.html"]') : null;
-    if (!a) return;
-    if (!sjpLoggedIn) { event.preventDefault(); window.location.href = "auth.html"; }
-  });
-
   if (!window.supabaseClient) {
     console.error("Supabase client is unavailable. Check config.js.");
     return;
   }
 
-  initSjpLogin();
   loadPublicWebsite();
 });
 
 async function loadPublicWebsite() {
-  if (sjpLoginReady) { try { await sjpLoginReady; } catch (e) {} }
   await Promise.allSettled([
     loadSiteSettings(),
     loadNavigation(),
@@ -259,8 +236,6 @@ async function loadNavigation() {
     nav.appendChild(makeLink(item.url, item.title));
   });
 
-  const adminLink = makeLink("admin.html", "Admin");
-  nav.appendChild(adminLink);
 }
 
 
@@ -317,22 +292,15 @@ async function loadStudyMaterials() {
     }
 
     if (item.body) {
-      const full = String(item.body);
-      const shown = sjpLoggedIn || full.length <= 200 ? full : full.slice(0, 200) + "…";
-      const body = makeElement("p", "material-body", shown);
+      const body = makeElement("p", "material-body", item.body);
       body.style.whiteSpace = "pre-wrap";
       card.appendChild(body);
-      if (!sjpLoggedIn && full.length > 200) {
-        card.appendChild(makeLink("auth.html", "🔒 Login to Read Full Note", "btn btn-gold"));
-      }
     }
 
     if (item.file_url && isSafeUrl(item.file_url)) {
-      const pdfLink = makeLink(item.file_url, "Open / Download PDF", "btn btn-gold");
-      if (!sjpLoggedIn) {
-        pdfLink.addEventListener("click", function (e) { e.preventDefault(); window.location.href = "auth.html"; });
-      }
-      card.appendChild(pdfLink);
+      card.appendChild(
+        makeLink(item.file_url, "Open / Download PDF", "btn btn-gold")
+      );
     }
 
     list.appendChild(card);
@@ -522,11 +490,7 @@ async function loadBlogs() {
     }
 
     const details = makeElement("details", "blog-details");
-    const summary = makeElement("summary", "", "Read Article");
-    summary.addEventListener("click", function (e) {
-      if (!sjpLoggedIn) { e.preventDefault(); window.location.href = "auth.html"; }
-    });
-    details.appendChild(summary);
+    details.appendChild(makeElement("summary", "", "Read Article"));
     const content = makeElement("p", "content-text", blog.content || "");
     content.style.whiteSpace = "pre-wrap";
     details.appendChild(content);
@@ -541,7 +505,6 @@ async function loadBlogs() {
         };
         refreshBm();
         bm.addEventListener("click", function () {
-          if (!sjpLoggedIn) { window.location.href = "auth.html"; return; }
           SJPAuth.toggleBookmark({ id: blog.id, title: blog.title || "Blog", slug: blog.slug });
           refreshBm();
         });
@@ -588,13 +551,9 @@ async function loadPages() {
     const article = makeElement("article", "info-card page-card");
     article.appendChild(makeElement("h3", "", page.title || "Page"));
 
-    const fullPage = String(page.content || "");
-    const content = makeElement("p", "content-text", sjpLoggedIn || fullPage.length <= 200 ? fullPage : fullPage.slice(0, 200) + "…");
+    const content = makeElement("p", "content-text", page.content || "");
     content.style.whiteSpace = "pre-wrap";
     article.appendChild(content);
-    if (!sjpLoggedIn && fullPage.length > 200) {
-      article.appendChild(makeLink("auth.html", "🔒 Login to Read More", "btn btn-gold"));
-    }
 
     list.appendChild(article);
   });

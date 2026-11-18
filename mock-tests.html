@@ -47,7 +47,6 @@
         <a href="mock-tests.html" aria-current="page">Mock Tests</a>
         <a href="papers.html">Papers</a>
         <a href="index.html#announcements">Updates</a>
-        <a href="admin.html">Admin</a>
       </nav>
     </div>
   </header>
@@ -57,7 +56,7 @@
       <div class="container hero-content">
         <span class="eyebrow">PRACTICE • TEST • IMPROVE</span>
         <h1>Mock Tests</h1>
-        <p>Attempt practice tests and check your preparation for the Sindh Jail Police recruitment test. Tests show here for everyone — starting a test needs a login.</p>
+        <p>Attempt practice tests and check your preparation for the Sindh Jail Police recruitment test.</p>
         <div class="hero-actions">
           <a class="btn btn-outline" href="index.html">← Back to Dashboard</a>
           <a class="btn btn-gold" href="papers.html">📄 Papers</a>
@@ -152,15 +151,9 @@
       var btn;
       if (t.test_type === 'link' && safeUrl(t.test_url)) {
         btn = document.createElement('a'); btn.href = t.test_url; btn.target = '_blank'; btn.rel = 'noopener noreferrer';
-        btn.addEventListener('click', function (e) {
-          if (!loggedIn) { e.preventDefault(); window.location.href = 'auth.html'; }
-        });
       } else {
         btn = document.createElement('button'); btn.type = 'button';
-        btn.addEventListener('click', function () {
-          if (!loggedIn) { window.location.href = 'auth.html'; return; }
-          openHtml(t);
-        });
+        btn.addEventListener('click', function () { openHtml(t); });
       }
       btn.className = 'btn btn-gold mt-btn'; btn.textContent = 'Open Test';
       b.append(badge, h, p, btn); c.append(media, b); return c;
@@ -197,13 +190,6 @@
     }
 
     var client = getClient();
-
-    // Tests are shown to everyone, but starting a test needs a login.
-    var loggedIn = false;
-    if (client) {
-      client.auth.getSession().then(function (r) { loggedIn = !!(r.data && r.data.session); }).catch(function () {});
-      client.auth.onAuthStateChange(function (event, session) { loggedIn = !!session; });
-    }
 
     function loadTests() {
       if (!client) { msg('Mock tests could not be loaded (Supabase config not found).'); return; }
