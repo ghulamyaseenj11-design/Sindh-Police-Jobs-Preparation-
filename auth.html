@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b2341">
+  <title>Login / Sign Up | Study with GYJ</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body{padding-bottom:84px}
+    #sjp-bottomnav{position:static;width:100%;max-width:560px;display:flex;background:#fff;border:1px solid rgba(11,35,65,.12);border-radius:20px;box-shadow:0 8px 24px rgba(11,35,65,.18);pointer-events:auto;padding-bottom:env(safe-area-inset-bottom,0)}
+    #sjp-bottomnav a,#sjp-bottomnav .sjp-bn-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 9px;text-decoration:none;color:#5b6b82;font-size:11px;font-weight:600}
+    #sjp-bottomnav .sjp-bn-icon{font-size:22px;line-height:1}
+    #sjp-bottomnav a.sjp-bn-active{color:#C9A227}
+    #sjp-bottomnav .sjp-bn-item{opacity:.55}
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container nav-wrap">
+    <a class="brand" href="index.html">
+      <img id="siteLogo" class="brand-logo" src="https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/site-media/app-icon/sindh-police-logo.png" alt="Sindh Jail Police logo" width="46" height="46">
+      <span><strong>Study with GYJ</strong><small>Preparation &amp; Information</small></span>
+    </a>
+  </div>
+</header>
+
+<main class="container">
+  <div class="admin-card auth-card" id="authCard">
+    <span class="eyebrow">MY ACCOUNT</span>
+    <h1 id="authTitle">Login</h1>
+    <p class="muted" id="authSub">Log in to your Study with GYJ account.</p>
+
+    <div class="auth-tabs">
+      <button type="button" id="tabLogin" class="active">Login</button>
+      <button type="button" id="tabSignup">Sign Up</button>
+    </div>
+
+    <form id="loginForm">
+      <label for="loginEmail">Email Address</label>
+      <input id="loginEmail" type="email" autocomplete="username" required>
+
+      <label for="loginPassword">Password</label>
+      <input id="loginPassword" type="password" autocomplete="current-password" required>
+
+      <button class="btn btn-gold btn-full" type="submit">Login</button>
+      <p class="muted" style="margin-top:12px"><a href="#" id="forgotLink">Forgot password?</a></p>
+    </form>
+
+    <form id="signupForm" class="hidden">
+      <label for="signupName">Your Name</label>
+      <input id="signupName" type="text" autocomplete="name" placeholder="e.g. Ghulam Yaseen" required>
+
+      <label for="signupEmail">Email Address</label>
+      <input id="signupEmail" type="email" autocomplete="email" required>
+
+      <label for="signupPassword">Password</label>
+      <input id="signupPassword" type="password" autocomplete="new-password" minlength="6" required>
+
+      <button class="btn btn-gold btn-full" type="submit">Create Account</button>
+      <p class="muted" style="margin-top:12px">Your account is created instantly. If email confirmation is on, check your inbox for the confirmation link first.</p>
+    </form>
+
+    <form id="resetForm" class="hidden">
+      <label for="resetEmail">Email Address</label>
+      <input id="resetEmail" type="email" autocomplete="email" required>
+
+      <button class="btn btn-gold btn-full" type="submit">Send Reset Link</button>
+      <p class="muted" style="margin-top:12px"><a href="#" id="backToLogin1">Back to Login</a></p>
+    </form>
+
+    <form id="newPassForm" class="hidden">
+      <label for="newPassword">New Password</label>
+      <input id="newPassword" type="password" autocomplete="new-password" minlength="6" required>
+
+      <label for="newPassword2">Repeat New Password</label>
+      <input id="newPassword2" type="password" autocomplete="new-password" minlength="6" required>
+
+      <button class="btn btn-gold btn-full" type="submit">Set New Password</button>
+    </form>
+
+    <p id="authMessage" class="form-message" aria-live="polite"></p>
+  </div>
+</main>
+
+<div class="dock" id="sjp-bottomnav-wrap">
+  <nav id="sjp-bottomnav">
+    <a href="index.html"><span class="sjp-bn-icon">🏠</span><span>Home</span></a>
+    <a href="mock-tests.html"><span class="sjp-bn-icon">📝</span><span>MCQs</span></a>
+    <a href="papers.html"><span class="sjp-bn-icon">📄</span><span>Papers</span></a>
+    <a href="departments.html"><span class="sjp-bn-icon">🏛️</span><span>Depts</span></a>
+    <a href="profile.html" class="sjp-bn-active"><span class="sjp-bn-icon">👤</span><span>Profile</span></a>
+  </nav>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="auth-ui.js"></script>
+<script>
+(function () {
+  var client = window.supabaseClient;
+  var msg = document.getElementById('authMessage');
+  var title = document.getElementById('authTitle');
+  var sub = document.getElementById('authSub');
+  var forms = ['loginForm', 'signupForm', 'resetForm', 'newPassForm'];
+
+  function showMessage(text, isError) {
+    msg.textContent = text || '';
+    msg.className = 'form-message ' + (isError ? 'error' : 'success');
+  }
+  function showForm(which, heading, subtext) {
+    forms.forEach(function (id) {
+      document.getElementById(id).classList.toggle('hidden', id !== which);
+    });
+    title.textContent = heading;
+    sub.textContent = subtext;
+    document.getElementById('tabLogin').classList.toggle('active', which === 'loginForm');
+    document.getElementById('tabSignup').classList.toggle('active', which === 'signupForm');
+    showMessage('');
+  }
+  function goLogin() { showForm('loginForm', 'Login', 'Log in to your Study with GYJ account.'); }
+  function goSignup() { showForm('signupForm', 'Sign Up', 'Create your free Study with GYJ account.'); }
+
+  document.getElementById('tabLogin').addEventListener('click', goLogin);
+  document.getElementById('tabSignup').addEventListener('click', goSignup);
+  document.getElementById('forgotLink').addEventListener('click', function (e) {
+    e.preventDefault();
+    showForm('resetForm', 'Forgot Password', 'We will send a reset link to your email.');
+  });
+  document.getElementById('backToLogin1').addEventListener('click', function (e) {
+    e.preventDefault();
+    goLogin();
+  });
+
+  document.getElementById('loginForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var btn = this.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    try {
+      var r = await client.auth.signInWithPassword({
+        email: document.getElementById('loginEmail').value.trim(),
+        password: document.getElementById('loginPassword').value
+      });
+      if (r.error) throw r.error;
+      window.location.href = 'profile.html';
+    } catch (err) {
+      var text = (err && err.message) || 'Login failed. Please try again.';
+      if (/email not confirmed/i.test(text)) {
+        text = 'Please confirm your email first — check your inbox for the confirmation link, then log in.';
+      }
+      showMessage(text, true);
+      btn.disabled = false;
+    }
+  });
+
+  document.getElementById('signupForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var btn = this.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    try {
+      var r = await client.auth.signUp({
+        email: document.getElementById('signupEmail').value.trim(),
+        password: document.getElementById('signupPassword').value,
+        options: { data: { name: document.getElementById('signupName').value.trim() } }
+      });
+      if (r.error) throw r.error;
+      if (r.data && r.data.session) {
+        window.location.href = 'profile.html';
+        return;
+      }
+      showMessage('Account created! Check your email and click the confirmation link, then log in here.');
+      goLogin();
+    } catch (err) {
+      showMessage((err && err.message) || 'Could not create the account. Please try again.', true);
+      btn.disabled = false;
+    }
+  });
+
+  document.getElementById('resetForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var btn = this.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    try {
+      var r = await client.auth.resetPasswordForEmail(
+        document.getElementById('resetEmail').value.trim(),
+        { redirectTo: 'https://ghulamyaseenj11-design.github.io/Sindh-Police-Jobs-Preparation-/auth.html' }
+      );
+      if (r.error) throw r.error;
+      showMessage('Reset link sent! Check your email and open the link to set a new password.');
+    } catch (err) {
+      showMessage((err && err.message) || 'Could not send the reset link. Please try again.', true);
+      btn.disabled = false;
+    }
+  });
+
+  document.getElementById('newPassForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var pw = document.getElementById('newPassword').value;
+    var pw2 = document.getElementById('newPassword2').value;
+    if (pw !== pw2) { showMessage('The two passwords do not match.', true); return; }
+    var btn = this.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    try {
+      var r = await client.auth.updateUser({ password: pw });
+      if (r.error) throw r.error;
+      showMessage('Password changed! Taking you to your account…');
+      setTimeout(function () { window.location.href = 'profile.html'; }, 900);
+    } catch (err) {
+      showMessage((err && err.message) || 'Could not change the password. The link may have expired — request a new one.', true);
+      btn.disabled = false;
+    }
+  });
+
+  // Already logged in? Go straight to the account page — unless this visit
+  // is a password-reset link, which must stay here to set the new password.
+  (async function () {
+    if (!client) { showMessage('Could not reach the login service. Please try again later.', true); return; }
+    var isRecovery = window.location.hash.indexOf('type=recovery') !== -1;
+    var session = null;
+    try { session = (await client.auth.getSession()).data.session; } catch (e) {}
+    if (isRecovery) {
+      if (session) {
+        showForm('newPassForm', 'Set New Password', 'Choose a new password for your account.');
+      } else {
+        showForm('resetForm', 'Link Expired', 'This reset link is expired or already used. Request a new one below.');
+        showMessage('This reset link is expired or already used.', true);
+      }
+      return;
+    }
+    if (session) window.location.href = 'profile.html';
+  })();
+})();
+</script>
+
+</body>
+</html>

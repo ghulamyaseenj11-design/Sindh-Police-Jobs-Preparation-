@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b2341">
+  <title>My Account | Study with GYJ</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body{padding-bottom:84px}
+    #sjp-bottomnav{position:static;width:100%;max-width:560px;display:flex;background:#fff;border:1px solid rgba(11,35,65,.12);border-radius:20px;box-shadow:0 8px 24px rgba(11,35,65,.18);pointer-events:auto;padding-bottom:env(safe-area-inset-bottom,0)}
+    #sjp-bottomnav a,#sjp-bottomnav .sjp-bn-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 9px;text-decoration:none;color:#5b6b82;font-size:11px;font-weight:600}
+    #sjp-bottomnav .sjp-bn-icon{font-size:22px;line-height:1}
+    #sjp-bottomnav a.sjp-bn-active{color:#C9A227}
+    #sjp-bottomnav .sjp-bn-item{opacity:.55}
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container nav-wrap">
+    <a class="brand" href="index.html">
+      <img id="siteLogo" class="brand-logo" src="https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/site-media/app-icon/sindh-police-logo.png" alt="Sindh Jail Police logo" width="46" height="46">
+      <span><strong>Study with GYJ</strong><small>Preparation &amp; Information</small></span>
+    </a>
+  </div>
+</header>
+
+<main class="container profile-main">
+  <div class="admin-card" id="profileLoading">
+    <p class="muted">Loading your account…</p>
+  </div>
+
+  <div id="profileWrap" class="hidden">
+    <!-- PROFILE INFO -->
+    <div class="admin-card">
+      <h2>Profile Info</h2>
+      <div class="profile-head">
+        <div id="profileAvatar" class="profile-avatar">?</div>
+        <div class="profile-id">
+          <h1 id="profileName">…</h1>
+          <p class="muted" id="profileEmail">…</p>
+        </div>
+        <button class="btn btn-outline-dark" id="editProfileBtn" type="button">Edit Profile</button>
+      </div>
+
+      <form id="editProfileForm" class="hidden">
+        <label for="editName">Your Name</label>
+        <input id="editName" type="text" maxlength="100" required>
+
+        <label for="editPhoto">Profile Photo</label>
+        <input id="editPhoto" type="file" accept="image/jpeg,image/png,image/webp">
+
+        <div class="admin-actions">
+          <button class="btn btn-gold" type="submit">Save Profile</button>
+          <button class="btn btn-outline-dark" id="cancelEditProfile" type="button">Cancel</button>
+        </div>
+      </form>
+      <p id="profileMessage" class="form-message" aria-live="polite"></p>
+    </div>
+
+    <!-- DASHBOARD OVERVIEW: MY ACTIVITY -->
+    <div class="admin-card">
+      <h2>Dashboard Overview</h2>
+
+      <h3>My Activity</h3>
+
+      <h4>Recently Viewed Study Notes</h4>
+      <div id="recentNotesList" class="activity-list"></div>
+
+      <h4>Reading History</h4>
+      <div id="readingHistoryList" class="activity-list"></div>
+
+      <h4>Bookmarks / Saved Blogs</h4>
+      <div id="bookmarksList" class="activity-list"></div>
+      <p class="muted">Your activity is saved on this device. Open a study note or a blog and it will show up here.</p>
+    </div>
+
+    <!-- ACCOUNT SETTINGS -->
+    <div class="admin-card">
+      <h2>Account Settings</h2>
+
+      <h3>Change Password</h3>
+      <form id="changePassForm">
+        <label for="newPass">New Password</label>
+        <input id="newPass" type="password" autocomplete="new-password" minlength="6" required>
+
+        <label for="newPass2">Repeat New Password</label>
+        <input id="newPass2" type="password" autocomplete="new-password" minlength="6" required>
+
+        <button class="btn btn-gold" type="submit">Change Password</button>
+      </form>
+      <p id="passMessage" class="form-message" aria-live="polite"></p>
+
+      <h3>Notification Settings</h3>
+      <label class="switch-row"><span>New announcements</span><input type="checkbox" id="notifAnnouncements"></label>
+      <label class="switch-row"><span>New study notes</span><input type="checkbox" id="notifNotes"></label>
+      <label class="switch-row"><span>New mock tests</span><input type="checkbox" id="notifTests"></label>
+      <p class="muted" id="notifSaved">Turned-on alerts show a NEW badge on the home page when something new is published. Saved on your account automatically.</p>
+
+      <div class="admin-actions">
+        <button class="btn btn-outline-dark" id="logoutBtn" type="button">Logout</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="dock" id="sjp-bottomnav-wrap">
+  <nav id="sjp-bottomnav">
+    <a href="index.html"><span class="sjp-bn-icon">🏠</span><span>Home</span></a>
+    <a href="mock-tests.html"><span class="sjp-bn-icon">📝</span><span>MCQs</span></a>
+    <a href="papers.html"><span class="sjp-bn-icon">📄</span><span>Papers</span></a>
+    <a href="departments.html"><span class="sjp-bn-icon">🏛️</span><span>Depts</span></a>
+    <a href="profile.html" class="sjp-bn-active"><span class="sjp-bn-icon">👤</span><span>Profile</span></a>
+  </nav>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="auth-ui.js"></script>
+<script>
+(function () {
+  var client = window.supabaseClient;
+  var A = window.SJPAuth;
+  var user = null;
+
+  function showMessage(id, text, isError) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = text || '';
+    el.className = 'form-message ' + (isError ? 'error' : 'success');
+  }
+  function timeAgo(ts) {
+    var s = Math.floor((Date.now() - ts) / 1000);
+    if (s < 60) return 'just now';
+    if (s < 3600) return Math.floor(s / 60) + ' min ago';
+    if (s < 86400) return Math.floor(s / 3600) + ' hr ago';
+    return Math.floor(s / 86400) + ' days ago';
+  }
+  function renderProfile() {
+    var av = document.getElementById('profileAvatar');
+    var photo = A.avatarUrl(user);
+    av.replaceChildren();
+    if (photo) {
+      var img = document.createElement('img');
+      img.src = photo;
+      img.alt = '';
+      av.appendChild(img);
+    } else {
+      av.textContent = A.initials(A.displayName(user));
+    }
+    document.getElementById('profileName').textContent = A.displayName(user);
+    document.getElementById('profileEmail').textContent = user.email || '';
+    document.getElementById('editName').value = A.displayName(user);
+  }
+  function activityRow(title, meta, href, onRemove) {
+    var row = document.createElement('div');
+    row.className = 'activity-item';
+    var left = document.createElement('div');
+    var t = document.createElement('strong');
+    t.textContent = title;
+    left.appendChild(t);
+    if (meta) {
+      var m = document.createElement('div');
+      m.className = 'muted';
+      m.textContent = meta;
+      left.appendChild(m);
+    }
+    row.appendChild(left);
+    var actions = document.createElement('div');
+    actions.className = 'activity-actions';
+    if (href) {
+      var open = document.createElement('a');
+      open.className = 'btn btn-outline-dark';
+      open.href = href;
+      open.textContent = 'Open';
+      actions.appendChild(open);
+    }
+    if (onRemove) {
+      var rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'btn btn-outline-dark';
+      rm.textContent = 'Remove';
+      rm.addEventListener('click', onRemove);
+      actions.appendChild(rm);
+    }
+    row.appendChild(actions);
+    return row;
+  }
+  function renderActivity() {
+    var recent = A.getRecentNotes();
+    var recentBox = document.getElementById('recentNotesList');
+    recentBox.replaceChildren();
+    if (!recent.length) recentBox.appendChild(activityRow('No notes viewed yet', 'Open a study note from the Papers page.', 'papers.html', null));
+    recent.forEach(function (n) {
+      recentBox.appendChild(activityRow(n.title, (n.category || '') + (n.at ? ' • ' + timeAgo(n.at) : ''), 'papers.html', null));
+    });
+
+    var history = A.getReadingHistory();
+    var histBox = document.getElementById('readingHistoryList');
+    histBox.replaceChildren();
+    if (!history.length) histBox.appendChild(activityRow('No blogs read yet', 'Open a blog from the home page.', 'index.html#publicBlogs', null));
+    history.forEach(function (b) {
+      histBox.appendChild(activityRow(b.title, b.at ? timeAgo(b.at) : '', 'index.html#publicBlogs', null));
+    });
+
+    var marks = A.getBookmarks();
+    var markBox = document.getElementById('bookmarksList');
+    markBox.replaceChildren();
+    if (!marks.length) markBox.appendChild(activityRow('No saved blogs yet', 'Tap ☆ Save Blog on any blog to keep it here.', 'index.html#publicBlogs', null));
+    marks.forEach(function (b) {
+      markBox.appendChild(activityRow(b.title, b.at ? 'Saved ' + timeAgo(b.at) : '', 'index.html#publicBlogs', function () {
+        A.removeBookmark(b.id);
+        renderActivity();
+      }));
+    });
+  }
+
+  document.getElementById('editProfileBtn').addEventListener('click', function () {
+    document.getElementById('editProfileForm').classList.remove('hidden');
+    showMessage('profileMessage', '');
+  });
+  document.getElementById('cancelEditProfile').addEventListener('click', function () {
+    document.getElementById('editProfileForm').classList.add('hidden');
+    document.getElementById('editName').value = A.displayName(user);
+    document.getElementById('editPhoto').value = '';
+  });
+  document.getElementById('editProfileForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var btn = this.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    var name = document.getElementById('editName').value.trim();
+    var file = document.getElementById('editPhoto').files[0];
+    var data = { name: name };
+    var photoNote = '';
+    try {
+      if (file) {
+        var ext = (file.name.split('.').pop() || 'png').toLowerCase().replace(/[^a-z0-9]/g, '') || 'png';
+        var path = 'avatars/' + user.id + '/avatar-' + Date.now() + '.' + ext;
+        var up = await client.storage.from('site-media').upload(path, file, { upsert: true, contentType: file.type || undefined });
+        if (up.error) throw up.error;
+        var pub = client.storage.from('site-media').getPublicUrl(path);
+        if (pub.data && pub.data.publicUrl) data.avatar_url = pub.data.publicUrl;
+      }
+      var r = await client.auth.updateUser({ data: data });
+      if (r.error) throw r.error;
+      user = r.data.user || user;
+      renderProfile();
+      document.getElementById('editProfileForm').classList.add('hidden');
+      document.getElementById('editPhoto').value = '';
+      showMessage('profileMessage', 'Profile saved!' + (photoNote || ''));
+      if (window.SJPAuth) SJPAuth.renderHeaderAuth();
+    } catch (err) {
+      // Name still saves even if the photo upload is blocked by storage rules.
+      try {
+        var r2 = await client.auth.updateUser({ data: { name: name } });
+        if (!r2.error) {
+          user = r2.data.user || user;
+          renderProfile();
+          document.getElementById('editProfileForm').classList.add('hidden');
+          showMessage('profileMessage', 'Name saved. Photo could not be uploaded — showing your initials for now.');
+          return;
+        }
+      } catch (e2) {}
+      showMessage('profileMessage', (err && err.message) || 'Could not save the profile. Please try again.', true);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  document.getElementById('changePassForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var pw = document.getElementById('newPass').value;
+    var pw2 = document.getElementById('newPass2').value;
+    if (pw !== pw2) { showMessage('passMessage', 'The two passwords do not match.', true); return; }
+    var btn = this.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    try {
+      var r = await client.auth.updateUser({ password: pw });
+      if (r.error) throw r.error;
+      showMessage('passMessage', 'Password changed!');
+      this.reset();
+    } catch (err) {
+      showMessage('passMessage', (err && err.message) || 'Could not change the password. Please try again.', true);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  ['notifAnnouncements', 'notifNotes', 'notifTests'].forEach(function (id) {
+    document.getElementById(id).addEventListener('change', function () {
+      A.saveNotifPrefs({
+        announcements: document.getElementById('notifAnnouncements').checked,
+        notes: document.getElementById('notifNotes').checked,
+        tests: document.getElementById('notifTests').checked
+      });
+    });
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async function () {
+    try { await client.auth.signOut(); } catch (e) {}
+    window.location.href = 'index.html';
+  });
+
+  // Load the account, or send visitors to the login page.
+  (async function () {
+    if (!client || !A) {
+      document.getElementById('profileLoading').textContent = 'Could not reach the login service. Please try again later.';
+      return;
+    }
+    user = await A.getUser();
+    if (!user) { window.location.href = 'auth.html'; return; }
+    var prefs = await A.loadNotifPrefs();
+    document.getElementById('notifAnnouncements').checked = !!prefs.announcements;
+    document.getElementById('notifNotes').checked = !!prefs.notes;
+    document.getElementById('notifTests').checked = !!prefs.tests;
+    renderProfile();
+    renderActivity();
+    document.getElementById('profileLoading').classList.add('hidden');
+    document.getElementById('profileWrap').classList.remove('hidden');
+  })();
+})();
+</script>
+
+</body>
+</html>

@@ -1,3 +1,12 @@
+// Load the shared account UI on every page that uses this script,
+// including the thin department shell pages.
+(function () {
+  if (window.SJPAuth || document.querySelector('script[src="auth-ui.js"]')) return;
+  var s = document.createElement('script');
+  s.src = 'auth-ui.js';
+  document.head.appendChild(s);
+})();
+
 // Shared script for the 6 category pages. Each page sets <body data-category="slug">.
 (function () {
   // Animations for every category page: cards fade in, lift on hover,
@@ -21,7 +30,7 @@ a.cp-link{display:inline-block;background:#0B2341;color:#fff!important;padding:9
   })();
 
   // Bottom navigation bar inside the floating .dock, TayyarHo style: Home, MCQs, Papers, Depts,
-  // Profile. Profile is shown but is not a link yet, so tapping it opens nothing.
+  // Profile. Links to the account page (login when logged out).
   function injectBottomNav() {
     if (document.getElementById('sjp-bottomnav')) return;
     var style = document.createElement('style');
@@ -39,7 +48,7 @@ a.cp-link{display:inline-block;background:#0B2341;color:#fff!important;padding:9
       { icon: '📝', label: 'MCQs', href: 'mock-tests.html', active: path.endsWith('mock-tests.html') },
       { icon: '📄', label: 'Papers', href: 'papers.html', active: path.endsWith('papers.html') },
       { icon: '🏛️', label: 'Depts', href: 'departments.html', active: path.endsWith('departments.html') || path.endsWith('category.html') || /prison-constable|eligibility|physical-test|written-test|interview/.test(path) },
-      { icon: '👤', label: 'Profile', href: null, active: false }
+      { icon: '👤', label: 'Profile', href: 'profile.html', active: path.endsWith('profile.html') || path.endsWith('auth.html') }
     ];
     var nav = document.createElement('nav');
     nav.id = 'sjp-bottomnav';

@@ -109,12 +109,13 @@
     <a href="mock-tests.html" class="sjp-bn-active"><span class="sjp-bn-icon">📝</span><span>MCQs</span></a>
     <a href="papers.html"><span class="sjp-bn-icon">📄</span><span>Papers</span></a>
     <a href="departments.html"><span class="sjp-bn-icon">🏛️</span><span>Depts</span></a>
-    <span class="sjp-bn-item"><span class="sjp-bn-icon">👤</span><span>Profile</span></span>
+    <a href="profile.html"><span class="sjp-bn-icon">👤</span><span>Profile</span></a>
   </nav>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
+  <script src="auth-ui.js"></script>
   <script>
   (function () {
     document.getElementById('year').textContent = new Date().getFullYear();
@@ -141,6 +142,7 @@
       var badge = document.createElement('span'); badge.className = 'mt-badge';
       badge.textContent = t.test_type === 'html' ? 'Online Test' : 'External Test';
       var h = document.createElement('h3'); h.textContent = t.title;
+      if (window.SJPAuth) { try { if (SJPAuth.notifPrefs().tests && SJPAuth.isFresh(t.created_at, 7)) { var nb = document.createElement('span'); nb.className = 'new-badge'; nb.textContent = 'NEW'; h.appendChild(nb); } } catch (e) {} }
       var p = document.createElement('p'); p.textContent = t.description || '';
       var btn;
       if (t.test_type === 'link' && safeUrl(t.test_url)) {
@@ -188,7 +190,7 @@
     else {
       Promise.all([
         client.from('mock_tests')
-          .select('id,title,description,test_type,test_url,thumbnail_url,sort_order')
+          .select('id,title,description,test_type,test_url,thumbnail_url,sort_order,created_at')
           .eq('published', true)
           .order('sort_order', { ascending: true })
           .order('created_at', { ascending: false }),

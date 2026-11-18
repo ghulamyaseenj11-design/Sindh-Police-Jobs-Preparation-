@@ -55,7 +55,7 @@ a.cp-link{display:inline-block;background:#0B2341;color:#fff!important;padding:9
 }
 
 // Bottom navigation bar inside the floating .dock, TayyarHo style: Home, MCQs, Papers, Depts,
-// Profile. Profile is shown but is not a link yet, so tapping it opens nothing.
+// Profile. Links to the account page (login when logged out).
 function injectBottomNav() {
   if (document.getElementById("sjp-bottomnav")) return;
   var style = document.createElement("style");
@@ -73,7 +73,7 @@ function injectBottomNav() {
     { icon: "📝", label: "MCQs", href: "mock-tests.html", active: path.endsWith("mock-tests.html") },
     { icon: "📄", label: "Papers", href: "papers.html", active: path.endsWith("papers.html") },
     { icon: "🏛️", label: "Depts", href: "departments.html", active: path.endsWith("departments.html") || /prison-constable|eligibility|physical-test|written-test|interview/.test(path) },
-    { icon: "👤", label: "Profile", href: null, active: false }
+    { icon: "👤", label: "Profile", href: "profile.html", active: path.endsWith("profile.html") || path.endsWith("auth.html") }
   ];
   var nav = document.createElement("nav");
   nav.id = "sjp-bottomnav";
@@ -271,9 +271,18 @@ async function loadStudyMaterials() {
 
   list.replaceChildren();
 
+  let freshNotes = [];
+  try {
+    if (window.SJPAuth && SJPAuth.notifPrefs().notes && SJPAuth.hasSeen('notes')) {
+      freshNotes = SJPAuth.unseenIds('notes', data.map(function (x) { return x.id; }));
+    }
+  } catch (e) {}
+
   data.forEach(item => {
     const card = makeElement("article", "info-card material-card");
-    card.appendChild(makeElement("h3", "", item.title || "Study Notes"));
+    const noteTitle = makeElement("h3", "", item.title || "Study Notes");
+    if (freshNotes.indexOf(item.id) !== -1) noteTitle.appendChild(makeElement("span", "new-badge", "NEW"));
+    card.appendChild(noteTitle);
     card.appendChild(makeElement(
       "p",
       "muted",
@@ -298,6 +307,8 @@ async function loadStudyMaterials() {
 
     list.appendChild(card);
   });
+
+  try { if (window.SJPAuth) SJPAuth.markSeen('notes', data.map(function (x) { return x.id; })); } catch (e) {}
 }
 
 
@@ -313,7 +324,7 @@ async function loadAnnouncements() {
 
   const { data, error } = await window.supabaseClient
     .from("announcements")
-    .select("title, content, created_at")
+    .select("id, title, content, created_at")
     .eq("is_active", true)
     .order("created_at", { ascending: false });
 
@@ -330,9 +341,18 @@ async function loadAnnouncements() {
 
   list.replaceChildren();
 
+  let freshAnn = [];
+  try {
+    if (window.SJPAuth && SJPAuth.notifPrefs().announcements && SJPAuth.hasSeen('announcements')) {
+      freshAnn = SJPAuth.unseenIds('announcements', data.map(function (x) { return x.id; }));
+    }
+  } catch (e) {}
+
   data.forEach(item => {
     const card = makeElement("article", "announcement-card");
-    card.appendChild(makeElement("h3", "", item.title || "Announcement"));
+    const annTitle = makeElement("h3", "", item.title || "Announcement");
+    if (freshAnn.indexOf(item.id) !== -1) annTitle.appendChild(makeElement("span", "new-badge", "NEW"));
+    card.appendChild(annTitle);
     card.appendChild(makeElement("p", "", item.content || ""));
 
     if (item.created_at) {
@@ -345,6 +365,8 @@ async function loadAnnouncements() {
 
     list.appendChild(card);
   });
+
+  try { if (window.SJPAuth) SJPAuth.markSeen('announcements', data.map(function (x) { return x.id; })); } catch (e) {}
 }
 
 
@@ -401,6 +423,25 @@ async function loadBlogs() {
     content.style.whiteSpace = "pre-wrap";
     details.appendChild(content);
     card.appendChild(details);
+
+    if (window.SJPAuth) {
+      try {
+        const bm = makeElement("button", "btn btn-outline blog-bookmark", "");
+        bm.type = "button";
+        const refreshBm = function () {
+          bm.textContent = SJPAuth.isBookmarked(blog.id) ? "★ Saved" : "☆ Save Blog";
+        };
+        refreshBm();
+        bm.addEventListener("click", function () {
+          SJPAuth.toggleBookmark({ id: blog.id, title: blog.title || "Blog", slug: blog.slug });
+          refreshBm();
+        });
+        card.appendChild(bm);
+        details.addEventListener("toggle", function () {
+          if (details.open) SJPAuth.recordBlogRead({ id: blog.id, title: blog.title || "Blog", slug: blog.slug });
+        });
+      } catch (e) {}
+    }
 
     list.appendChild(card);
   });
