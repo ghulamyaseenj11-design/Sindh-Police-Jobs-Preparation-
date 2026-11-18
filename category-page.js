@@ -216,7 +216,7 @@ a.cp-link{display:inline-block;background:#0B2341;color:#fff!important;padding:9
   }
 
   if (!cat) { main.textContent = 'Unknown page.'; return; }
-  document.title = cat.title + ' | Sindh Jail Police Preparation';
+  document.title = cat.title + ' | Study with GYJ';
 
   // "Papers" and "Mock Tests" buttons on every department page hero.
   (function () {
