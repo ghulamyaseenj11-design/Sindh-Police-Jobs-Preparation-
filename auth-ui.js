@@ -143,37 +143,22 @@
   // ---- Header: Login button, or the logged-in user's chip ----
   async function renderHeaderAuth() {
     var wrap = document.querySelector('.site-header .nav-wrap');
-    if (!wrap || document.getElementById('sjp-auth-btn')) return;
+    if (!wrap) return;
+    // The logged-in user chip was removed from the header at Yaseen's
+    // request — it looked crowded next to the menu button. The account
+    // opens from the bottom bar's Profile link instead. Drop any chip an
+    // older cached copy of this file may have drawn.
+    var old = document.getElementById('sjp-auth-btn');
+    if (old && old.classList && old.classList.contains('sjp-auth-user')) old.remove();
+    if (document.getElementById('sjp-auth-btn')) return;
     var user = null;
     try { user = await getUser(); } catch (e) {}
+    if (user) return;
     var a = document.createElement('a');
     a.id = 'sjp-auth-btn';
-    if (user) {
-      a.href = 'profile.html';
-      a.className = 'sjp-auth-user';
-      a.title = 'My Account';
-      var av = avatarUrl(user);
-      if (av) {
-        var img = document.createElement('img');
-        img.src = av;
-        img.alt = '';
-        img.className = 'sjp-avatar';
-        a.appendChild(img);
-      } else {
-        var sp = document.createElement('span');
-        sp.className = 'sjp-avatar sjp-avatar-initials';
-        sp.textContent = initials(displayName(user));
-        a.appendChild(sp);
-      }
-      var nm = document.createElement('span');
-      nm.className = 'sjp-auth-name';
-      nm.textContent = displayName(user);
-      a.appendChild(nm);
-    } else {
-      a.href = 'auth.html';
-      a.className = 'btn btn-gold sjp-auth-login';
-      a.textContent = 'Login';
-    }
+    a.href = 'auth.html';
+    a.className = 'btn btn-gold sjp-auth-login';
+    a.textContent = 'Login';
     wrap.appendChild(a);
   }
 
