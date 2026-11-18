@@ -71,7 +71,7 @@
           <span class="eyebrow" id="listEyebrow">AVAILABLE TESTS</span>
           <h2 id="listHeading">Choose a Section</h2>
         </div>
-        <div id="backRow" style="display:none;margin-bottom:16px"><a class="btn btn-outline" href="mock-tests.html">← All Sections</a></div>
+        <div id="backRow" style="display:none;margin-bottom:16px"><a class="btn btn-outline-dark" href="mock-tests.html">← All Sections</a><a class="btn btn-gold" id="prepLink" href="category.html" style="margin-left:8px">📖 Preparation</a></div>
         <div id="mockList" class="mt-grid"><p class="muted">Loading mock tests...</p></div>
       </div>
     </section>
@@ -89,6 +89,16 @@
     <div class="container">
       <a class="footer-brand" href="index.html">Sindh Jail Police</a>
       <p>This is a preparation and information website. It is not the official website of Sindh Prisons and Corrections Service. Always check official notices on the official department and testing service websites</p>
+      <div class="footer-explore">
+        <a href="index.html">Home</a>
+        <a href="mock-tests.html">Mock Tests</a>
+        <a href="papers.html">Papers</a>
+        <a href="departments.html">Departments</a>
+        <a href="mock-tests.html?section=jail-police">Jail Police Tests</a>
+        <a href="mock-tests.html?section=vaccinators">Vaccinators Tests</a>
+        <a href="mock-tests.html?section=islamabad-police">Islamabad Police Tests</a>
+        <a href="mock-tests.html?section=pst-jst">PST JST Tests</a>
+      </div>
       <div class="footer-bottom">© <span id="year"></span> Sindh Jail Police. For educational and informational purposes.</div>
     </div>
   </footer>
@@ -166,7 +176,9 @@
       var p = document.createElement('p'); p.textContent = count + (count === 1 ? ' test' : ' tests');
       var a = document.createElement('a'); a.className = 'btn btn-gold mt-btn';
       a.href = 'mock-tests.html?section=' + s.slug; a.textContent = 'Open Section';
-      b.append(badge, h, p, a); c.append(media, b); return c;
+      var prep = document.createElement('a'); prep.className = 'btn btn-outline-dark mt-btn';
+      prep.href = 'category.html?category=' + s.slug; prep.textContent = '📖 Preparation';
+      b.append(badge, h, p, a, prep); c.append(media, b); return c;
     }
 
     var client = getClient();
@@ -215,6 +227,7 @@
           document.getElementById('listEyebrow').textContent = 'MOCK TESTS • ' + section.title.toUpperCase();
           document.getElementById('listHeading').textContent = section.title + ' Tests';
           document.getElementById('backRow').style.display = '';
+          document.getElementById('prepLink').href = 'category.html?category=' + section.slug;
           var shown = 0;
           r.data.forEach(function (t) { if (sectionOf(t) === section.slug) { list.appendChild(card(t)); shown++; } });
           if (!shown) msg('No tests in this section yet.');

@@ -57,6 +57,7 @@
         <div class="hero-actions">
           <a class="btn btn-outline" href="index.html">← Back to Dashboard</a>
           <a class="btn btn-gold" href="papers.html">📄 Papers</a>
+          <a class="btn btn-outline" href="mock-tests.html">📝 Mock Tests</a>
         </div>
       </div>
     </section>
@@ -77,6 +78,16 @@
     <div class="container">
       <a class="footer-brand" href="index.html">Sindh Jail Police</a>
       <p>This is a preparation and information website. It is not the official website of Sindh Prisons and Corrections Service. Always check official notices on the official department and testing service websites</p>
+      <div class="footer-explore">
+        <a href="index.html">Home</a>
+        <a href="mock-tests.html">Mock Tests</a>
+        <a href="papers.html">Papers</a>
+        <a href="departments.html">Departments</a>
+        <a href="mock-tests.html?section=jail-police">Jail Police Tests</a>
+        <a href="mock-tests.html?section=vaccinators">Vaccinators Tests</a>
+        <a href="mock-tests.html?section=islamabad-police">Islamabad Police Tests</a>
+        <a href="mock-tests.html?section=pst-jst">PST JST Tests</a>
+      </div>
       <div class="footer-bottom">© <span id="year"></span> Sindh Jail Police. For educational and informational purposes.</div>
     </div>
   </footer>
@@ -152,6 +163,12 @@
       var a = el('a', 'btn btn-gold mt-btn', 'Open');
       a.href = known ? known.file : 'category.html?category=' + encodeURIComponent(slug);
       b.appendChild(a);
+      // Every department also links straight to its mock tests, so the
+      // Departments page and the Mock Tests page connect both ways.
+      var testsSlug = ['jail-police', 'vaccinators', 'islamabad-police', 'pst-jst'].indexOf(slug) !== -1 ? slug : 'jail-police';
+      var t = el('a', 'btn btn-outline-dark mt-btn', '📝 Mock Tests');
+      t.href = 'mock-tests.html?section=' + testsSlug;
+      b.appendChild(t);
       c.appendChild(b);
       return c;
     }

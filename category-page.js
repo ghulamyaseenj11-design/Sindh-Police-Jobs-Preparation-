@@ -60,6 +60,31 @@ a.cp-link{display:inline-block;background:#0B2341;color:#fff!important;padding:9
   }
   injectBottomNav();
 
+  // Footer quick links on every department page, so no page is a dead end:
+  // Home, Mock Tests, Papers, Departments and the 4 test sections.
+  // This also covers the 6 thin shell pages, which all load this script.
+  (function injectFooterLinks() {
+    var footer = document.querySelector('.site-footer .container');
+    if (!footer || footer.querySelector('.footer-explore')) return;
+    var row = document.createElement('div');
+    row.className = 'footer-explore';
+    [
+      ['Home', 'index.html'], ['Mock Tests', 'mock-tests.html'], ['Papers', 'papers.html'],
+      ['Departments', 'departments.html'],
+      ['Jail Police Tests', 'mock-tests.html?section=jail-police'],
+      ['Vaccinators Tests', 'mock-tests.html?section=vaccinators'],
+      ['Islamabad Police Tests', 'mock-tests.html?section=islamabad-police'],
+      ['PST JST Tests', 'mock-tests.html?section=pst-jst']
+    ].forEach(function (pair) {
+      var a = document.createElement('a');
+      a.href = pair[1];
+      a.textContent = pair[0];
+      row.appendChild(a);
+    });
+    var bottom = footer.querySelector('.footer-bottom');
+    if (bottom) footer.insertBefore(row, bottom); else footer.appendChild(row);
+  })();
+
   var CATS = {
     'prison-constable-male': { icon: '👮', title: 'Prison Constable (Male)', intro: 'Preparation resources for male candidates.', file: 'prison-constable-male.html' },
     'lady-prison-constable': { icon: '👮‍♀️', title: 'Lady Prison Constable', intro: 'Preparation resources for female candidates.', file: 'lady-prison-constable.html' },
@@ -207,9 +232,13 @@ a.cp-link{display:inline-block;background:#0B2341;color:#fff!important;padding:9
     papers.className = 'btn btn-gold';
     papers.href = 'papers.html';
     papers.textContent = '📄 Papers';
+    // Mock Tests goes to THIS department's own section (Jail Police,
+    // Vaccinators, Islamabad Police, PST JST); the 6 original departments
+    // belong to the Jail Police section.
+    var sectionSlug = (slug === 'jail-police' || slug === 'vaccinators' || slug === 'islamabad-police' || slug === 'pst-jst') ? slug : 'jail-police';
     var tests = document.createElement('a');
     tests.className = 'btn btn-outline';
-    tests.href = 'mock-tests.html';
+    tests.href = 'mock-tests.html?section=' + sectionSlug;
     tests.textContent = '📝 Mock Tests';
     row.append(papers, tests);
     hero.appendChild(row);

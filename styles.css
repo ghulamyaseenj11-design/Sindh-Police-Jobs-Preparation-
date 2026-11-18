@@ -282,3 +282,8 @@ button, input, textarea { font: inherit; }
   .dashboard .admin-card { padding: 22px 18px; }
   .admin-nav { top: 76px; padding: 8px 10px; }
 }
+
+/* Footer explore links — connect every page to every other page */
+.footer-explore { display: flex; flex-wrap: wrap; gap: 6px 16px; justify-content: center; margin: 16px 0 4px; padding-top: 14px; border-top: 1px solid #30445d; font-size: 14px; }
+.footer-explore a { color: #d8e0ea; font-weight: 700; }
+.footer-explore a:hover { color: var(--gold); }
