@@ -50,38 +50,56 @@
   <!-- DASHBOARD -->
   <section class="dashboard hidden" id="dashboardSection">
 
-    <div class="dashboard-heading">
-      <div>
-        <span class="eyebrow">CONTROL CENTRE</span>
-        <h1>Admin Dashboard</h1>
-        <p class="muted">Manage your complete website.</p>
-      </div>
-      <button class="btn btn-outline-dark" id="logoutButton">
-        Logout
-      </button>
-    </div>
+    <div class="admin-layout">
+      <aside class="admin-sidebar" aria-label="Admin sections">
+        <div class="admin-brand">
+          <img src="https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/site-media/app-icon/sindh-police-logo.png" alt="Study with GYJ logo">
+          <div><strong>Admin Panel</strong><small>Study with GYJ</small></div>
+        </div>
+        <nav class="admin-side-nav">
+          <button type="button" data-target="dashboardOverview" class="active"><span class="nav-ico">📊</span> Dashboard</button>
+          <button type="button" data-target="studyNotesManager"><span class="nav-ico">📒</span> Study Notes</button>
+          <button type="button" data-target="blogsManager"><span class="nav-ico">📰</span> Blogs</button>
+          <button type="button" data-target="pagesManager"><span class="nav-ico">📄</span> Pages</button>
+          <button type="button" data-target="galleryManager"><span class="nav-ico">🖼️</span> Gallery</button>
+          <button type="button" data-target="announcementsManager"><span class="nav-ico">📢</span> Announcements</button>
+          <button type="button" data-target="categoryManager"><span class="nav-ico">📚</span> Preparation Pages</button>
+          <button type="button" data-target="deptPhotosManager"><span class="nav-ico">🏛️</span> Department Photos</button>
+          <button type="button" data-target="testSectionsManager"><span class="nav-ico">🧩</span> Test Sections</button>
+          <button type="button" data-target="mockTestsManager"><span class="nav-ico">📝</span> Mock Tests</button>
+          <button type="button" data-target="navigationManager"><span class="nav-ico">🧭</span> Navigation</button>
+          <button type="button" data-target="settingsManager"><span class="nav-ico">⚙️</span> Settings</button>
+        </nav>
+        <div class="admin-side-foot">
+          <button class="btn btn-outline-dark" id="logoutButton">Logout</button>
+        </div>
+      </aside>
+      <div class="admin-content">
 
-    <!-- STICKY OPTIONS BAR — always on screen, tap any section to jump to it -->
-    <nav class="admin-nav" aria-label="Admin sections">
-      <span class="admin-nav-label">Sections</span>
-      <div class="admin-nav-links">
-        <a href="#studyNotesManager">Study Notes</a>
-        <a href="#blogsManager">Blogs</a>
-        <a href="#pagesManager">Pages</a>
-        <a href="#galleryManager">Gallery</a>
-        <a href="#announcementsManager">Announcements</a>
-        <a href="#categoryManager">Preparation Pages</a>
-        <a href="#deptPhotosManager">Department Photos</a>
-        <a href="#testSectionsManager">Test Sections</a>
-        <a href="#mockTestsManager">Mock Tests</a>
-        <a href="#navigationManager">Navigation</a>
-        <a href="#settingsManager">Settings</a>
-      </div>
-    </nav>
+        <!-- DASHBOARD OVERVIEW -->
+        <div class="admin-card admin-section active" id="dashboardOverview">
+          <h2>Dashboard</h2>
+          <p class="muted">Your website at a glance. Tap any section on the side to manage it.</p>
+          <div class="dash-stats">
+            <div class="dash-stat"><b id="statMockTests">–</b><span>Mock Tests</span></div>
+            <div class="dash-stat"><b id="statNotes">–</b><span>Study Notes</span></div>
+            <div class="dash-stat"><b id="statBlogs">–</b><span>Blogs</span></div>
+            <div class="dash-stat"><b id="statAnnouncements">–</b><span>Announcements</span></div>
+            <div class="dash-stat"><b id="statPages">–</b><span>Pages</span></div>
+            <div class="dash-stat"><b id="statGallery">–</b><span>Gallery Photos</span></div>
+          </div>
+          <h3>Quick Actions</h3>
+          <div class="dash-links">
+            <button type="button" class="btn btn-gold" data-target="mockTestsManager">+ Add Mock Test</button>
+            <button type="button" class="btn btn-outline-dark" data-target="studyNotesManager">+ Add Study Note</button>
+            <button type="button" class="btn btn-outline-dark" data-target="blogsManager">+ Add Blog</button>
+            <button type="button" class="btn btn-outline-dark" data-target="announcementsManager">+ Add Announcement</button>
+          </div>
+        </div>
 
 
     <!-- STUDY NOTES -->
-    <div class="admin-card" id="studyNotesManager">
+    <div class="admin-card admin-section" id="studyNotesManager">
       <h2>Study Notes Manager</h2>
       <p class="muted">Add notes and PDF study materials.</p>
 
@@ -126,7 +144,7 @@
 
 
     <!-- BLOGS -->
-    <div class="admin-card" id="blogsManager">
+    <div class="admin-card admin-section" id="blogsManager">
       <h2>Blogs Manager</h2>
       <p class="muted">Write articles, preparation tips and educational blogs.</p>
 
@@ -172,7 +190,7 @@
 
 
     <!-- PAGES -->
-    <div class="admin-card" id="pagesManager">
+    <div class="admin-card admin-section" id="pagesManager">
       <h2>Pages Manager</h2>
       <p class="muted">Create additional website pages.</p>
 
@@ -212,7 +230,7 @@
 
 
     <!-- GALLERY -->
-    <div class="admin-card" id="galleryManager">
+    <div class="admin-card admin-section" id="galleryManager">
       <h2>Gallery Manager</h2>
       <p class="muted">Upload and manage website images.</p>
 
@@ -239,7 +257,7 @@
 
 
     <!-- ANNOUNCEMENTS -->
-    <div class="admin-card" id="announcementsManager">
+    <div class="admin-card admin-section" id="announcementsManager">
       <h2>Announcements Manager</h2>
 
       <form id="announcementForm">
@@ -261,7 +279,7 @@
 
 
     <!-- PREPARATION CATEGORY PAGES -->
-    <div class="admin-card" id="categoryManager">
+    <div class="admin-card admin-section" id="categoryManager">
       <h2>Manage Preparation Pages</h2>
       <p class="muted">Add, edit or delete sections, tips and tricks for each preparation page.</p>
 
@@ -314,7 +332,7 @@
 
 
     <!-- DEPARTMENT PHOTOS -->
-    <div class="admin-card" id="deptPhotosManager">
+    <div class="admin-card admin-section" id="deptPhotosManager">
       <h2>Department Photos</h2>
       <p class="muted">Upload a photo for each department. It shows on the Departments page.</p>
 
@@ -340,7 +358,7 @@
 
 
     <!-- TEST SECTIONS -->
-    <div class="admin-card" id="testSectionsManager">
+    <div class="admin-card admin-section" id="testSectionsManager">
       <h2>Test Sections</h2>
       <p class="muted">Sections for the Mock Tests page, e.g. Jail Police, Vaccinators, Islamabad Police, PST JST. Tests are put in a section from the mock test form below.</p>
 
@@ -377,7 +395,7 @@
 
 
     <!-- MOCK TESTS -->
-    <div class="admin-card" id="mockTestsManager">
+    <div class="admin-card admin-section" id="mockTestsManager">
       <h2>Manage Mock Tests</h2>
       <p class="muted">Add Google Forms / other test links, or paste your own HTML test.</p>
 
@@ -435,7 +453,7 @@
 
 
     <!-- NAVIGATION -->
-    <div class="admin-card" id="navigationManager">
+    <div class="admin-card admin-section" id="navigationManager">
       <h2>Navigation Menu Manager</h2>
       <p class="muted">Add menu links to your website.</p>
 
@@ -473,7 +491,7 @@
 
 
     <!-- WEBSITE SETTINGS -->
-    <div class="admin-card" id="settingsManager">
+    <div class="admin-card admin-section" id="settingsManager">
       <h2>Website Settings</h2>
       <p class="muted">Update your public website information.</p>
 
@@ -509,6 +527,8 @@
       <p id="settingsMessage" class="form-message" aria-live="polite"></p>
     </div>
 
+      </div>
+    </div>
   </section>
 </main>
 
@@ -520,25 +540,21 @@
 <script src="department-photos-admin.js"></script>
 <script src="test-sections-admin.js"></script>
 <script>
-// Highlight the current section in the sticky admin nav
-(function () {
-  var links = document.querySelectorAll('.admin-nav-links a');
-  var map = {};
-  links.forEach(function (a) { map[a.getAttribute('href').slice(1)] = a; });
-  if (!('IntersectionObserver' in window) || !links.length) return;
-  var observer = new IntersectionObserver(function (entries) {
-    entries.forEach(function (entry) {
-      if (!entry.isIntersecting) return;
-      links.forEach(function (a) { a.classList.remove('active'); });
-      var link = map[entry.target.id];
-      if (link) link.classList.add('active');
-    });
-  }, { rootMargin: '-140px 0px -60% 0px' });
-  Object.keys(map).forEach(function (id) {
-    var el = document.getElementById(id);
-    if (el) observer.observe(el);
+// Sidebar section switching: show only the clicked section, hide the rest
+function showAdminSection(id) {
+  document.querySelectorAll('.admin-content .admin-section').forEach(function (sec) {
+    sec.classList.toggle('active', sec.id === id);
   });
-})();
+  document.querySelectorAll('[data-target]').forEach(function (btn) {
+    btn.classList.toggle('active', btn.getAttribute('data-target') === id);
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+document.querySelectorAll('.admin-side-nav [data-target], #dashboardOverview [data-target]').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    showAdminSection(btn.getAttribute('data-target'));
+  });
+});
 </script>
 
 </body>

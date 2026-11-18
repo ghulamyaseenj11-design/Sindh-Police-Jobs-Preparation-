@@ -826,6 +826,26 @@ async function loadAllData() {
     loadGallery(),
     loadAnnouncements(),
     loadNavigation(),
-    loadSettings()
+    loadSettings(),
+    loadDashboardCounts()
   ]);
+}
+
+async function loadDashboardCounts() {
+  const stats = [
+    ['mock_tests', 'statMockTests'],
+    ['study_materials', 'statNotes'],
+    ['site_blogs', 'statBlogs'],
+    ['announcements', 'statAnnouncements'],
+    ['site_pages', 'statPages'],
+    ['site_gallery', 'statGallery']
+  ];
+  await Promise.all(stats.map(async ([table, id]) => {
+    try {
+      const { count, error } = await db().from(table).select('id', { count: 'exact', head: true });
+      if (error) throw error;
+      const el = document.getElementById(id);
+      if (el) el.textContent = count ?? '–';
+    } catch (e) { console.error(e); }
+  }));
 }
