@@ -144,22 +144,12 @@
   async function renderHeaderAuth() {
     var wrap = document.querySelector('.site-header .nav-wrap');
     if (!wrap) return;
-    // The logged-in user chip was removed from the header at Yaseen's
-    // request — it looked crowded next to the menu button. The account
-    // opens from the bottom bar's Profile link instead. Drop any chip an
-    // older cached copy of this file may have drawn.
+    // No auth button in the header at all now, at Yaseen's request — the
+    // header was too crowded with the moon, menu and Login buttons. The
+    // account opens from the bottom bar's Profile link instead. Drop any
+    // button an older cached copy of this file may have drawn.
     var old = document.getElementById('sjp-auth-btn');
-    if (old && old.classList && old.classList.contains('sjp-auth-user')) old.remove();
-    if (document.getElementById('sjp-auth-btn')) return;
-    var user = null;
-    try { user = await getUser(); } catch (e) {}
-    if (user) return;
-    var a = document.createElement('a');
-    a.id = 'sjp-auth-btn';
-    a.href = 'auth.html';
-    a.className = 'btn btn-gold sjp-auth-login';
-    a.textContent = 'Login';
-    wrap.appendChild(a);
+    if (old) old.remove();
   }
 
   window.SJPAuth = {
