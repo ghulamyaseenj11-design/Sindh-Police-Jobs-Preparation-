@@ -312,6 +312,11 @@ button, input, textarea { font: inherit; }
 .sjp-avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold); background: #123a6e; flex-shrink: 0; }
 .sjp-avatar-initials { display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; font-weight: 800; }
 .auth-card { margin-top: 40px; }
+.legal-card { max-width: 780px; }
+.legal-card h2 { margin-top: 28px; font-size: 20px; }
+.legal-card p, .legal-card li { line-height: 1.7; }
+.legal-card ul { padding-left: 22px; }
+.legal-card ul li { margin-bottom: 6px; }
 .auth-tabs { display: flex; gap: 8px; margin: 18px 0 6px; }
 .auth-tabs button { flex: 1; padding: 10px; border: 1px solid var(--border); background: #f1f5f9; border-radius: 8px; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
 .auth-tabs button.active { background: var(--navy); color: #fff; border-color: var(--navy); }

@@ -87,7 +87,10 @@ a.cp-link{display:inline-block;background:#0B2341;color:#fff!important;padding:9
       ['Jail Police Tests', 'mock-tests.html?section=jail-police'],
       ['Vaccinators Tests', 'mock-tests.html?section=vaccinators'],
       ['Islamabad Police Tests', 'mock-tests.html?section=islamabad-police'],
-      ['PST JST Tests', 'mock-tests.html?section=pst-jst']
+      ['PST JST Tests', 'mock-tests.html?section=pst-jst'],
+      ['Privacy Policy', 'privacy-policy.html'],
+      ['Terms of Service', 'terms.html'],
+      ['About Us', 'about.html']
     ].forEach(function (pair) {
       var a = document.createElement('a');
       a.href = pair[1];
