@@ -254,3 +254,31 @@ button, input, textarea { font: inherit; }
   .admin-card { padding: 22px; }
   .dashboard-heading { align-items: flex-start; flex-direction: column; }
 }
+/* ===== Admin dashboard — professional style (admin page only) ===== */
+.admin-page { font-size: 16px; }
+.admin-page .muted { color: #4b5a6d; font-size: 15px; }
+.dashboard .admin-card { max-width: 720px; padding: 28px 30px; scroll-margin-top: 150px; }
+.admin-card h2 { font-size: 23px; padding-bottom: 10px; border-bottom: 3px solid var(--gold); margin-bottom: 6px; }
+.admin-card h3 { font-size: 18px; color: var(--navy); margin: 26px 0 10px; padding-top: 18px; border-top: 1px solid var(--border); }
+.admin-card label { font-size: 15px; color: var(--navy); }
+.admin-card input, .admin-card select, .admin-card textarea { font-size: 15.5px; color: #1c2b3f; border-color: #b9c4d2; padding: 12px 14px; }
+.admin-card input:focus, .admin-card select:focus, .admin-card textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201, 162, 39, .25); }
+.admin-card input::placeholder, .admin-card textarea::placeholder { color: #7a8a9d; }
+.admin-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.admin-actions .btn { font-size: 15px; }
+.admin-announcement strong { color: var(--navy); font-size: 16px; }
+.admin-announcement p { color: #33465e; }
+.admin-card:target { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201, 162, 39, .35), var(--shadow); }
+
+/* Sticky options bar — always on screen, jump to any section */
+.admin-nav { position: sticky; top: 76px; z-index: 15; background: var(--navy); border-bottom: 3px solid var(--gold); margin: 0 auto 25px; max-width: 720px; border-radius: 0 0 12px 12px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 20px rgba(11, 35, 65, .25); }
+.admin-nav-label { color: var(--gold); font-weight: 800; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; flex-shrink: 0; }
+.admin-nav-links { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: thin; padding-bottom: 2px; }
+.admin-nav-links a { flex-shrink: 0; color: #eef2f7; font-size: 14px; font-weight: 700; padding: 8px 13px; border: 1px solid #3a5a80; border-radius: 20px; white-space: nowrap; }
+.admin-nav-links a:hover { color: var(--gold); border-color: var(--gold); }
+.admin-nav-links a.active { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+
+@media (max-width: 560px) {
+  .dashboard .admin-card { padding: 22px 18px; }
+  .admin-nav { top: 76px; padding: 8px 10px; }
+}
