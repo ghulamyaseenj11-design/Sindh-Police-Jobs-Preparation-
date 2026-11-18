@@ -90,20 +90,21 @@
           </div>
           <h3>Quick Actions</h3>
           <div class="dash-links">
-            <button type="button" class="btn btn-gold" data-target="mockTestsManager">+ Add Mock Test</button>
-            <button type="button" class="btn btn-outline-dark" data-target="studyNotesManager">+ Add Study Note</button>
-            <button type="button" class="btn btn-outline-dark" data-target="blogsManager">+ Add Blog</button>
-            <button type="button" class="btn btn-outline-dark" data-target="announcementsManager">+ Add Announcement</button>
+            <button type="button" class="btn btn-gold" data-target="mockTestsManager" data-form-open="mockTestsManager">+ Add Mock Test</button>
+            <button type="button" class="btn btn-outline-dark" data-target="studyNotesManager" data-form-open="studyNotesManager">+ Add Study Note</button>
+            <button type="button" class="btn btn-outline-dark" data-target="blogsManager" data-form-open="blogsManager">+ Add Blog</button>
+            <button type="button" class="btn btn-outline-dark" data-target="announcementsManager" data-form-open="announcementsManager">+ Add Announcement</button>
           </div>
         </div>
 
 
     <!-- STUDY NOTES -->
     <div class="admin-card admin-section" id="studyNotesManager">
-      <h2>Study Notes Manager</h2>
+      <div class="admin-section-head"><h2>Study Notes Manager</h2><button type="button" class="btn btn-gold admin-add-btn" data-form-toggle="studyNotesManager">+ Add New</button></div>
       <p class="muted">Add notes and PDF study materials.</p>
 
-      <form id="studyNotesForm">
+            <div class="admin-form-wrap" id="studyNotesManagerFormWrap">
+<form id="studyNotesForm">
         <input type="hidden" id="studyNoteId">
 
         <label for="noteTitle">Notes Title</label>
@@ -131,10 +132,11 @@
           <button class="btn btn-gold" id="saveNoteButton" type="submit">
             Save Notes
           </button>
-          <button class="btn btn-outline-dark" id="cancelNoteEdit" type="button">
+          <button class="btn btn-outline-dark" id="cancelNoteEdit" data-form-close type="button">
             Cancel
           </button>
         </div>
+      </div>
       </form>
 
       <p id="studyNoteMessage" class="form-message" aria-live="polite"></p>
@@ -145,10 +147,11 @@
 
     <!-- BLOGS -->
     <div class="admin-card admin-section" id="blogsManager">
-      <h2>Blogs Manager</h2>
+      <div class="admin-section-head"><h2>Blogs Manager</h2><button type="button" class="btn btn-gold admin-add-btn" data-form-toggle="blogsManager">+ Add New</button></div>
       <p class="muted">Write articles, preparation tips and educational blogs.</p>
 
-      <form id="blogForm">
+            <div class="admin-form-wrap" id="blogsManagerFormWrap">
+<form id="blogForm">
         <input type="hidden" id="blogId">
 
         <label for="blogTitle">Blog Title</label>
@@ -177,10 +180,11 @@
           <button class="btn btn-gold" id="saveBlogButton" type="submit">
             Save Blog
           </button>
-          <button class="btn btn-outline-dark" id="cancelBlogEdit" type="button">
+          <button class="btn btn-outline-dark" id="cancelBlogEdit" data-form-close type="button">
             Cancel
           </button>
         </div>
+      </div>
       </form>
 
       <p id="blogMessage" class="form-message" aria-live="polite"></p>
@@ -191,10 +195,11 @@
 
     <!-- PAGES -->
     <div class="admin-card admin-section" id="pagesManager">
-      <h2>Pages Manager</h2>
+      <div class="admin-section-head"><h2>Pages Manager</h2><button type="button" class="btn btn-gold admin-add-btn" data-form-toggle="pagesManager">+ Add New</button></div>
       <p class="muted">Create additional website pages.</p>
 
-      <form id="pageForm">
+            <div class="admin-form-wrap" id="pagesManagerFormWrap">
+<form id="pageForm">
         <input type="hidden" id="pageId">
 
         <label for="pageTitle">Page Title</label>
@@ -217,10 +222,11 @@
           <button class="btn btn-gold" id="savePageButton" type="submit">
             Save Page
           </button>
-          <button class="btn btn-outline-dark" id="cancelPageEdit" type="button">
+          <button class="btn btn-outline-dark" id="cancelPageEdit" data-form-close type="button">
             Cancel
           </button>
         </div>
+      </div>
       </form>
 
       <p id="pageMessage" class="form-message" aria-live="polite"></p>
@@ -231,10 +237,11 @@
 
     <!-- GALLERY -->
     <div class="admin-card admin-section" id="galleryManager">
-      <h2>Gallery Manager</h2>
+      <div class="admin-section-head"><h2>Gallery Manager</h2><button type="button" class="btn btn-gold admin-add-btn" data-form-toggle="galleryManager">+ Add New</button></div>
       <p class="muted">Upload and manage website images.</p>
 
-      <form id="galleryForm">
+            <div class="admin-form-wrap" id="galleryManagerFormWrap">
+<form id="galleryForm">
         <label for="galleryTitle">Image Title</label>
         <input id="galleryTitle" type="text">
 
@@ -245,9 +252,11 @@
         <input id="galleryImage" type="file"
           accept="image/jpeg,image/png,image/webp" required>
 
-        <button class="btn btn-gold" id="saveGalleryButton" type="submit">
-          Upload Image
-        </button>
+        <div class="admin-actions">
+          <button class="btn btn-gold" id="saveGalleryButton" type="submit">Upload Image</button>
+          <button class="btn btn-outline-dark" type="button" data-form-close>Cancel</button>
+        </div>
+      </div>
       </form>
 
       <p id="galleryMessage" class="form-message" aria-live="polite"></p>
@@ -258,18 +267,21 @@
 
     <!-- ANNOUNCEMENTS -->
     <div class="admin-card admin-section" id="announcementsManager">
-      <h2>Announcements Manager</h2>
+      <div class="admin-section-head"><h2>Announcements Manager</h2><button type="button" class="btn btn-gold admin-add-btn" data-form-toggle="announcementsManager">+ Add New</button></div>
 
-      <form id="announcementForm">
+            <div class="admin-form-wrap" id="announcementsManagerFormWrap">
+<form id="announcementForm">
         <label for="announcementTitle">Announcement Title</label>
         <input id="announcementTitle" type="text" maxlength="150" required>
 
         <label for="announcementContent">Announcement Details</label>
         <textarea id="announcementContent" rows="5" required></textarea>
 
-        <button class="btn btn-gold" type="submit">
-          Publish Announcement
-        </button>
+        <div class="admin-actions">
+          <button class="btn btn-gold" type="submit">Publish Announcement</button>
+          <button class="btn btn-outline-dark" type="button" data-form-close>Cancel</button>
+        </div>
+      </div>
       </form>
 
       <p id="announcementMessage" class="form-message" aria-live="polite"></p>
@@ -280,7 +292,7 @@
 
     <!-- PREPARATION CATEGORY PAGES -->
     <div class="admin-card admin-section" id="categoryManager">
-      <h2>Manage Preparation Pages</h2>
+      <div class="admin-section-head"><h2>Manage Preparation Pages</h2><button type="button" class="btn btn-gold admin-add-btn" data-form-toggle="categoryManager">+ Add New</button></div>
       <p class="muted">Add, edit or delete sections, tips and tricks for each preparation page.</p>
 
       <form id="catForm">
@@ -295,6 +307,7 @@
           <option value="written-test">Written Test</option>
           <option value="interview">Interview</option>
         </select>
+      <div class="admin-form-wrap" id="categoryManagerFormWrap">
 
         <label for="catTitle">Section Title</label>
         <input id="catTitle" type="text" maxlength="200" required>
@@ -321,8 +334,9 @@
 
         <div class="admin-actions">
           <button class="btn btn-gold" id="saveCatButton" type="submit">Save Section</button>
-          <button class="btn btn-outline-dark" id="cancelCatEdit" type="button">Cancel</button>
+          <button class="btn btn-outline-dark" id="cancelCatEdit" data-form-close type="button">Cancel</button>
         </div>
+      </div>
       </form>
 
       <p id="catMessage" class="form-message" aria-live="polite"></p>
@@ -333,7 +347,7 @@
 
     <!-- DEPARTMENT PHOTOS -->
     <div class="admin-card admin-section" id="deptPhotosManager">
-      <h2>Department Photos</h2>
+      <div class="admin-section-head"><h2>Department Photos</h2><button type="button" class="btn btn-gold admin-add-btn" data-form-toggle="deptPhotosManager">+ Add Photo</button></div>
       <p class="muted">Upload a photo for each department. It shows on the Departments page.</p>
 
       <form id="deptPhotoForm">
@@ -344,11 +358,16 @@
           <option value="written-test">Written Test</option>
         </select>
 
+      <div class="admin-form-wrap" id="deptPhotosManagerFormWrap">
         <label for="deptPhotoFile">Select Photo</label>
         <input id="deptPhotoFile" type="file"
           accept="image/jpeg,image/png,image/webp" required>
 
-        <button class="btn btn-gold" type="submit">Upload Photo</button>
+        <div class="admin-actions">
+          <button class="btn btn-gold" type="submit">Upload Photo</button>
+          <button class="btn btn-outline-dark" type="button" data-form-close>Cancel</button>
+        </div>
+      </div>
       </form>
 
       <p id="deptPhotoMessage" class="form-message" aria-live="polite"></p>
@@ -359,10 +378,11 @@
 
     <!-- TEST SECTIONS -->
     <div class="admin-card admin-section" id="testSectionsManager">
-      <h2>Test Sections</h2>
+      <div class="admin-section-head"><h2>Test Sections</h2><button type="button" class="btn btn-gold admin-add-btn" data-form-toggle="testSectionsManager">+ Add New</button></div>
       <p class="muted">Sections for the Mock Tests page, e.g. Jail Police, Vaccinators, Islamabad Police, PST JST. Tests are put in a section from the mock test form below.</p>
 
-      <form id="testSectionForm">
+            <div class="admin-form-wrap" id="testSectionsManagerFormWrap">
+<form id="testSectionForm">
         <input type="hidden" id="testSectionKey">
 
         <label for="testSectionSlug">Section Slug</label>
@@ -384,8 +404,9 @@
 
         <div class="admin-actions">
           <button class="btn btn-gold" id="saveSectionButton" type="submit">Save Section</button>
-          <button class="btn btn-outline-dark" id="cancelSectionEdit" type="button">Cancel</button>
+          <button class="btn btn-outline-dark" id="cancelSectionEdit" data-form-close type="button">Cancel</button>
         </div>
+      </div>
       </form>
 
       <p id="testSectionMessage" class="form-message" aria-live="polite"></p>
@@ -396,10 +417,11 @@
 
     <!-- MOCK TESTS -->
     <div class="admin-card admin-section" id="mockTestsManager">
-      <h2>Manage Mock Tests</h2>
+      <div class="admin-section-head"><h2>Manage Mock Tests</h2><button type="button" class="btn btn-gold admin-add-btn" data-form-toggle="mockTestsManager">+ Add New</button></div>
       <p class="muted">Add Google Forms / other test links, or paste your own HTML test.</p>
 
-      <form id="mockTestForm">
+            <div class="admin-form-wrap" id="mockTestsManagerFormWrap">
+<form id="mockTestForm">
         <input type="hidden" id="mockTestId">
 
         <label for="mockType">Test Type</label>
@@ -442,8 +464,9 @@
 
         <div class="admin-actions">
           <button class="btn btn-gold" id="saveMockButton" type="submit">Save Mock Test</button>
-          <button class="btn btn-outline-dark" id="cancelMockEdit" type="button">Cancel</button>
+          <button class="btn btn-outline-dark" id="cancelMockEdit" data-form-close type="button">Cancel</button>
         </div>
+      </div>
       </form>
 
       <p id="mockTestMessage" class="form-message" aria-live="polite"></p>
@@ -454,10 +477,11 @@
 
     <!-- NAVIGATION -->
     <div class="admin-card admin-section" id="navigationManager">
-      <h2>Navigation Menu Manager</h2>
+      <div class="admin-section-head"><h2>Navigation Menu Manager</h2><button type="button" class="btn btn-gold admin-add-btn" data-form-toggle="navigationManager">+ Add New</button></div>
       <p class="muted">Add menu links to your website.</p>
 
-      <form id="navigationForm">
+            <div class="admin-form-wrap" id="navigationManagerFormWrap">
+<form id="navigationForm">
         <input type="hidden" id="navigationId">
 
         <label for="navigationTitle">Menu Name</label>
@@ -478,10 +502,11 @@
 
         <div class="admin-actions">
           <button class="btn btn-gold" type="submit">Save Menu Link</button>
-          <button class="btn btn-outline-dark" id="cancelNavigationEdit" type="button">
+          <button class="btn btn-outline-dark" id="cancelNavigationEdit" data-form-close type="button">
             Cancel
           </button>
         </div>
+      </div>
       </form>
 
       <p id="navigationMessage" class="form-message" aria-live="polite"></p>
@@ -554,6 +579,69 @@ document.querySelectorAll('.admin-side-nav [data-target], #dashboardOverview [da
   btn.addEventListener('click', function () {
     showAdminSection(btn.getAttribute('data-target'));
   });
+});
+
+// Collapsible add/edit forms: hidden until Add New or Edit is tapped
+function openAdminForm(id) {
+  var wrap = document.getElementById(id + 'FormWrap');
+  if (!wrap) return;
+  wrap.classList.add('open');
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function closeAdminForm(id) {
+  var wrap = document.getElementById(id + 'FormWrap');
+  if (wrap) wrap.classList.remove('open');
+}
+function resetAdminForm(id) {
+  var wrap = document.getElementById(id + 'FormWrap');
+  if (!wrap) return;
+  var cancel = wrap.querySelector('[data-form-close]');
+  if (cancel) { cancel.click(); return; }
+  var form = wrap.querySelector('form');
+  if (form) form.reset();
+}
+document.querySelectorAll('[data-form-toggle]').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var id = btn.getAttribute('data-form-toggle');
+    var wrap = document.getElementById(id + 'FormWrap');
+    if (wrap && wrap.classList.contains('open')) { closeAdminForm(id); return; }
+    resetAdminForm(id);
+    openAdminForm(id);
+  });
+});
+document.querySelectorAll('[data-form-open]').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var id = btn.getAttribute('data-form-open');
+    showAdminSection(id);
+    resetAdminForm(id);
+    openAdminForm(id);
+  });
+});
+document.querySelector('.admin-content').addEventListener('click', function (e) {
+  var btn = e.target.closest('button');
+  if (!btn) return;
+  var card = btn.closest('.admin-section');
+  if (!card) return;
+  var label = (btn.textContent || '').trim();
+  if (label === 'Edit') { openAdminForm(card.id); return; }
+  if (btn.hasAttribute('data-form-close') || label === 'Cancel') {
+    var form = btn.closest('form');
+    if (form) {
+      form.reset();
+      form.querySelectorAll('select').forEach(function (sel) {
+        sel.dispatchEvent(new Event('change'));
+      });
+    }
+    closeAdminForm(card.id);
+  }
+});
+document.querySelector('.admin-content').addEventListener('submit', function (e) {
+  var form = e.target;
+  var card = form.closest('.admin-section');
+  if (!card || !card.querySelector('.admin-form-wrap')) return;
+  setTimeout(function () {
+    if (card.querySelector('.form-message.success')) closeAdminForm(card.id);
+  }, 2000);
 });
 </script>
 

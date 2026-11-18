@@ -301,6 +301,11 @@ button, input, textarea { font: inherit; }
 .dash-stat b { font-size: 28px; color: var(--navy); display: block; line-height: 1.1; }
 .dash-stat span { color: #4b5a6d; font-size: 14px; font-weight: 700; }
 .dash-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.admin-section-head { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
+.admin-section-head h2 { flex: 1; min-width: 0; margin-bottom: 0; }
+.admin-section-head .btn { flex-shrink: 0; margin-top: 2px; white-space: nowrap; }
+.admin-form-wrap { display: none; margin-top: 18px; padding: 20px; background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; }
+.admin-form-wrap.open { display: block; }
 
 @media (max-width: 560px) {
   .dashboard .admin-card { padding: 22px 18px; }
