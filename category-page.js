@@ -45,6 +45,7 @@ a.cp-link{display:inline-block;background:#0B2341;color:#fff!important;padding:9
     var path = (window.location.pathname || '').toLowerCase();
     var items = [
       { icon: '🏠', label: 'Home', href: 'index.html', active: path === '/' || path === '' || path.endsWith('/') || path.endsWith('index.html') },
+      { icon: '🔍', label: 'Search', href: 'index.html#siteSearch', active: false },
       { icon: '📝', label: 'MCQs', href: 'mock-tests.html', active: path.endsWith('mock-tests.html') },
       { icon: '📄', label: 'Papers', href: 'papers.html', active: path.endsWith('papers.html') },
       { icon: '🏛️', label: 'Depts', href: 'departments.html', active: path.endsWith('departments.html') || path.endsWith('category.html') || /prison-constable|eligibility|physical-test|written-test|interview/.test(path) },

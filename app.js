@@ -2,6 +2,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   injectAnimations();
   injectBottomNav();
+  initSiteSearch();
   const year = document.getElementById("year");
   if (year) year.textContent = new Date().getFullYear();
 
@@ -70,6 +71,7 @@ function injectBottomNav() {
   var path = (window.location.pathname || "").toLowerCase();
   var items = [
     { icon: "🏠", label: "Home", href: "index.html", active: path === "/" || path === "" || path.endsWith("/") || path.endsWith("index.html") },
+    { icon: "🔍", label: "Search", href: "index.html#siteSearch", active: false },
     { icon: "📝", label: "MCQs", href: "mock-tests.html", active: path.endsWith("mock-tests.html") },
     { icon: "📄", label: "Papers", href: "papers.html", active: path.endsWith("papers.html") },
     { icon: "🏛️", label: "Depts", href: "departments.html", active: path.endsWith("departments.html") || /prison-constable|eligibility|physical-test|written-test|interview/.test(path) },
@@ -607,5 +609,150 @@ async function loadGallery() {
     }
 
     list.appendChild(card);
+  });
+}
+
+// ============================================
+// SITE SEARCH (bottom of the homepage)
+// ============================================
+
+// Searchable departments (the 7 department pages).
+var SJP_SEARCH_DEPARTMENTS = [
+  { slug: "prison-constable-male", title: "Prison Constable (Male)" },
+  { slug: "lady-prison-constable", title: "Lady Prison Constable" },
+  { slug: "written-test", title: "Written Test" },
+  { slug: "jail-police", title: "Jail Police" },
+  { slug: "vaccinators", title: "Vaccinators" },
+  { slug: "islamabad-police", title: "Islamabad Police" },
+  { slug: "pst-jst", title: "PST JST" }
+];
+
+var sjpSearchIndex = null;
+var sjpSearchLoading = null;
+
+async function loadSearchIndex() {
+  if (sjpSearchIndex) return sjpSearchIndex;
+  if (sjpSearchLoading) return sjpSearchLoading;
+  var client = window.supabaseClient;
+  if (!client) return null;
+  sjpSearchLoading = (async function () {
+    var index = [];
+    var results = await Promise.allSettled([
+      client.from("mock_tests").select("id,title,description").eq("published", true),
+      client.from("study_materials").select("id,title,category,description").eq("published", true),
+      client.from("site_blogs").select("id,title,excerpt").eq("published", true),
+      client.from("site_settings").select("setting_key,setting_value").like("setting_key", "mock_test_section_%"),
+      client.from("site_settings").select("setting_key,setting_value").like("setting_key", "section_videos_%")
+    ]);
+    var testSections = {};
+    if (results[3].status === "fulfilled" && results[3].value.data) {
+      results[3].value.data.forEach(function (row) {
+        testSections[String(row.setting_key).replace("mock_test_section_", "")] = row.setting_value || "jail-police";
+      });
+    }
+    if (results[0].status === "fulfilled" && results[0].value.data) {
+      results[0].value.data.forEach(function (t) {
+        var section = testSections[t.id] || "jail-police";
+        index.push({ type: "Test", title: t.title || "Mock Test", sub: t.description || "", href: "mock-tests.html?section=" + section });
+      });
+    }
+    if (results[1].status === "fulfilled" && results[1].value.data) {
+      results[1].value.data.forEach(function (n) {
+        index.push({ type: "Note", title: n.title || "Note", sub: (n.category || "") + (n.description ? " — " + n.description : ""), href: "papers.html" });
+      });
+    }
+    if (results[2].status === "fulfilled" && results[2].value.data) {
+      results[2].value.data.forEach(function (b) {
+        index.push({ type: "Blog", title: b.title || "Blog", sub: b.excerpt || "", href: "index.html#blogs" });
+      });
+    }
+    if (results[4].status === "fulfilled" && results[4].value.data) {
+      results[4].value.data.forEach(function (row) {
+        var slug = String(row.setting_key).replace("section_videos_", "");
+        try {
+          JSON.parse(row.setting_value || "[]").forEach(function (v) {
+            if (v && v.id) index.push({ type: "Video", title: v.title || "Video", sub: "By " + (v.channel || "YouTube"), href: "videos.html?section=" + slug });
+          });
+        } catch (e) {}
+      });
+    }
+    SJP_SEARCH_DEPARTMENTS.forEach(function (d) {
+      index.push({ type: "Department", title: d.title, sub: "Preparation guides, notes and mock tests", href: "category.html?category=" + d.slug });
+    });
+    sjpSearchIndex = index;
+    return index;
+  })();
+  return sjpSearchLoading;
+}
+
+// Pure filter: every word in the query must appear in the title or subtitle.
+function searchSiteIndex(query, index) {
+  var words = String(query || "").toLowerCase().split(/\s+/).filter(Boolean);
+  if (!words.length) return [];
+  var scored = [];
+  index.forEach(function (item) {
+    var hay = ((item.title || "") + " " + (item.sub || "")).toLowerCase();
+    var title = (item.title || "").toLowerCase();
+    var ok = words.every(function (w) { return hay.indexOf(w) !== -1; });
+    if (!ok) return;
+    var score = words.reduce(function (s, w) { return s + (title.indexOf(w) !== -1 ? 2 : 1); }, 0);
+    scored.push({ item: item, score: score });
+  });
+  scored.sort(function (a, b) { return b.score - a.score || (a.item.title || "").localeCompare(b.item.title || ""); });
+  return scored.slice(0, 12).map(function (s) { return s.item; });
+}
+
+function renderSearchResults(results, query) {
+  var box = document.getElementById("siteSearchResults");
+  if (!box) return;
+  box.replaceChildren();
+  if (!results.length) {
+    box.appendChild(makeElement("p", "muted", "No results for '" + query + "' — try another word."));
+    return;
+  }
+  results.forEach(function (r) {
+    var a = makeElement("a", "search-result");
+    a.href = r.href;
+    a.appendChild(makeElement("span", "search-badge", r.type));
+    var text = makeElement("span", "");
+    text.appendChild(makeElement("span", "search-title", r.title));
+    if (r.sub) { text.appendChild(document.createElement("br")); text.appendChild(makeElement("span", "search-sub", r.sub)); }
+    a.appendChild(text);
+    box.appendChild(a);
+  });
+}
+
+function initSiteSearch() {
+  var input = document.getElementById("siteSearchInput");
+  var box = document.getElementById("siteSearchResults");
+  if (!input || !box) return;
+  var timer = null;
+  input.addEventListener("input", function () {
+    clearTimeout(timer);
+    var q = input.value;
+    if (!q.trim()) {
+      box.replaceChildren();
+      box.appendChild(makeElement("p", "muted", "Try: English, Vaccinator, Islamiat, Sindhi..."));
+      return;
+    }
+    box.replaceChildren();
+    box.appendChild(makeElement("p", "muted", "Searching..."));
+    timer = setTimeout(function () {
+      loadSearchIndex().then(function (index) {
+        if (input.value !== q) return;
+        if (!index) {
+          box.replaceChildren();
+          box.appendChild(makeElement("p", "muted", "Search is unavailable right now."));
+          return;
+        }
+        renderSearchResults(searchSiteIndex(q, index), q);
+      });
+    }, 150);
+  });
+  // Tapping Search in the bottom bar focuses the box.
+  document.addEventListener("click", function (event) {
+    var a = event.target && event.target.closest ? event.target.closest('a[href$="#siteSearch"]') : null;
+    if (!a) return;
+    setTimeout(function () { input.focus(); }, 350);
   });
 }
