@@ -277,6 +277,12 @@
         <label for="announcementContent">Announcement Details</label>
         <textarea id="announcementContent" rows="5" required></textarea>
 
+        <label for="announcementLink">Link (optional) — for a linked announcement, e.g. mock-tests.html or videos.html</label>
+        <input id="announcementLink" type="text" maxlength="300" placeholder="mock-tests.html">
+
+        <label for="announcementButtonText">Button text (optional) — shown on the link button</label>
+        <input id="announcementButtonText" type="text" maxlength="80" placeholder="Click here to see">
+
         <div class="admin-actions">
           <button class="btn btn-gold" type="submit">Publish Announcement</button>
           <button class="btn btn-outline-dark" type="button" data-form-close>Cancel</button>

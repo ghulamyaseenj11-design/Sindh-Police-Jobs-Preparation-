@@ -346,6 +346,83 @@ async function loadStudyMaterials() {
 // ANNOUNCEMENTS
 // ============================================
 
+// An announcement can carry a link: the admin adds it as
+// [LINK]url|Button text[/LINK] at the end of the details.
+// The popup and the list both read it back out.
+function parseAnnouncementLink(content) {
+  var text = String(content || "");
+  var m = text.match(/\[LINK\]([\s\S]*?)\[\/LINK\]/);
+  if (!m) return { text: text, link: null, linkText: "" };
+  var parts = m[1].split("|");
+  return { text: text.replace(m[0], "").trim(), link: (parts[0] || "").trim(), linkText: (parts[1] || "Click here").trim() };
+}
+
+function announcementSeenIds() {
+  try { return JSON.parse(localStorage.getItem("sjp_ann_popup_seen") || "[]"); } catch (e) { return []; }
+}
+
+function markAnnouncementsPopupSeen(ids) {
+  try {
+    var seen = announcementSeenIds();
+    ids.forEach(function (id) { if (seen.indexOf(id) === -1) seen.push(id); });
+    localStorage.setItem("sjp_ann_popup_seen", JSON.stringify(seen.slice(-50)));
+  } catch (e) {}
+}
+
+// Fast popup styles: the overlay fades in .15s, the card pops in .25s.
+function injectAnnouncementPopupStyles() {
+  if (document.getElementById("sjp-ann-popup-style")) return;
+  var style = document.createElement("style");
+  style.id = "sjp-ann-popup-style";
+  style.textContent = "@keyframes sjpAnnFade{from{opacity:0}to{opacity:1}}"
+    + "@keyframes sjpAnnPop{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}"
+    + ".sjp-ann-overlay{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.65);display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;animation:sjpAnnFade .15s ease both}"
+    + ".sjp-ann-card{background:#fff;border-radius:14px;max-width:520px;width:100%;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.35);animation:sjpAnnPop .25s ease-out both;margin:auto 0}"
+    + ".sjp-ann-head{background:#1a73e8;color:#fff;text-align:center;font-weight:800;font-size:1.25rem;letter-spacing:.5px;padding:14px 16px}"
+    + ".sjp-ann-body{padding:18px 20px;display:flex;flex-direction:column;gap:14px;max-height:62vh;overflow-y:auto}"
+    + ".sjp-ann-item h3{margin:0 0 6px;font-size:1.15rem;color:#0B2341;text-align:center}"
+    + ".sjp-ann-item p{margin:0;white-space:pre-wrap;color:#333;line-height:1.55;text-align:center}"
+    + ".sjp-ann-link{display:block;text-align:center;background:#ec407a;color:#fff!important;font-weight:800;padding:11px 16px;border-radius:10px;text-decoration:none;margin-top:10px}"
+    + ".sjp-ann-close{display:block;width:100%;border:0;cursor:pointer;background:#e53935;color:#fff;font:inherit;font-weight:800;font-size:1.05rem;padding:14px}";
+  document.head.appendChild(style);
+}
+
+// New announcements pop up first, before the home screen, like a public
+// notice. Closing it remembers the announcement, so it does not pop up
+// again — a new announcement still pops up the next time.
+function showAnnouncementPopup(items) {
+  if (!items.length || document.getElementById("sjp-ann-overlay")) return;
+  injectAnnouncementPopupStyles();
+  var overlay = makeElement("div", "sjp-ann-overlay");
+  overlay.id = "sjp-ann-overlay";
+  var card = makeElement("div", "sjp-ann-card");
+  card.appendChild(makeElement("div", "sjp-ann-head", "📢 PUBLIC NOTICE"));
+  var body = makeElement("div", "sjp-ann-body");
+  items.forEach(function (item) {
+    var parsed = parseAnnouncementLink(item.content);
+    var wrap = makeElement("div", "sjp-ann-item");
+    wrap.appendChild(makeElement("h3", "", item.title || "Announcement"));
+    wrap.appendChild(makeElement("p", "", parsed.text));
+    if (parsed.link) {
+      var a = makeElement("a", "sjp-ann-link", "👉 " + (parsed.linkText || "Click here"));
+      a.href = parsed.link;
+      wrap.appendChild(a);
+    }
+    body.appendChild(wrap);
+  });
+  card.appendChild(body);
+  var close = makeElement("button", "sjp-ann-close", "Close");
+  close.type = "button";
+  close.addEventListener("click", function () {
+    markAnnouncementsPopupSeen(items.map(function (x) { return x.id; }));
+    if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+  });
+  card.appendChild(close);
+  overlay.appendChild(card);
+  overlay.addEventListener("click", function (e) { if (e.target === overlay) close.click(); });
+  document.body.appendChild(overlay);
+}
+
 async function loadAnnouncements() {
   const list = document.getElementById("announcementList");
   if (!list) return;
@@ -383,7 +460,13 @@ async function loadAnnouncements() {
     const annTitle = makeElement("h3", "", item.title || "Announcement");
     if (freshAnn.indexOf(item.id) !== -1) annTitle.appendChild(makeElement("span", "new-badge", "NEW"));
     card.appendChild(annTitle);
-    card.appendChild(makeElement("p", "", item.content || ""));
+    var parsed = parseAnnouncementLink(item.content);
+    card.appendChild(makeElement("p", "", parsed.text));
+    if (parsed.link) {
+      var annLink = makeElement("a", "btn btn-gold", "👉 " + (parsed.linkText || "Click here"));
+      annLink.href = parsed.link;
+      card.appendChild(annLink);
+    }
 
     if (item.created_at) {
       card.appendChild(makeElement(
@@ -395,6 +478,13 @@ async function loadAnnouncements() {
 
     list.appendChild(card);
   });
+
+  // New announcements pop up first, before the home screen.
+  try {
+    var popupSeen = announcementSeenIds();
+    var fresh = data.filter(function (x) { return popupSeen.indexOf(x.id) === -1; });
+    if (fresh.length) showAnnouncementPopup(fresh);
+  } catch (e) {}
 
   try { if (window.SJPAuth) SJPAuth.markSeen('announcements', data.map(function (x) { return x.id; })); } catch (e) {}
 }

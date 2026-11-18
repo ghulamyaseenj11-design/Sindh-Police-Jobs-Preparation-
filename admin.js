@@ -566,15 +566,31 @@ async function loadGallery() {
 
 // ANNOUNCEMENTS
 
+function stripAnnouncementLink(content) {
+  var text = String(content || "");
+  var m = text.match(/\[LINK\]([\s\S]*?)\[\/LINK\]/);
+  if (!m) return { text: text, link: "" };
+  return { text: text.replace(m[0], "").trim(), link: (m[1].split("|")[0] || "").trim() };
+}
+
 async function saveAnnouncement(event) {
   event.preventDefault();
 
   const title = value("announcementTitle");
   const content = value("announcementContent");
+  const link = value("announcementLink");
+  const linkText = value("announcementButtonText");
 
   if (!title || !content) {
     showMessage("announcementMessage", "Enter title and details.", true);
     return;
+  }
+
+  // A linked announcement keeps its link at the end of the details as
+  // [LINK]url|Button text[/LINK]; the homepage popup and list read it back.
+  var finalContent = content;
+  if (link) {
+    finalContent = content + "\n\n[LINK]" + link + "|" + (linkText || "Click here") + "[/LINK]";
   }
 
   setButtonLoading("announcementForm", true, "Publishing...");
@@ -582,7 +598,7 @@ async function saveAnnouncement(event) {
   try {
     const { error } = await db()
       .from("announcements")
-      .insert([{ title, content, is_active: true }]);
+      .insert([{ title, content: finalContent, is_active: true }]);
 
     if (error) throw error;
 
@@ -605,11 +621,12 @@ async function loadAnnouncements() {
 
     if (error) throw error;
 
-    renderList($("adminAnnouncementList"), data, item => [
-      item.title,
-      item.content,
-      item.is_active ? "Active" : "Inactive"
-    ], null, item =>
+    renderList($("adminAnnouncementList"), data, item => {
+      var parsed = stripAnnouncementLink(item.content);
+      var lines = [item.title, parsed.text, item.is_active ? "Active" : "Inactive"];
+      if (parsed.link) lines.push("Link: " + parsed.link);
+      return lines;
+    }, null, item =>
       deleteRecord("announcements", item.id, "announcementMessage", loadAnnouncements)
     );
   } catch (error) {
