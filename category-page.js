@@ -20,18 +20,18 @@ a.cp-link{display:inline-block;background:#0B2341;color:#fff!important;padding:9
     document.head.appendChild(style);
   })();
 
-  // Fixed bottom navigation bar, TayyarHo style: Home, MCQs, Papers, Depts,
+  // Bottom navigation bar inside the floating .dock, TayyarHo style: Home, MCQs, Papers, Depts,
   // Profile. Profile is shown but is not a link yet, so tapping it opens nothing.
   function injectBottomNav() {
     if (document.getElementById('sjp-bottomnav')) return;
     var style = document.createElement('style');
     style.id = 'sjp-bottomnav-style';
-    style.textContent = '#sjp-bottomnav{position:fixed;left:0;right:0;bottom:0;z-index:1000;display:flex;background:#fff;border-top:1px solid rgba(11,35,65,.12);box-shadow:0 -4px 16px rgba(11,35,65,.12);padding-bottom:env(safe-area-inset-bottom,0)}'
+    style.textContent = '#sjp-bottomnav{position:static;width:100%;max-width:560px;display:flex;background:#fff;border:1px solid rgba(11,35,65,.12);border-radius:20px;box-shadow:0 8px 24px rgba(11,35,65,.18);pointer-events:auto;padding-bottom:env(safe-area-inset-bottom,0)}'
       + '#sjp-bottomnav a,#sjp-bottomnav .sjp-bn-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 9px;text-decoration:none;color:#5b6b82;font-size:11px;font-weight:600}'
       + '#sjp-bottomnav .sjp-bn-icon{font-size:22px;line-height:1}'
       + '#sjp-bottomnav a.sjp-bn-active{color:#C9A227}'
       + '#sjp-bottomnav .sjp-bn-item{opacity:.55}'
-      + 'body{padding-bottom:64px}';
+      + 'body{padding-bottom:84px}';
     document.head.appendChild(style);
     var path = (window.location.pathname || '').toLowerCase();
     var items = [
@@ -56,7 +56,11 @@ a.cp-link{display:inline-block;background:#0B2341;color:#fff!important;padding:9
       item.appendChild(label);
       nav.appendChild(item);
     });
-    document.body.appendChild(nav);
+    var dock = document.createElement('div');
+    dock.className = 'dock';
+    dock.id = 'sjp-bottomnav-wrap';
+    dock.appendChild(nav);
+    document.body.appendChild(dock);
   }
   injectBottomNav();
 

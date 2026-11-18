@@ -23,8 +23,8 @@
     .mt-viewer-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;background:#10243f;color:#fff}
     .mt-viewer-bar strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .mt-viewer iframe{flex:1;width:100%;border:0;background:#fff}
-    body{padding-bottom:64px}
-    #sjp-bottomnav{position:fixed;left:0;right:0;bottom:0;z-index:1000;display:flex;background:#fff;border-top:1px solid rgba(11,35,65,.12);box-shadow:0 -4px 16px rgba(11,35,65,.12);padding-bottom:env(safe-area-inset-bottom,0)}
+    body{padding-bottom:84px}
+    #sjp-bottomnav{position:static;width:100%;max-width:560px;display:flex;background:#fff;border:1px solid rgba(11,35,65,.12);border-radius:20px;box-shadow:0 8px 24px rgba(11,35,65,.18);pointer-events:auto;padding-bottom:env(safe-area-inset-bottom,0)}
     #sjp-bottomnav a,#sjp-bottomnav .sjp-bn-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 9px;text-decoration:none;color:#5b6b82;font-size:11px;font-weight:600}
     #sjp-bottomnav .sjp-bn-icon{font-size:22px;line-height:1}
     #sjp-bottomnav a.sjp-bn-active{color:#C9A227}
@@ -103,6 +103,7 @@
     </div>
   </footer>
 
+  <div class="dock" id="sjp-bottomnav-wrap">
   <nav id="sjp-bottomnav">
     <a href="index.html"><span class="sjp-bn-icon">🏠</span><span>Home</span></a>
     <a href="mock-tests.html" class="sjp-bn-active"><span class="sjp-bn-icon">📝</span><span>MCQs</span></a>
@@ -110,6 +111,7 @@
     <a href="departments.html"><span class="sjp-bn-icon">🏛️</span><span>Depts</span></a>
     <span class="sjp-bn-item"><span class="sjp-bn-icon">👤</span><span>Profile</span></span>
   </nav>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>

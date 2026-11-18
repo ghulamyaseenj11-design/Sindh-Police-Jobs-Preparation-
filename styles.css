@@ -297,3 +297,25 @@ button, input, textarea { font: inherit; }
 .footer-explore a { color: #ffffff; font-weight: 700; background: #123a6e; border: 1.5px solid var(--gold); border-radius: 999px; padding: 9px 16px; box-shadow: 0 2px 8px rgba(0, 0, 0, .35); }
 .footer-explore a:hover { background: var(--gold); color: var(--navy); border-color: var(--gold); }
 .footer-explore a:active { transform: scale(.97); }
+
+/* Floating bottom dock: a bottom-anchored, centred container with safe-area
+   padding. The site's bottom navigation bar lives inside it. */
+.dock {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 4;
+  pointer-events: none;
+  padding-top: 0;
+  padding-bottom: 16px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+/* On the website the dock is fixed to the viewport (the screen), so the
+   bottom bar stays visible while scrolling. */
+#sjp-bottomnav-wrap { position: fixed; z-index: 1000; }
