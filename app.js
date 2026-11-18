@@ -72,7 +72,7 @@ function injectBottomNav() {
     { icon: "🏠", label: "Home", href: "index.html", active: path === "/" || path === "" || path.endsWith("/") || path.endsWith("index.html") },
     { icon: "📝", label: "MCQs", href: "mock-tests.html", active: path.endsWith("mock-tests.html") },
     { icon: "📄", label: "Papers", href: "papers.html", active: path.endsWith("papers.html") },
-    { icon: "🏛️", label: "Depts", href: "index.html#preparation", active: /prison-constable|eligibility|physical-test|written-test|interview/.test(path) },
+    { icon: "🏛️", label: "Depts", href: "departments.html", active: path.endsWith("departments.html") || /prison-constable|eligibility|physical-test|written-test|interview/.test(path) },
     { icon: "👤", label: "Profile", href: null, active: false }
   ];
   var nav = document.createElement("nav");
@@ -251,6 +251,7 @@ async function loadStudyMaterials() {
     .from("study_materials")
     .select("id, title, category, description, body, file_url, created_at")
     .eq("published", true)
+    .neq("category", "Past Papers")
     .order("created_at", { ascending: false });
 
   if (error) {

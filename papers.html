@@ -9,6 +9,9 @@
   <style>
     .mt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px}
     .mt-card{background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+    @keyframes mtFadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+    .mt-card{animation:mtFadeUp .55s ease both;transition:transform .25s ease,box-shadow .25s ease}
+    .mt-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(11,35,65,.16)}
     .mt-thumb{width:100%;height:150px;object-fit:cover;background:#eef1f5;display:flex;align-items:center;justify-content:center;font-size:48px}
     .mt-body{padding:16px;display:flex;flex-direction:column;gap:8px;flex:1}
     .mt-body h3{margin:0;font-size:1.1rem}
@@ -21,11 +24,6 @@
     #sjp-bottomnav .sjp-bn-icon{font-size:22px;line-height:1}
     #sjp-bottomnav a.sjp-bn-active{color:#C9A227}
     #sjp-bottomnav .sjp-bn-item{opacity:.55}
-    .mt-viewer{position:fixed;inset:0;z-index:9999;background:#fff;display:none;flex-direction:column}
-    .mt-viewer.open{display:flex}
-    .mt-viewer-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;background:#10243f;color:#fff}
-    .mt-viewer-bar strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .mt-viewer iframe{flex:1;width:100%;border:0;background:#fff}
   </style>
 </head>
 <body>
@@ -54,7 +52,7 @@
       <div class="container hero-content">
         <span class="eyebrow">PRACTICE • PAPERS • IMPROVE</span>
         <h1>Practice Papers</h1>
-        <p>Practice papers made for Sindh Jail Police recruitment preparation. Attempt them, check your score and improve every day.</p>
+        <p>Notes and past papers for Sindh Jail Police recruitment preparation. New items are added from the admin panel — no file upload needed.</p>
         <div class="hero-actions">
           <a class="btn btn-outline" href="index.html">← Back to Dashboard</a>
         </div>
@@ -64,12 +62,16 @@
     <section class="section">
       <div class="container">
         <div class="section-heading">
-          <span class="eyebrow">AVAILABLE PAPERS</span>
-          <h2>Choose a Practice Paper</h2>
+          <span class="eyebrow">NOTES</span>
+          <h2>Notes</h2>
         </div>
-        <div id="paperList" class="mt-grid"><p class="muted">Loading practice papers...</p></div>
-        <p class="muted" style="margin-top:20px">These are practice papers prepared for study. They are not official past papers. Official past papers will be added here when available. Always verify recruitment details from official sources.</p>
-        <p class="muted">More MCQ practice is on the <a href="written-test.html">Written Test</a> and <a href="interview.html">Interview</a> pages.</p>
+        <div id="notesList" class="mt-grid"><p class="muted">Loading notes...</p></div>
+        <div class="section-heading" style="margin-top:32px">
+          <span class="eyebrow">PAST PAPERS</span>
+          <h2>Past Papers</h2>
+        </div>
+        <div id="papersList" class="mt-grid"><p class="muted">Loading past papers...</p></div>
+        <p class="muted" style="margin-top:20px">Notes and past papers are added from the admin panel (Study Notes). For a past paper, set its category to “Past Papers” and attach the PDF.</p>
       </div>
     </section>
   </main>
@@ -82,19 +84,11 @@
     </div>
   </footer>
 
-  <div class="mt-viewer" id="viewer" role="dialog" aria-modal="true" aria-label="Mock test">
-    <div class="mt-viewer-bar">
-      <strong id="viewerTitle"></strong>
-      <button class="btn btn-gold mt-btn" id="viewerClose" type="button">✕ Close</button>
-    </div>
-    <iframe id="viewerFrame" title="Mock test" sandbox="allow-scripts allow-forms allow-popups"></iframe>
-  </div>
-
   <nav id="sjp-bottomnav">
     <a href="index.html"><span class="sjp-bn-icon">🏠</span><span>Home</span></a>
     <a href="mock-tests.html"><span class="sjp-bn-icon">📝</span><span>MCQs</span></a>
     <a href="papers.html" class="sjp-bn-active"><span class="sjp-bn-icon">📄</span><span>Papers</span></a>
-    <a href="index.html#preparation"><span class="sjp-bn-icon">🏛️</span><span>Depts</span></a>
+    <a href="departments.html"><span class="sjp-bn-icon">🏛️</span><span>Depts</span></a>
     <span class="sjp-bn-item"><span class="sjp-bn-icon">👤</span><span>Profile</span></span>
   </nav>
 
@@ -108,65 +102,65 @@
   })();
   </script>
 
+
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
   <script>
+  // Notes + Past Papers load live from study_materials. Add one in the admin
+  // panel (Study Notes: title, category, PDF) and it appears here by itself.
   (function () {
-    function getClient() { return window.supabaseClient || null; } // same client as admin.js
-
-    var list = document.getElementById('paperList');
-    function msg(t) { list.innerHTML = ''; var p = document.createElement('p'); p.className = 'muted'; p.textContent = t; list.appendChild(p); }
+    function getClient() { return window.supabaseClient || null; }
+    function el(tag, cls, text) {
+      var e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (text != null) e.textContent = text;
+      return e;
+    }
     function safeUrl(u) { return /^https?:\/\//i.test(u || '') ? u : null; }
-
-    function card(t) {
-      var c = document.createElement('article'); c.className = 'mt-card';
-      var th = safeUrl(t.thumbnail_url), media;
-      if (th) { media = document.createElement('img'); media.className = 'mt-thumb'; media.src = th; media.alt = ''; media.loading = 'lazy'; }
-      else { media = document.createElement('div'); media.className = 'mt-thumb'; media.textContent = '📝'; }
-      var b = document.createElement('div'); b.className = 'mt-body';
-      var badge = document.createElement('span'); badge.className = 'mt-badge';
-      badge.textContent = t.test_type === 'html' ? 'Online Test' : 'External Test';
-      var h = document.createElement('h3'); h.textContent = t.title;
-      var p = document.createElement('p'); p.textContent = t.description || '';
-      var btn;
-      if (t.test_type === 'link' && safeUrl(t.test_url)) {
-        btn = document.createElement('a'); btn.href = t.test_url; btn.target = '_blank'; btn.rel = 'noopener noreferrer';
-      } else {
-        btn = document.createElement('button'); btn.type = 'button';
-        btn.addEventListener('click', function () { openHtml(t); });
+    function card(item) {
+      var c = el('article', 'mt-card');
+      var media = el('div', 'mt-thumb', item.category === 'Past Papers' ? '📄' : '📝');
+      var b = el('div', 'mt-body');
+      b.appendChild(el('span', 'mt-badge', item.category || 'Notes'));
+      b.appendChild(el('h3', null, item.title || 'Untitled'));
+      if (item.description) b.appendChild(el('p', null, item.description));
+      if (item.body) b.appendChild(el('p', null, String(item.body).slice(0, 200)));
+      if (safeUrl(item.file_url)) {
+        var a = el('a', 'btn btn-gold mt-btn', 'Open / Download PDF');
+        a.href = item.file_url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+        b.appendChild(a);
       }
-      btn.className = 'btn btn-gold mt-btn'; btn.textContent = 'Open Test';
-      b.append(badge, h, p, btn); c.append(media, b); return c;
+      c.appendChild(media); c.appendChild(b);
+      return c;
     }
-
+    function fill(listId, items, emptyText) {
+      var list = document.getElementById(listId);
+      list.innerHTML = '';
+      if (!items.length) { list.appendChild(el('p', 'muted', emptyText)); return; }
+      items.forEach(function (it) { list.appendChild(card(it)); });
+    }
     var client = getClient();
-    if (!client) { msg('Mock tests could not be loaded (Supabase config not found).'); }
-    else {
-      client.from('mock_tests')
-        .select('id,title,description,test_type,test_url,thumbnail_url,sort_order')
-        .eq('published', true)
-        .order('sort_order', { ascending: true })
-        .order('created_at', { ascending: false })
-        .then(function (r) {
-          if (r.error) { msg('Could not load mock tests. Please try again later.'); return; }
-          if (!r.data.length) { msg('No mock tests published yet. Please check back soon.'); return; }
-          list.innerHTML = ''; r.data.forEach(function (t) { list.appendChild(card(t)); });
-        });
+    if (!client) {
+      fill('notesList', [], 'Notes could not be loaded (Supabase config not found).');
+      fill('papersList', [], 'Past papers could not be loaded (Supabase config not found).');
+      return;
     }
-
-    // HTML tests: fetched on demand, shown in an iframe WITHOUT allow-same-origin,
-    // so test code cannot read this site's cookies, storage, Supabase keys or admin session.
-    var viewer = document.getElementById('viewer'), frame = document.getElementById('viewerFrame');
-    function openHtml(t) {
-      document.getElementById('viewerTitle').textContent = t.title;
-      frame.srcdoc = '<p style="font-family:sans-serif;padding:20px">Loading…</p>';
-      viewer.classList.add('open'); document.body.style.overflow = 'hidden';
-      client.from('mock_tests').select('html_content').eq('id', t.id).eq('published', true).single()
-        .then(function (r) {
-          frame.srcdoc = (r.error || !r.data) ? '<p style="font-family:sans-serif;padding:20px">Could not load this test.</p>' : r.data.html_content;
-        });
-    }
-    function closeViewer() { viewer.classList.remove('open'); frame.srcdoc = ''; document.body.style.overflow = ''; }
-    document.getElementById('viewerClose').addEventListener('click', closeViewer);
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeViewer(); });
+    client.from('study_materials')
+      .select('id,title,category,description,body,file_url,created_at')
+      .eq('published', true)
+      .order('created_at', { ascending: false })
+      .then(function (r) {
+        if (r.error || !r.data) {
+          fill('notesList', [], 'Could not load notes. Please try again later.');
+          fill('papersList', [], 'Could not load past papers. Please try again later.');
+          return;
+        }
+        var notes = [], papers = [];
+        r.data.forEach(function (it) { (it.category === 'Past Papers' ? papers : notes).push(it); });
+        fill('notesList', notes, 'No notes added yet.');
+        fill('papersList', papers, 'No past papers added yet.');
+      });
   })();
   </script>
 </body>

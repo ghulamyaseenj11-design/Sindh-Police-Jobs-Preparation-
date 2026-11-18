@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="All departments of Sindh Jail Police preparation in one place.">
+  <title>Departments | Sindh Jail Police Preparation</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .mt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px}
+    .mt-card{background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+    @keyframes mtFadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+    .mt-card{animation:mtFadeUp .55s ease both;transition:transform .25s ease,box-shadow .25s ease}
+    .mt-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(11,35,65,.16)}
+    .mt-thumb{width:100%;height:150px;object-fit:cover;background:#eef1f5;display:flex;align-items:center;justify-content:center;font-size:48px}
+    .mt-body{padding:16px;display:flex;flex-direction:column;gap:8px;flex:1}
+    .mt-body h3{margin:0;font-size:1.1rem}
+    .mt-body p{margin:0;color:#555;font-size:.95rem;flex:1}
+    .mt-badge{align-self:flex-start;font-size:.75rem;font-weight:700;padding:3px 10px;border-radius:99px;background:#fff4d6;color:#7a5a00}
+    .mt-btn{cursor:pointer;border:0;font:inherit;font-weight:700;text-align:center;text-decoration:none;display:inline-block}
+    body{padding-bottom:64px}
+    #sjp-bottomnav{position:fixed;left:0;right:0;bottom:0;z-index:1000;display:flex;background:#fff;border-top:1px solid rgba(11,35,65,.12);box-shadow:0 -4px 16px rgba(11,35,65,.12);padding-bottom:env(safe-area-inset-bottom,0)}
+    #sjp-bottomnav a,#sjp-bottomnav .sjp-bn-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 9px;text-decoration:none;color:#5b6b82;font-size:11px;font-weight:600}
+    #sjp-bottomnav .sjp-bn-icon{font-size:22px;line-height:1}
+    #sjp-bottomnav a.sjp-bn-active{color:#C9A227}
+    #sjp-bottomnav .sjp-bn-item{opacity:.55}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">SJP</span>
+        <span><strong>Sindh Jail Police</strong><small>Preparation & Information</small></span>
+      </a>
+      <button class="menu-toggle" id="menuToggle" aria-label="Open navigation">☰</button>
+      <nav class="main-nav" id="mainNav">
+        <a href="index.html">Dashboard</a>
+        <a href="index.html#about">About</a>
+        <a href="index.html#preparation">Preparation</a>
+        <a href="index.html#materials">Notes</a>
+        <a href="mock-tests.html">Mock Tests</a>
+        <a href="papers.html">Papers</a>
+        <a href="index.html#announcements">Updates</a>
+        <a href="admin.html">Admin</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-content">
+        <span class="eyebrow">DEPARTMENTS</span>
+        <h1>Departments</h1>
+        <p>All departments in one place. Choose one to open its preparation page.</p>
+        <div class="hero-actions">
+          <a class="btn btn-outline" href="index.html">← Back to Dashboard</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-heading">
+          <span class="eyebrow">ALL DEPARTMENTS</span>
+          <h2>Choose a Department</h2>
+        </div>
+        <div id="deptList" class="mt-grid"><p class="muted">Loading departments...</p></div>
+        <p class="muted" style="margin-top:20px">Departments come from the published preparation sections. To add a new department, publish sections for it and it appears here by itself.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <a class="footer-brand" href="index.html">Sindh Jail Police</a>
+      <p>This is a preparation and information website. It is not the official website of Sindh Prisons and Corrections Service. Always check official notices on the official department and testing service websites</p>
+      <div class="footer-bottom">© <span id="year"></span> Sindh Jail Police. For educational and informational purposes.</div>
+    </div>
+  </footer>
+
+  <nav id="sjp-bottomnav">
+    <a href="index.html"><span class="sjp-bn-icon">🏠</span><span>Home</span></a>
+    <a href="mock-tests.html"><span class="sjp-bn-icon">📝</span><span>MCQs</span></a>
+    <a href="papers.html"><span class="sjp-bn-icon">📄</span><span>Papers</span></a>
+    <a href="departments.html" class="sjp-bn-active"><span class="sjp-bn-icon">🏛️</span><span>Depts</span></a>
+    <span class="sjp-bn-item"><span class="sjp-bn-icon">👤</span><span>Profile</span></span>
+  </nav>
+
+  <script>
+  (function () {
+    document.getElementById('year').textContent = new Date().getFullYear();
+    var toggle = document.getElementById('menuToggle'), nav = document.getElementById('mainNav');
+    toggle.addEventListener('click', function () {
+      ['open', 'active', 'show'].forEach(function (c) { nav.classList.toggle(c); });
+    });
+  })();
+  </script>
+
+
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script>
+  // Departments load live: one card per distinct category in category_sections.
+  // Publish sections for a new category and its card appears here by itself;
+  // its page opens through category.html?category=<slug> with no new file.
+  (function () {
+    var KNOWN = {
+      'prison-constable-male': { icon: '👮', title: 'Prison Constable (Male)', intro: 'Preparation resources for male candidates.', file: 'prison-constable-male.html' },
+      'lady-prison-constable': { icon: '👮‍♀️', title: 'Lady Prison Constable', intro: 'Preparation resources for female candidates.', file: 'lady-prison-constable.html' },
+      'eligibility': { icon: '📋', title: 'Eligibility', intro: 'Check official recruitment notices for current criteria.', file: 'eligibility.html' },
+      'physical-test': { icon: '🏃', title: 'Physical Test', intro: 'General preparation guidance for physical tests.', file: 'physical-test.html' },
+      'written-test': { icon: '✍️', title: 'Written Test', intro: 'Subject-wise study and MCQ practice.', file: 'written-test.html' },
+      'interview': { icon: '🎤', title: 'Interview', intro: 'Interview preparation and sample questions.', file: 'interview.html' }
+    };
+    function pretty(slug) { return String(slug || '').split('-').map(function (w) { return w ? w.charAt(0).toUpperCase() + w.slice(1) : w; }).join(' '); }
+    var ORDER = ['prison-constable-male', 'lady-prison-constable', 'eligibility', 'physical-test', 'written-test', 'interview'];
+    function getClient() { return window.supabaseClient || null; }
+    function el(tag, cls, text) {
+      var e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (text != null) e.textContent = text;
+      return e;
+    }
+    function card(slug, desc) {
+      var known = KNOWN[slug];
+      var c = el('article', 'mt-card');
+      c.appendChild(el('div', 'mt-thumb', known ? known.icon : '🏛️'));
+      var b = el('div', 'mt-body');
+      b.appendChild(el('span', 'mt-badge', 'Department'));
+      b.appendChild(el('h3', null, known ? known.title : pretty(slug)));
+      b.appendChild(el('p', null, desc || (known ? known.intro : 'Preparation resources.')));
+      var a = el('a', 'btn btn-gold mt-btn', 'Open');
+      a.href = known ? known.file : 'category.html?category=' + encodeURIComponent(slug);
+      b.appendChild(a);
+      c.appendChild(b);
+      return c;
+    }
+    var list = document.getElementById('deptList');
+    var client = getClient();
+    if (!client) { list.innerHTML = ''; list.appendChild(el('p', 'muted', 'Departments could not be loaded (Supabase config not found).')); return; }
+    client.from('category_sections')
+      .select('category,section_type,title,content,sort_order')
+      .eq('published', true)
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: true })
+      .then(function (r) {
+        if (r.error || !r.data || !r.data.length) {
+          list.innerHTML = '';
+          list.appendChild(el('p', 'muted', 'No departments published yet.'));
+          return;
+        }
+        var groups = {}, order = [];
+        r.data.forEach(function (s) {
+          if (!groups[s.category]) { groups[s.category] = []; order.push(s.category); }
+          groups[s.category].push(s);
+        });
+        order.sort(function (a, b) {
+          var ia = ORDER.indexOf(a), ib = ORDER.indexOf(b);
+          if (ia === -1 && ib === -1) return a < b ? -1 : 1;
+          if (ia === -1) return 1;
+          if (ib === -1) return -1;
+          return ia - ib;
+        });
+        list.innerHTML = '';
+        order.forEach(function (slug) {
+          var first = null;
+          groups[slug].forEach(function (s) { if (!first && s.section_type === 'details') first = s; });
+          var desc = first ? String(first.content || '').replace(/\s+/g, ' ').slice(0, 140) : null;
+          list.appendChild(card(slug, desc));
+        });
+      });
+  })();
+  </script>
+</body>
+</html>

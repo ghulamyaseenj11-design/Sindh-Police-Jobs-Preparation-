@@ -38,7 +38,7 @@ a.cp-link{display:inline-block;background:#0B2341;color:#fff!important;padding:9
       { icon: '🏠', label: 'Home', href: 'index.html', active: path === '/' || path === '' || path.endsWith('/') || path.endsWith('index.html') },
       { icon: '📝', label: 'MCQs', href: 'mock-tests.html', active: path.endsWith('mock-tests.html') },
       { icon: '📄', label: 'Papers', href: 'papers.html', active: path.endsWith('papers.html') },
-      { icon: '🏛️', label: 'Depts', href: 'index.html#preparation', active: /prison-constable|eligibility|physical-test|written-test|interview/.test(path) },
+      { icon: '🏛️', label: 'Depts', href: 'departments.html', active: path.endsWith('departments.html') || /prison-constable|eligibility|physical-test|written-test|interview/.test(path) },
       { icon: '👤', label: 'Profile', href: null, active: false }
     ];
     var nav = document.createElement('nav');
@@ -71,7 +71,9 @@ a.cp-link{display:inline-block;background:#0B2341;color:#fff!important;padding:9
   var TYPE_LABEL = { details: 'DETAILS', tip: '💡 TIP', trick: '⚡ TRICK' };
 
   var slug = document.body.getAttribute('data-category');
-  var cat = CATS[slug];
+  // New departments work without a code change: an unknown slug gets a
+  // title derived from its name and opens through category.html?category=slug.
+  var cat = CATS[slug] || (slug ? { icon: '🏛️', title: slug.split('-').map(function (w) { return w ? w.charAt(0).toUpperCase() + w.slice(1) : w; }).join(' '), intro: 'Preparation resources.', file: 'category.html?category=' + encodeURIComponent(slug) } : null);
   var main = document.getElementById('cpSections');
   var side = document.getElementById('cpToc');
   var filters = document.getElementById('cpFilters');
