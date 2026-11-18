@@ -311,6 +311,35 @@
     </div>
 
 
+    <!-- DEPARTMENT PHOTOS -->
+    <div class="admin-card" id="deptPhotosManager">
+      <h2>Department Photos</h2>
+      <p class="muted">Upload a photo for each department. It shows on the Departments page.</p>
+
+      <form id="deptPhotoForm">
+        <label for="deptPhotoCategory">Department</label>
+        <select id="deptPhotoCategory">
+          <option value="prison-constable-male">Prison Constable (Male)</option>
+          <option value="lady-prison-constable">Lady Prison Constable</option>
+          <option value="eligibility">Eligibility</option>
+          <option value="physical-test">Physical Test</option>
+          <option value="written-test">Written Test</option>
+          <option value="interview">Interview</option>
+        </select>
+
+        <label for="deptPhotoFile">Select Photo</label>
+        <input id="deptPhotoFile" type="file"
+          accept="image/jpeg,image/png,image/webp" required>
+
+        <button class="btn btn-gold" type="submit">Upload Photo</button>
+      </form>
+
+      <p id="deptPhotoMessage" class="form-message" aria-live="polite"></p>
+      <h3>Current Photo</h3>
+      <div id="deptPhotoPreview"><p class="muted">Select a department to see its current photo.</p></div>
+    </div>
+
+
     <!-- MOCK TESTS -->
     <div class="admin-card" id="mockTestsManager">
       <h2>Manage Mock Tests</h2>
@@ -449,6 +478,7 @@
 <script src="admin.js"></script>
 <script src="mock-tests-admin.js"></script>
 <script src="category-admin.js"></script>
+<script src="department-photos-admin.js"></script>
 
 </body>
           </html>

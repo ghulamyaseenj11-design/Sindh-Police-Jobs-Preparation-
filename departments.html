@@ -106,6 +106,8 @@
   // Departments load live: one card per distinct category in category_sections.
   // Publish sections for a new category and its card appears here by itself;
   // its page opens through category.html?category=<slug> with no new file.
+  // Card photo: the photo uploaded in the admin panel (Department Photos,
+  // saved as dept_thumb_<slug> in site_settings) wins over the built-in photo.
   (function () {
     var KNOWN = {
       'prison-constable-male': { icon: '👮', title: 'Prison Constable (Male)', intro: 'Preparation resources for male candidates.', file: 'prison-constable-male.html', thumb: 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/site-media/departments/male-constable.webp' },
@@ -124,14 +126,15 @@
       if (text != null) e.textContent = text;
       return e;
     }
-    function card(slug, desc) {
+    function card(slug, desc, thumbs) {
       var known = KNOWN[slug];
       var c = el('article', 'mt-card');
-      if (known && known.thumb) {
+      var img = (thumbs && thumbs[slug]) || (known && known.thumb);
+      if (img) {
         var im = document.createElement('img');
         im.className = 'mt-thumb';
-        im.src = known.thumb;
-        im.alt = known.title;
+        im.src = img;
+        im.alt = known ? known.title : pretty(slug);
         im.loading = 'lazy';
         c.appendChild(im);
       } else {
@@ -150,12 +153,22 @@
     var list = document.getElementById('deptList');
     var client = getClient();
     if (!client) { list.innerHTML = ''; list.appendChild(el('p', 'muted', 'Departments could not be loaded (Supabase config not found).')); return; }
-    client.from('category_sections')
+    var sectionsPromise = client.from('category_sections')
       .select('category,section_type,title,content,sort_order')
       .eq('published', true)
       .order('sort_order', { ascending: true })
-      .order('created_at', { ascending: true })
-      .then(function (r) {
+      .order('created_at', { ascending: true });
+    var thumbsPromise = client.from('site_settings')
+      .select('setting_key,setting_value')
+      .like('setting_key', 'dept_thumb_%');
+    Promise.all([sectionsPromise, thumbsPromise]).then(function (results) {
+      var r = results[0];
+      var thumbs = {};
+      var tr = results[1];
+      if (tr && tr.data) tr.data.forEach(function (s) {
+        if (s.setting_key && s.setting_value) thumbs[String(s.setting_key).replace('dept_thumb_', '')] = s.setting_value;
+      });
+      (function () {
         if (r.error || !r.data || !r.data.length) {
           list.innerHTML = '';
           list.appendChild(el('p', 'muted', 'No departments published yet.'));
@@ -178,9 +191,10 @@
           var first = null;
           groups[slug].forEach(function (s) { if (!first && s.section_type === 'details') first = s; });
           var desc = first ? String(first.content || '').replace(/\s+/g, ' ').slice(0, 140) : null;
-          list.appendChild(card(slug, desc));
+          list.appendChild(card(slug, desc, thumbs));
         });
-      });
+      })();
+    });
   })();
   </script>
 </body>
