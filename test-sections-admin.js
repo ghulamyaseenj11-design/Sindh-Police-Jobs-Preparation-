@@ -27,7 +27,7 @@ function parseSectionRow(row) {
   try {
     const v = JSON.parse(row.setting_value || "{}");
     if (!v.title) return null;
-    return { id: row.id, slug: String(row.setting_key).replace("mock_section_", ""), title: v.title, icon: v.icon || "", sort: Number(v.sort) || 0 };
+    return { id: row.id, slug: String(row.setting_key).replace("mock_section_", ""), title: v.title, icon: v.icon || "", photo: v.photo || "", sort: Number(v.sort) || 0 };
   } catch (e) { return null; }
 }
 
@@ -69,6 +69,8 @@ async function loadSections() {
 function resetSectionForm() {
   $("testSectionForm").reset();
   $("testSectionKey").value = "";
+  $("testSectionPhotoUrl").value = "";
+  $("testSectionPhotoPreview").replaceChildren();
   $("testSectionSlug").disabled = false;
   $("saveSectionButton").textContent = "Save Section";
 }
@@ -79,6 +81,17 @@ function editSection(s) {
   $("testSectionSlug").disabled = true;
   $("testSectionTitle").value = s.title;
   $("testSectionIcon").value = s.icon;
+  $("testSectionPhotoUrl").value = s.photo || "";
+  const prev = $("testSectionPhotoPreview");
+  prev.replaceChildren();
+  if (s.photo) {
+    const img = document.createElement("img");
+    img.src = s.photo;
+    img.alt = "";
+    img.style.maxWidth = "220px";
+    img.style.borderRadius = "10px";
+    prev.appendChild(img);
+  }
   $("testSectionOrder").value = s.sort;
   $("saveSectionButton").textContent = "Update Section";
   $("testSectionsManager").scrollIntoView({ behavior: "smooth" });
@@ -105,7 +118,13 @@ async function saveSection(event) {
   setButtonLoading("testSectionForm", true, "Saving...");
   showMessage("testSectionMessage", "Saving...", false);
   try {
-    const setting_value = JSON.stringify({ title, icon, sort });
+    let photo = value("testSectionPhotoUrl");
+    const file = $("testSectionPhoto").files[0];
+    if (file) {
+      if (!file.type.startsWith("image/")) throw new Error("Photo must be an image.");
+      photo = await uploadFile(file, "sections"); // existing helper in admin.js
+    }
+    const setting_value = JSON.stringify({ title, icon, sort, photo: photo || undefined });
     let error;
     if (key) {
       ({ error } = await db().from("site_settings").update({ setting_value }).eq("setting_key", key));

@@ -60,6 +60,7 @@
         <p>Attempt practice tests and check your preparation for the Sindh Jail Police recruitment test.</p>
         <div class="hero-actions">
           <a class="btn btn-outline" href="index.html">← Back to Dashboard</a>
+          <a class="btn btn-gold" href="papers.html">📄 Papers</a>
         </div>
       </div>
     </section>
@@ -148,12 +149,17 @@
       try {
         var v = JSON.parse(row.setting_value || '{}');
         if (!v.title) return null;
-        return { slug: String(row.setting_key).replace('mock_section_', ''), title: v.title, icon: v.icon || '📝', sort: Number(v.sort) || 0 };
+        return { slug: String(row.setting_key).replace('mock_section_', ''), title: v.title, icon: v.icon || '📝', photo: v.photo || null, sort: Number(v.sort) || 0 };
       } catch (e) { return null; }
     }
     function sectionCard(s, count) {
       var c = document.createElement('article'); c.className = 'mt-card';
-      var media = document.createElement('div'); media.className = 'mt-thumb'; media.textContent = s.icon;
+      var media;
+      if (s.photo) {
+        media = document.createElement('img'); media.className = 'mt-thumb'; media.src = s.photo; media.alt = ''; media.loading = 'lazy';
+      } else {
+        media = document.createElement('div'); media.className = 'mt-thumb'; media.textContent = s.icon;
+      }
       var b = document.createElement('div'); b.className = 'mt-body';
       var badge = document.createElement('span'); badge.className = 'mt-badge'; badge.textContent = 'Section';
       var h = document.createElement('h3'); h.textContent = s.title;

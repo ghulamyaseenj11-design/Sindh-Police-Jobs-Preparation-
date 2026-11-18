@@ -56,6 +56,7 @@
         <p>All departments in one place. Choose one to open its preparation page.</p>
         <div class="hero-actions">
           <a class="btn btn-outline" href="index.html">← Back to Dashboard</a>
+          <a class="btn btn-gold" href="papers.html">📄 Papers</a>
         </div>
       </div>
     </section>
@@ -68,16 +69,6 @@
         </div>
         <div id="deptList" class="mt-grid"><p class="muted">Loading departments...</p></div>
         <p class="muted" style="margin-top:20px">Departments come from the published preparation sections. To add a new department, publish sections for it and it appears here by itself.</p>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="container">
-        <div class="section-heading">
-          <span class="eyebrow">EXAM SECTIONS</span>
-          <h2>Test Sections</h2>
-        </div>
-        <div id="examList" class="mt-grid"><p class="muted">Loading test sections...</p></div>
       </div>
     </section>
   </main>
@@ -113,19 +104,26 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
   <script>
-  // Departments load live: one card per distinct category in category_sections.
+  // Departments load live: one card per distinct category in category_sections,
+  // plus the exam departments (Jail Police, Vaccinators, Islamabad Police,
+  // PST JST) whose details live in site_settings as dept_details_<slug>.
   // Publish sections for a new category and its card appears here by itself;
   // its page opens through category.html?category=<slug> with no new file.
   // Card photo: the photo uploaded in the admin panel (Department Photos,
-  // saved as dept_thumb_<slug> in site_settings) wins over the built-in photo.
+  // saved as dept_thumb_<slug> in site_settings) wins over the built-in photo;
+  // for exam departments the photo uploaded in Test Sections is used.
   (function () {
     var KNOWN = {
       'prison-constable-male': { icon: '👮', title: 'Prison Constable (Male)', intro: 'Preparation resources for male candidates.', file: 'prison-constable-male.html', thumb: 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/site-media/departments/male-constable.webp' },
       'lady-prison-constable': { icon: '👮‍♀️', title: 'Lady Prison Constable', intro: 'Preparation resources for female candidates.', file: 'lady-prison-constable.html', thumb: 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/site-media/departments/lady-constable.webp' },
-      'written-test': { icon: '✍️', title: 'Written Test', intro: 'Subject-wise study and MCQ practice.', file: 'written-test.html', thumb: 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/site-media/departments/written-test.webp' }
+      'written-test': { icon: '✍️', title: 'Written Test', intro: 'Subject-wise study and MCQ practice.', file: 'written-test.html', thumb: 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/site-media/departments/written-test.webp' },
+      'jail-police': { icon: '🚨', title: 'Jail Police', intro: 'Mock tests and preparation for Jail Police.', file: 'category.html?category=jail-police' },
+      'vaccinators': { icon: '💉', title: 'Vaccinators', intro: 'Mock tests and preparation for Vaccinators.', file: 'category.html?category=vaccinators' },
+      'islamabad-police': { icon: '🚓', title: 'Islamabad Police', intro: 'Mock tests and preparation for Islamabad Police.', file: 'category.html?category=islamabad-police' },
+      'pst-jst': { icon: '📚', title: 'PST JST', intro: 'Mock tests and preparation for PST JST.', file: 'category.html?category=pst-jst' }
     };
     function pretty(slug) { return String(slug || '').split('-').map(function (w) { return w ? w.charAt(0).toUpperCase() + w.slice(1) : w; }).join(' '); }
-    var ORDER = ['prison-constable-male', 'lady-prison-constable', 'written-test'];
+    var ORDER = ['prison-constable-male', 'lady-prison-constable', 'written-test', 'jail-police', 'vaccinators', 'islamabad-police', 'pst-jst'];
     function getClient() { return window.supabaseClient || null; }
     function el(tag, cls, text) {
       var e = document.createElement(tag);
@@ -168,24 +166,55 @@
     var thumbsPromise = client.from('site_settings')
       .select('setting_key,setting_value')
       .like('setting_key', 'dept_thumb_%');
-    Promise.all([sectionsPromise, thumbsPromise]).then(function (results) {
+    // New exam departments keep their details in site_settings (dept_details_<slug>)
+    // because the category_sections table only allows the 6 original department names.
+    var detailsPromise = client.from('site_settings')
+      .select('setting_key,setting_value')
+      .like('setting_key', 'dept_details_%');
+    // A photo uploaded for a test section (Test Sections in the admin panel)
+    // is the department photo for that exam section.
+    var sectionPhotosPromise = client.from('site_settings')
+      .select('setting_key,setting_value')
+      .like('setting_key', 'mock_section_%');
+    Promise.all([sectionsPromise, thumbsPromise, detailsPromise, sectionPhotosPromise]).then(function (results) {
       var r = results[0];
       var thumbs = {};
       var tr = results[1];
       if (tr && tr.data) tr.data.forEach(function (s) {
         if (s.setting_key && s.setting_value) thumbs[String(s.setting_key).replace('dept_thumb_', '')] = s.setting_value;
       });
+      var sr = results[3];
+      if (sr && sr.data) sr.data.forEach(function (s) {
+        try {
+          var v = JSON.parse(s.setting_value || '{}');
+          var slug = String(s.setting_key).replace('mock_section_', '');
+          if (v.photo && !thumbs[slug]) thumbs[slug] = v.photo;
+        } catch (e) {}
+      });
       (function () {
-        if (r.error || !r.data || !r.data.length) {
+        var groups = {}, order = [];
+        if (r.data) r.data.forEach(function (s) {
+          if (!groups[s.category]) { groups[s.category] = []; order.push(s.category); }
+          groups[s.category].push(s);
+        });
+        // Exam departments from their stored details (first details section = card text).
+        var dr = results[2];
+        var details = {};
+        if (dr && dr.data) dr.data.forEach(function (s) {
+          var slug = String(s.setting_key).replace('dept_details_', '');
+          try {
+            var secs = JSON.parse(s.setting_value || '[]');
+            var first = null;
+            secs.forEach(function (x) { if (!first && x.type === 'details') first = x; });
+            details[slug] = first ? String(first.content || '').replace(/\s+/g, ' ').slice(0, 140) : null;
+            if (order.indexOf(slug) === -1) order.push(slug);
+          } catch (e) {}
+        });
+        if (r.error || !order.length) {
           list.innerHTML = '';
           list.appendChild(el('p', 'muted', 'No departments published yet.'));
           return;
         }
-        var groups = {}, order = [];
-        r.data.forEach(function (s) {
-          if (!groups[s.category]) { groups[s.category] = []; order.push(s.category); }
-          groups[s.category].push(s);
-        });
         order.sort(function (a, b) {
           var ia = ORDER.indexOf(a), ib = ORDER.indexOf(b);
           if (ia === -1 && ib === -1) return a < b ? -1 : 1;
@@ -195,62 +224,15 @@
         });
         list.innerHTML = '';
         order.forEach(function (slug) {
-          var first = null;
-          groups[slug].forEach(function (s) { if (!first && s.section_type === 'details') first = s; });
-          var desc = first ? String(first.content || '').replace(/\s+/g, ' ').slice(0, 140) : null;
+          var desc = details[slug];
+          if (desc == null && groups[slug]) {
+            var first = null;
+            groups[slug].forEach(function (s) { if (!first && s.section_type === 'details') first = s; });
+            desc = first ? String(first.content || '').replace(/\s+/g, ' ').slice(0, 140) : null;
+          }
           list.appendChild(card(slug, desc, thumbs));
         });
       })();
-    });
-
-    // Exam sections (admin-controlled test sections) also appear here.
-    var examList = document.getElementById('examList');
-    Promise.all([
-      client.from('site_settings').select('setting_key,setting_value').like('setting_key', 'mock_section_%'),
-      client.from('site_settings').select('setting_key,setting_value').like('setting_key', 'mock_test_section_%'),
-      client.from('mock_tests').select('id').eq('published', true)
-    ]).then(function (rs) {
-      var sections = [];
-      (rs[0].data || []).forEach(function (row) {
-        try {
-          var v = JSON.parse(row.setting_value || '{}');
-          if (v.title) sections.push({ slug: String(row.setting_key).replace('mock_section_', ''), title: v.title, icon: v.icon || '📝', sort: Number(v.sort) || 0 });
-        } catch (e) {}
-      });
-      sections.sort(function (a, b) { return a.sort - b.sort || (a.title < b.title ? -1 : 1); });
-      var knownSlugs = {};
-      sections.forEach(function (s) { knownSlugs[s.slug] = true; });
-      var assign = {};
-      (rs[1].data || []).forEach(function (row) {
-        if (row.setting_key && row.setting_value) assign[String(row.setting_key).replace('mock_test_section_', '')] = row.setting_value;
-      });
-      var publishedIds = {};
-      (rs[2].data || []).forEach(function (t) { publishedIds[t.id] = true; });
-      var counts = {};
-      var firstSlug = sections.length ? sections[0].slug : null;
-      Object.keys(assign).forEach(function (tid) {
-        if (!publishedIds[tid]) return;
-        var s = (assign[tid] && knownSlugs[assign[tid]]) ? assign[tid] : firstSlug;
-        if (s) counts[s] = (counts[s] || 0) + 1;
-      });
-      var assignedTotal = Object.keys(counts).reduce(function (n, k) { return n + counts[k]; }, 0);
-      if (firstSlug) counts[firstSlug] = (counts[firstSlug] || 0) + (((rs[2].data || []).length) - assignedTotal);
-      examList.innerHTML = '';
-      if (!sections.length) { examList.appendChild(el('p', 'muted', 'No test sections yet.')); return; }
-      sections.forEach(function (s) {
-        var c = el('article', 'mt-card');
-        c.appendChild(el('div', 'mt-thumb', s.icon));
-        var b = el('div', 'mt-body');
-        b.appendChild(el('span', 'mt-badge', 'Test Section'));
-        b.appendChild(el('h3', null, s.title));
-        var n = counts[s.slug] || 0;
-        b.appendChild(el('p', null, n + (n === 1 ? ' test' : ' tests')));
-        var a = el('a', 'btn btn-gold mt-btn', 'Open');
-        a.href = 'mock-tests.html?section=' + encodeURIComponent(s.slug);
-        b.appendChild(a);
-        c.appendChild(b);
-        examList.appendChild(c);
-      });
     });
   })();
   </script>

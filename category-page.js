@@ -38,7 +38,7 @@ a.cp-link{display:inline-block;background:#0B2341;color:#fff!important;padding:9
       { icon: '🏠', label: 'Home', href: 'index.html', active: path === '/' || path === '' || path.endsWith('/') || path.endsWith('index.html') },
       { icon: '📝', label: 'MCQs', href: 'mock-tests.html', active: path.endsWith('mock-tests.html') },
       { icon: '📄', label: 'Papers', href: 'papers.html', active: path.endsWith('papers.html') },
-      { icon: '🏛️', label: 'Depts', href: 'departments.html', active: path.endsWith('departments.html') || /prison-constable|eligibility|physical-test|written-test|interview/.test(path) },
+      { icon: '🏛️', label: 'Depts', href: 'departments.html', active: path.endsWith('departments.html') || path.endsWith('category.html') || /prison-constable|eligibility|physical-test|written-test|interview/.test(path) },
       { icon: '👤', label: 'Profile', href: null, active: false }
     ];
     var nav = document.createElement('nav');
@@ -66,7 +66,11 @@ a.cp-link{display:inline-block;background:#0B2341;color:#fff!important;padding:9
     'eligibility':           { icon: '📋', title: 'Eligibility', intro: 'Check official recruitment notices for current criteria.', file: 'eligibility.html' },
     'physical-test':         { icon: '🏃', title: 'Physical Test', intro: 'General preparation guidance for physical tests.', file: 'physical-test.html' },
     'written-test':          { icon: '✍️', title: 'Written Test', intro: 'Subject-wise study and MCQ practice.', file: 'written-test.html' },
-    'interview':             { icon: '🎤', title: 'Interview', intro: 'Interview preparation and sample questions.', file: 'interview.html' }
+    'interview':             { icon: '🎤', title: 'Interview', intro: 'Interview preparation and sample questions.', file: 'interview.html' },
+    'jail-police':           { icon: '🚨', title: 'Jail Police', intro: 'Mock tests and preparation for Jail Police.', file: 'category.html?category=jail-police' },
+    'vaccinators':           { icon: '💉', title: 'Vaccinators', intro: 'Mock tests and preparation for Vaccinators.', file: 'category.html?category=vaccinators' },
+    'islamabad-police':      { icon: '🚓', title: 'Islamabad Police', intro: 'Mock tests and preparation for Islamabad Police.', file: 'category.html?category=islamabad-police' },
+    'pst-jst':               { icon: '📚', title: 'PST JST', intro: 'Mock tests and preparation for PST JST.', file: 'category.html?category=pst-jst' }
   };
   var TYPE_LABEL = { details: 'DETAILS', tip: '💡 TIP', trick: '⚡ TRICK' };
 
@@ -189,6 +193,28 @@ a.cp-link{display:inline-block;background:#0B2341;color:#fff!important;padding:9
   if (!cat) { main.textContent = 'Unknown page.'; return; }
   document.title = cat.title + ' | Sindh Jail Police Preparation';
 
+  // "Papers" and "Mock Tests" buttons on every department page hero.
+  (function () {
+    var hero = document.querySelector('.cp-hero .container');
+    if (!hero || hero.querySelector('.cp-hero-actions')) return;
+    var row = document.createElement('div');
+    row.className = 'cp-hero-actions';
+    row.style.marginTop = '14px';
+    row.style.display = 'flex';
+    row.style.gap = '10px';
+    row.style.flexWrap = 'wrap';
+    var papers = document.createElement('a');
+    papers.className = 'btn btn-gold';
+    papers.href = 'papers.html';
+    papers.textContent = '📄 Papers';
+    var tests = document.createElement('a');
+    tests.className = 'btn btn-outline';
+    tests.href = 'mock-tests.html';
+    tests.textContent = '📝 Mock Tests';
+    row.append(papers, tests);
+    hero.appendChild(row);
+  })();
+
   // Make the "ON THIS PAGE" box colourful: navy gradient card, gold heading.
   if (side && side.parentElement) {
     side.parentElement.classList.add('cp-toc-card');
@@ -211,6 +237,22 @@ a.cp-link{display:inline-block;background:#0B2341;color:#fff!important;padding:9
     .order('sort_order', { ascending: true }).order('created_at', { ascending: true })
     .then(function (r) {
       if (r.error) { main.innerHTML = ''; main.appendChild(el('p', 'muted', 'Could not load content. Please try again later.')); return; }
-      all = r.data || []; render();
+      if (r.data && r.data.length) { all = r.data; render(); return; }
+      // Exam departments keep their details in site_settings (dept_details_<slug>),
+      // because the category_sections table only allows the 6 original names.
+      client.from('site_settings')
+        .select('setting_value')
+        .eq('setting_key', 'dept_details_' + slug)
+        .maybeSingle()
+        .then(function (dr) {
+          if (dr.error || !dr.data) { all = []; render(); return; }
+          try {
+            var secs = JSON.parse(dr.data.setting_value || '[]');
+            all = secs.map(function (x) {
+              return { title: x.title, section_type: x.type, content: x.content, sort_order: x.sort };
+            });
+          } catch (e) { all = []; }
+          render();
+        });
     });
 })();
