@@ -884,9 +884,7 @@ alter table public.page_views enable row level security;
 drop policy if exists "Anyone can record a view" on public.page_views;
 create policy "Anyone can record a view" on public.page_views for insert with check (true);
 drop policy if exists "Admins can read views" on public.page_views;
-create policy "Admins can read views" on public.page_views for select using (
-  exists (select 1 from public.admin_users where user_id = auth.uid())
-);
+create policy "Admins can read views" on public.page_views for select using (public.is_admin());
 
 -- 2) List all login accounts (admin only)
 create or replace function public.admin_list_users()
