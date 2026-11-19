@@ -7,6 +7,21 @@
   <meta name="theme-color" content="#0b2341">
   <title>Admin Dashboard | Study with GYJ</title>
   <link rel="stylesheet" href="styles.css">
+
+  <style>
+    .setup-notice { background: #fff8e1; border: 1px solid #e6c65a; border-radius: 12px; padding: 14px; margin: 12px 0; }
+    .setup-notice textarea { width: 100%; font: 12px monospace; background: #fff; border: 1px solid #d8c98a; border-radius: 8px; padding: 10px; box-sizing: border-box; }
+    .users-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .users-table th, .users-table td { text-align: left; padding: 8px 6px; border-bottom: 1px solid #e5e8ec; vertical-align: top; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .badge-admin { background: #0B2341; color: #C9A227; }
+    .badge-banned { background: #b3261e; color: #fff; }
+    .badge-active { background: #e6f4ea; color: #137333; }
+    .views-list .views-row { display: flex; justify-content: space-between; gap: 10px; padding: 8px 2px; border-bottom: 1px solid #eef1f4; }
+    .views-list .views-row b { color: var(--navy); }
+    .user-actions .btn { margin: 2px 4px 2px 0; padding: 6px 10px; font-size: 13px; }
+    .user-name-input { width: 140px; padding: 6px 8px; border: 1px solid #c9d2dc; border-radius: 8px; }
+  </style>
 </head>
 <body class="admin-page">
 
@@ -36,6 +51,8 @@
         </div>
         <nav class="admin-side-nav">
           <button type="button" data-target="dashboardOverview" class="active"><span class="nav-ico">📊</span> Dashboard</button>
+          <button type="button" data-target="usersManager"><span class="nav-ico">👥</span> Users</button>
+          <button type="button" data-target="viewsManager"><span class="nav-ico">📈</span> Views</button>
           <button type="button" data-target="studyNotesManager"><span class="nav-ico">📒</span> Study Notes</button>
           <button type="button" data-target="blogsManager"><span class="nav-ico">📰</span> Blogs</button>
           <button type="button" data-target="pagesManager"><span class="nav-ico">📄</span> Pages</button>
@@ -75,6 +92,47 @@
           </div>
         </div>
 
+
+
+    <!-- LOGIN ACCOUNTS -->
+    <div class="admin-card admin-section" id="usersManager">
+      <div class="admin-section-head"><h2>Login Accounts</h2><button type="button" class="btn btn-gold" id="refreshUsersBtn">Refresh</button></div>
+      <p class="muted">Every account that signed up on the website. You can change a name, ban an account, or delete it. Your own admin account can never be changed or deleted here.</p>
+      <div id="usersSetupNotice" class="setup-notice hidden">
+        <p><b>One-time setup needed.</b> Paste this in Supabase Dashboard &rarr; SQL Editor &rarr; New query, then press Run. After that, reopen this page.</p>
+        <textarea readonly rows="8" id="usersSetupSql"></textarea>
+        <button type="button" class="btn btn-gold" id="copyUsersSqlBtn">Copy SQL</button>
+      </div>
+      <p id="usersMessage" class="form-message" aria-live="polite"></p>
+      <div id="usersList"></div>
+    </div>
+
+    <!-- VIEWS & INTEREST -->
+    <div class="admin-card admin-section" id="viewsManager">
+      <div class="admin-section-head"><h2>Views &amp; Interest</h2><button type="button" class="btn btn-gold" id="refreshViewsBtn">Refresh</button></div>
+      <p class="muted">Views are counted from the day the tracking went live. Older visits are not counted.</p>
+      <div id="viewsSetupNotice" class="setup-notice hidden">
+        <p><b>One-time setup needed.</b> Paste this in Supabase Dashboard &rarr; SQL Editor &rarr; New query, then press Run. After that, reopen this page.</p>
+        <textarea readonly rows="8" id="viewsSetupSql"></textarea>
+        <button type="button" class="btn btn-gold" id="copyViewsSqlBtn">Copy SQL</button>
+      </div>
+      <p id="viewsMessage" class="form-message" aria-live="polite"></p>
+      <div id="viewsContent" class="hidden">
+        <div class="dash-stats">
+          <div class="dash-stat"><b id="statViewsTotal">&ndash;</b><span>Total Views</span></div>
+          <div class="dash-stat"><b id="statViewsToday">&ndash;</b><span>Today</span></div>
+          <div class="dash-stat"><b id="statViewsWeek">&ndash;</b><span>Last 7 Days</span></div>
+        </div>
+        <h3>Most Viewed Pages</h3>
+        <div id="viewsTopPages" class="views-list"></div>
+        <h3>Most Interest by Section</h3>
+        <div id="viewsTopSections" class="views-list"></div>
+        <h3>Most Opened Tests &amp; Notes</h3>
+        <div id="viewsTopItems" class="views-list"></div>
+        <h3>Recent Views</h3>
+        <div id="viewsRecent" class="views-list"></div>
+      </div>
+    </div>
 
     <!-- STUDY NOTES -->
     <div class="admin-card admin-section" id="studyNotesManager">

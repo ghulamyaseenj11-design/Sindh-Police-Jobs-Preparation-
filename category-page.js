@@ -326,4 +326,9 @@ a.cp-link{display:inline-block;background:#0B2341;color:#fff!important;padding:9
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/Sindh-Police-Jobs-Preparation-/sw.js').catch(function () {});
   }
+  if (!document.querySelector('script[src="track-view.js"]')) {
+    var tv = document.createElement('script');
+    tv.src = 'track-view.js';
+    document.head.appendChild(tv);
+  }
 })();

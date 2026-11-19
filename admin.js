@@ -867,3 +867,264 @@ async function loadDashboardCounts() {
     } catch (e) { console.error(e); }
   }));
 }
+
+// ---- LOGIN ACCOUNTS + VIEWS ----
+const ADMIN_SETUP_SQL = `-- Study with GYJ: admin Users + Views setup. Run ONCE in Supabase Dashboard -> SQL Editor -> New query -> paste -> Run.
+-- After it runs, reopen the admin panel: Users and Views will work. No website code change needed.
+
+-- 1) Views table: one row per page view and per test / note open
+create table if not exists public.page_views (
+  id uuid primary key default gen_random_uuid(),
+  page text not null,
+  section text,
+  item text,
+  created_at timestamptz not null default now()
+);
+alter table public.page_views enable row level security;
+drop policy if exists "Anyone can record a view" on public.page_views;
+create policy "Anyone can record a view" on public.page_views for insert with check (true);
+drop policy if exists "Admins can read views" on public.page_views;
+create policy "Admins can read views" on public.page_views for select using (
+  exists (select 1 from public.admin_users where user_id = auth.uid())
+);
+
+-- 2) List all login accounts (admin only)
+create or replace function public.admin_list_users()
+returns table (user_id uuid, email text, name text, created_at timestamptz, last_sign_in_at timestamptz, confirmed_at timestamptz, banned boolean, is_admin boolean)
+language sql security definer set search_path = public, auth as $$
+  select u.id, u.email, coalesce(u.raw_user_meta_data ->> 'name', ''),
+    u.created_at, u.last_sign_in_at, u.email_confirmed_at,
+    (u.banned_until is not null and u.banned_until > now()),
+    exists (select 1 from public.admin_users a where a.user_id = u.id)
+  from auth.users u
+  where exists (select 1 from public.admin_users a where a.user_id = auth.uid())
+  order by u.created_at desc;
+$$;
+
+-- 3) Edit a login account: change name, ban or unban (admin only, never the admin account)
+create or replace function public.admin_update_user(p_user_id uuid, p_name text, p_ban boolean)
+returns boolean language plpgsql security definer set search_path = public, auth as $$
+declare v_admin boolean;
+begin
+  select exists (select 1 from public.admin_users a where a.user_id = auth.uid()) into v_admin;
+  if not v_admin then return false; end if;
+  if exists (select 1 from public.admin_users a where a.user_id = p_user_id) then return false; end if;
+  update auth.users set
+    raw_user_meta_data = jsonb_set(coalesce(raw_user_meta_data, '{}'::jsonb), '{name}', to_jsonb(p_name)),
+    banned_until = case when p_ban then now() + interval '100 years' else null end
+  where id = p_user_id;
+  return found;
+end;
+$$;
+
+-- 4) Delete a login account (admin only, never the admin account)
+create or replace function public.admin_delete_user(p_user_id uuid)
+returns boolean language plpgsql security definer set search_path = public, auth as $$
+declare v_admin boolean;
+begin
+  select exists (select 1 from public.admin_users a where a.user_id = auth.uid()) into v_admin;
+  if not v_admin then return false; end if;
+  if exists (select 1 from public.admin_users a where a.user_id = p_user_id) then return false; end if;
+  delete from auth.users where id = p_user_id;
+  return found;
+end;
+$$;
+`;
+
+function showSetupNotices() {
+  ["usersSetupNotice", "viewsSetupNotice"].forEach(id => {
+    const el = $(id);
+    if (el) el.classList.remove("hidden");
+  });
+  ["usersSetupSql", "viewsSetupSql"].forEach(id => {
+    const el = $(id);
+    if (el && !el.value) el.value = ADMIN_SETUP_SQL;
+  });
+}
+
+function copySetupSql(id) {
+  const el = $(id);
+  if (!el) return;
+  const msgId = id === "usersSetupSql" ? "usersMessage" : "viewsMessage";
+  const done = () => showMessage(msgId, "SQL copied.", false);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(el.value).then(done, () => { el.select(); document.execCommand("copy"); done(); });
+  } else {
+    el.select();
+    document.execCommand("copy");
+    done();
+  }
+}
+
+function fmtDate(iso) {
+  if (!iso) return "—";
+  try {
+    return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  } catch (e) { return "—"; }
+}
+
+function escHtml(v) {
+  return String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+async function loadUsers() {
+  const list = $("usersList");
+  if (list) list.innerHTML = "<p class='muted'>Loading…</p>";
+  try {
+    const { data, error } = await db().rpc("admin_list_users");
+    if (error) throw error;
+    if (!data || !data.length) {
+      if (list) list.innerHTML = "<p class='muted'>No accounts yet.</p>";
+      return;
+    }
+    renderUsers(data);
+  } catch (error) {
+    console.error(error);
+    showSetupNotices();
+    showMessage("usersMessage", "Accounts list needs the one-time setup below.", true);
+  }
+}
+
+function renderUsers(users) {
+  const list = $("usersList");
+  if (!list) return;
+  let html = "<table class='users-table'><thead><tr><th>Account</th><th>Name</th><th>Last sign-in</th><th>Status</th><th>Actions</th></tr></thead><tbody>";
+  users.forEach(u => {
+    const badge = u.is_admin
+      ? "<span class='badge badge-admin'>Admin</span>"
+      : u.banned
+        ? "<span class='badge badge-banned'>Banned</span>"
+        : "<span class='badge badge-active'>Active</span>";
+    const actions = u.is_admin
+      ? "<span class='muted'>—</span>"
+      : "<span class='user-actions'>" +
+        "<button type='button' class='btn btn-outline-dark' data-action='edit' data-id='" + u.user_id + "'>Edit</button>" +
+        "<button type='button' class='btn btn-outline-dark' data-action='ban' data-id='" + u.user_id + "' data-name='" + escHtml(u.name) + "' data-banned='" + (u.banned ? "1" : "0") + "'>" + (u.banned ? "Unban" : "Ban") + "</button>" +
+        "<button type='button' class='btn btn-outline-dark' data-action='delete' data-id='" + u.user_id + "' data-email='" + escHtml(u.email) + "'>Delete</button>" +
+        "</span>";
+    html += "<tr data-id='" + u.user_id + "' data-banned='" + (u.banned ? "1" : "0") + "'><td><strong>" + escHtml(u.email) + "</strong><br><small class='muted'>Joined " + fmtDate(u.created_at) + "</small></td>" +
+      "<td class='user-name-cell'>" + escHtml(u.name || "—") + "</td>" +
+      "<td>" + fmtDate(u.last_sign_in_at) + "</td><td>" + badge + "</td><td>" + actions + "</td></tr>";
+  });
+  html += "</tbody></table>";
+  list.innerHTML = html;
+}
+
+async function onUsersListClick(e) {
+  const btn = e.target.closest("button[data-action]");
+  if (!btn) return;
+  const row = btn.closest("tr");
+  if (!row) return;
+  const id = btn.getAttribute("data-id");
+  const action = btn.getAttribute("data-action");
+  if (action === "edit") {
+    const cell = row.querySelector(".user-name-cell");
+    const current = cell.textContent === "—" ? "" : cell.textContent;
+    cell.innerHTML = "<input class='user-name-input' value='" + escHtml(current) + "'>";
+    const actCell = row.querySelector(".user-actions");
+    actCell.innerHTML = "<button type='button' class='btn btn-gold' data-action='save-name' data-id='" + id + "'>Save</button>" +
+      "<button type='button' class='btn btn-outline-dark' data-action='cancel-edit'>Cancel</button>";
+    const input = cell.querySelector("input");
+    if (input) input.focus();
+    return;
+  }
+  if (action === "cancel-edit") { loadUsers(); return; }
+  if (action === "save-name") {
+    const input = row.querySelector(".user-name-input");
+    const name = input ? input.value.trim() : "";
+    const banned = row.getAttribute("data-banned") === "1";
+    const { error } = await db().rpc("admin_update_user", { p_user_id: id, p_name: name, p_ban: banned });
+    if (error) { showMessage("usersMessage", error.message, true); return; }
+    showMessage("usersMessage", "Name updated.", false);
+    loadUsers();
+    return;
+  }
+  if (action === "ban") {
+    const name = btn.getAttribute("data-name") || "";
+    const banned = btn.getAttribute("data-banned") === "1";
+    const { error } = await db().rpc("admin_update_user", { p_user_id: id, p_name: name, p_ban: !banned });
+    if (error) { showMessage("usersMessage", error.message, true); return; }
+    showMessage("usersMessage", banned ? "Account unbanned." : "Account banned.", false);
+    loadUsers();
+    return;
+  }
+  if (action === "delete") {
+    const email = btn.getAttribute("data-email") || "this account";
+    if (!confirm("Delete " + email + "? This cannot be undone.")) return;
+    const { data, error } = await db().rpc("admin_delete_user", { p_user_id: id });
+    if (error) { showMessage("usersMessage", error.message, true); return; }
+    if (data !== true) { showMessage("usersMessage", "Could not delete this account.", true); return; }
+    showMessage("usersMessage", "Account deleted.", false);
+    loadUsers();
+    return;
+  }
+}
+
+const PAGE_LABELS = {
+  index: "Homepage", "mock-tests": "Mock Tests", papers: "Papers", videos: "Videos",
+  departments: "Departments", category: "Department Page", auth: "Login Page",
+  profile: "Profile", about: "About", "privacy-policy": "Privacy Policy", terms: "Terms"
+};
+
+function countBy(rows, keyFn) {
+  const map = {};
+  rows.forEach(r => {
+    const k = keyFn(r);
+    if (!k) return;
+    map[k] = (map[k] || 0) + 1;
+  });
+  return Object.entries(map).sort((a, b) => b[1] - a[1]);
+}
+
+function renderTop(el, entries, emptyText) {
+  if (!el) return;
+  if (!entries.length) { el.innerHTML = "<p class='muted'>" + emptyText + "</p>"; return; }
+  el.innerHTML = entries.slice(0, 8).map(([label, n]) =>
+    "<div class='views-row'><span>" + escHtml(label) + "</span><b>" + n + "</b></div>"
+  ).join("");
+}
+
+async function loadViews() {
+  const content = $("viewsContent");
+  try {
+    const { data, error } = await db().from("page_views")
+      .select("page,section,item,created_at")
+      .order("created_at", { ascending: false })
+      .limit(5000);
+    if (error) throw error;
+    const rows = data || [];
+    const now = Date.now();
+    const day = 86400000;
+    $("statViewsTotal").textContent = rows.length + (rows.length >= 5000 ? "+" : "");
+    $("statViewsToday").textContent = rows.filter(r => now - new Date(r.created_at).getTime() < day).length;
+    $("statViewsWeek").textContent = rows.filter(r => now - new Date(r.created_at).getTime() < 7 * day).length;
+    renderTop($("viewsTopPages"), countBy(rows, r => PAGE_LABELS[r.page] || r.page), "No page views yet.");
+    renderTop($("viewsTopSections"), countBy(rows, r => r.section), "No section views yet.");
+    renderTop($("viewsTopItems"), countBy(rows, r => r.item), "No tests or notes opened yet.");
+    const recent = $("viewsRecent");
+    if (recent) {
+      recent.innerHTML = rows.slice(0, 15).map(r =>
+        "<div class='views-row'><span>" + escHtml(PAGE_LABELS[r.page] || r.page) +
+        (r.section ? " · " + escHtml(r.section) : "") +
+        (r.item ? " · " + escHtml(r.item) : "") +
+        "</span><span class='muted'>" + fmtDate(r.created_at) + "</span></div>"
+      ).join("") || "<p class='muted'>No views yet.</p>";
+    }
+    if (content) content.classList.remove("hidden");
+  } catch (error) {
+    console.error(error);
+    showSetupNotices();
+    showMessage("viewsMessage", "Views need the one-time setup below.", true);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelector('[data-target="usersManager"]')?.addEventListener("click", loadUsers);
+  document.querySelector('[data-target="viewsManager"]')?.addEventListener("click", loadViews);
+  $("refreshUsersBtn")?.addEventListener("click", loadUsers);
+  $("refreshViewsBtn")?.addEventListener("click", loadViews);
+  $("copyUsersSqlBtn")?.addEventListener("click", () => copySetupSql("usersSetupSql"));
+  $("copyViewsSqlBtn")?.addEventListener("click", () => copySetupSql("viewsSetupSql"));
+  const ul = $("usersList");
+  if (ul) ul.addEventListener("click", onUsersListClick);
+});
