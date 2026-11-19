@@ -31,8 +31,14 @@
     .badge-post{background:#f1f3f4;color:#444;font-weight:600;font-size:.8rem;padding:4px 12px;border-radius:99px}
     .btn-paper-main{background:#137333;color:#fff;border-radius:999px;padding:12px 16px;font-weight:700;border:0;cursor:pointer;font:inherit;text-align:center}
     .btn-paper-main:hover{background:#0e5c28}
-    .paper-actions{display:flex;gap:8px}
-    .paper-actions .mt-btn{flex:1;padding:10px 8px;border-radius:999px;font-size:.9rem}
+    .paper-actions{display:flex;gap:8px;animation:paperActionsIn .5s ease .2s both}
+    @keyframes paperActionsIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    .paper-actions .mt-btn{flex:1;padding:10px 8px;border-radius:999px;font-size:.9rem;transition:transform .15s ease,box-shadow .15s ease,background .15s ease}
+    .paper-actions .mt-btn:active{transform:scale(.96)}
+    .btn-timed{background:#0B2341;color:#fff}
+    .btn-timed:hover{background:#123a6e}
+    .btn-notes{background:#C9A227;color:#0B2341}
+    .btn-notes:hover{background:#e0bb49}
     .sec-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:18px 0 26px}
     .sec-action{display:block;background:#fff;border:1.5px solid rgba(11,35,65,.15);border-radius:14px;padding:16px;text-decoration:none;color:#0B2341}
     .sec-action:hover{border-color:#C9A227}
@@ -346,10 +352,31 @@
         });
     }
 
+    // Open / Download: newest MCQ notes PDF of this section first (the ones being made now);
+    // if the section has no MCQ PDF yet, fall back to the solved-paper PDF.
+    function openLatestNotesPdf(t, section, btn) {
+      var orig = btn ? btn.textContent : '';
+      if (btn) { btn.textContent = 'Opening…'; btn.disabled = true; }
+      function done() { if (btn) { btn.textContent = orig; btn.disabled = false; } }
+      var client = getClient();
+      if (!client) { done(); downloadPaper(t, btn); return; }
+      var cats = [section.title + ' MCQs', section.title];
+      client.from('study_materials').select('file_url').eq('published', true).in('category', cats).not('file_url', 'is', null).order('created_at', { ascending: false }).limit(1)
+        .then(function (r) {
+          if (!r.error && r.data && r.data.length && r.data[0].file_url) {
+            done();
+            window.open(r.data[0].file_url, '_blank', 'noopener');
+          } else {
+            done();
+            downloadPaper(t, btn);
+          }
+        });
+    }
+
     // Paper viewer, same as mock-tests.html: test HTML in a sandboxed iframe.
     var viewer = document.getElementById('viewer'), frame = document.getElementById('viewerFrame');
     function withTimer(html) {
-      var timerJs = '<scr' + 'ipt>(function(){var s=20*60;var d=document.createElement("div");d.style.cssText="position:fixed;top:10px;right:10px;z-index:9999;background:#0B2341;color:#fff;font:700 16px sans-serif;padding:8px 14px;border-radius:999px;box-shadow:0 2px 10px rgba(0,0,0,.3)";document.body.appendChild(d);function tick(){var m=Math.floor(s/60),ss=s%60;d.textContent="⏱ "+m+":"+(ss<10?"0":"")+ss;if(s<=0){d.textContent="⏱ Time up";d.style.background="#b3261e";clearInterval(iv);return;}s--;}tick();var iv=setInterval(tick,1000);})();</scr' + 'ipt>';
+      var timerJs = '<scr' + 'ipt>(function(){var s=4*60;var d=document.createElement("div");d.style.cssText="position:fixed;top:10px;right:10px;z-index:9999;background:#0B2341;color:#fff;font:700 16px sans-serif;padding:8px 14px;border-radius:999px;box-shadow:0 2px 10px rgba(0,0,0,.3)";document.body.appendChild(d);function tick(){var m=Math.floor(s/60),ss=s%60;d.textContent="⏱ "+m+":"+(ss<10?"0":"")+ss;if(s<=0){d.textContent="⏱ Time up";d.style.background="#b3261e";clearInterval(iv);return;}s--;}tick();var iv=setInterval(tick,1000);})();</scr' + 'ipt>';
       if (html.indexOf('</body>') !== -1) return html.replace('</body>', timerJs + '</body>');
       return html + timerJs;
     }
@@ -419,7 +446,7 @@
           });
           row.appendChild(readBtn);
         }
-        var dlBtn = el('button', 'btn btn-outline mt-btn', 'Download PDF');
+        var dlBtn = el('button', 'btn-notes mt-btn', 'Download PDF');
         dlBtn.type = 'button';
         dlBtn.addEventListener('click', function () { downloadNote(item, bodyText); });
         row.appendChild(dlBtn);
@@ -485,12 +512,12 @@
       openBtn.addEventListener('click', function () { openHtml(t, false); });
       b.appendChild(openBtn);
       var row = el('div', 'paper-actions');
-      var timedBtn = el('button', 'btn btn-outline mt-btn', '⏱ Timed test →');
+      var timedBtn = el('button', 'btn-timed mt-btn', '⏱ Timed test →');
       timedBtn.type = 'button';
       timedBtn.addEventListener('click', function () { openHtml(t, true); });
-      var dlBtn = el('button', 'btn btn-outline mt-btn', '📄 Open / Download');
+      var dlBtn = el('button', 'btn-notes mt-btn', '📄 Open / Download');
       dlBtn.type = 'button';
-      dlBtn.addEventListener('click', function () { downloadPaper(t, dlBtn); });
+      dlBtn.addEventListener('click', function () { openLatestNotesPdf(t, section, dlBtn); });
       row.appendChild(timedBtn); row.appendChild(dlBtn);
       b.appendChild(row);
       c.appendChild(b);
