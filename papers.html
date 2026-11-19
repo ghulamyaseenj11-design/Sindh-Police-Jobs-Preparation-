@@ -373,11 +373,13 @@
       'Jail Police': 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/mock-test-thumbnails/section-jail-police.webp',
       'Vaccinators': 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/mock-test-thumbnails/section-vaccinators.webp',
       'Islamabad Police': 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/mock-test-thumbnails/section-islamabad-police.webp',
-      'PST JST': 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/mock-test-thumbnails/section-pst-jst.webp'
+      'PST JST': 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/mock-test-thumbnails/section-pst-jst.webp',
+      'Pakistan Airport authority': 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/site-media/sections/1795074086896-1000045313.png'
     };
     var PAPER_THUMB_DEFAULT = 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/mock-test-thumbnails/cbt-exam-hall.webp';
     function thumbFor(item) {
-      if (item.category && PAPER_THUMBS[item.category]) return PAPER_THUMBS[item.category];
+      var cat = String(item.category || '').replace(/ MCQs$/, '');
+      if (cat && PAPER_THUMBS[cat]) return PAPER_THUMBS[cat];
       var t = String(item.title || '').toLowerCase();
       if (t.indexOf('prison') !== -1 || t.indexOf('jail') !== -1 || t.indexOf('interview') !== -1) return PAPER_THUMBS['Jail Police'];
       return PAPER_THUMB_DEFAULT;
@@ -552,6 +554,7 @@
         function notesFor(slug, title) {
           return (results[3].data || []).filter(function (it) {
             if (it.category === title) return true;
+            if (it.category === title + ' MCQs') return true;
             if (slug === 'jail-police' && /prison|jail|interview/i.test(it.title || '')) return true;
             return false;
           });
@@ -600,6 +603,7 @@
           var others = (results[3].data || []).filter(function (it) {
             if (it.category === 'Past Papers') return true;
             if (titles[it.category]) return false;
+            if (/ MCQs$/.test(it.category || '')) return false;
             if (/prison|jail|interview/i.test(it.title || '')) return false;
             return true;
           });

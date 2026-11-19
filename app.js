@@ -251,7 +251,7 @@ async function loadStudyMaterials() {
 
   showLoading(list, "Loading study materials...");
 
-  const { data, error } = await window.supabaseClient
+  let { data, error } = await window.supabaseClient
     .from("study_materials")
     .select("id, title, category, description, body, file_url, created_at")
     .eq("published", true)
@@ -263,6 +263,9 @@ async function loadStudyMaterials() {
     showLoading(list, "Study materials could not be loaded.");
     return;
   }
+
+  // Section-only MCQ PDFs (category ends with " MCQs") stay out of the homepage.
+  data = (data || []).filter(function (x) { return !/ MCQs$/.test(x.category || ''); });
 
   if (!data || data.length === 0) {
     showLoading(list, "New study materials will be published here soon.");
