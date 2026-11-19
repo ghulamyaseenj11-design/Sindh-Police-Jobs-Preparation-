@@ -22,6 +22,27 @@
     .note-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
     .note-actions .mt-btn{flex:1;padding:9px 10px;border-radius:8px;font-size:.9rem}
     .mt-btn{cursor:pointer;border:0;font:inherit;font-weight:700;text-align:center;text-decoration:none;display:inline-block}
+    .paper-card{background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 2px 8px rgba(0,0,0,.06);animation:mtFadeUp .55s ease both}
+    .paper-body{padding:18px;display:flex;flex-direction:column;gap:10px;flex:1}
+    .paper-body h3{margin:0;font-size:1.25rem;line-height:1.35}
+    .paper-body p{margin:0;color:#555;font-size:.95rem}
+    .paper-badges{display:flex;gap:8px;flex-wrap:wrap}
+    .badge-solved{background:#e6f4ea;color:#137333;font-weight:700;font-size:.8rem;padding:4px 12px;border-radius:99px}
+    .badge-post{background:#f1f3f4;color:#444;font-weight:600;font-size:.8rem;padding:4px 12px;border-radius:99px}
+    .btn-paper-main{background:#137333;color:#fff;border-radius:999px;padding:12px 16px;font-weight:700;border:0;cursor:pointer;font:inherit;text-align:center}
+    .btn-paper-main:hover{background:#0e5c28}
+    .paper-actions{display:flex;gap:8px}
+    .paper-actions .mt-btn{flex:1;padding:10px 8px;border-radius:999px;font-size:.9rem}
+    .sec-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:18px 0 26px}
+    .sec-action{display:block;background:#fff;border:1.5px solid rgba(11,35,65,.15);border-radius:14px;padding:16px;text-decoration:none;color:#0B2341}
+    .sec-action:hover{border-color:#C9A227}
+    .sec-action strong{display:block;font-size:1.05rem;margin-bottom:4px}
+    .sec-action span{color:#555;font-size:.9rem}
+    .mt-viewer{position:fixed;inset:0;z-index:9999;background:#fff;display:none;flex-direction:column}
+    .mt-viewer.open{display:flex}
+    .mt-viewer-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;background:#10243f;color:#fff}
+    .mt-viewer-bar strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .mt-viewer iframe{flex:1;width:100%;border:0;background:#fff}
     body{padding-bottom:84px}
     #sjp-bottomnav{position:static;width:100%;max-width:560px;display:flex;background:#fff;border:1px solid rgba(11,35,65,.12);border-radius:20px;box-shadow:0 8px 24px rgba(11,35,65,.18);pointer-events:auto;padding-bottom:env(safe-area-inset-bottom,0)}
     #sjp-bottomnav a,#sjp-bottomnav .sjp-bn-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 9px;text-decoration:none;color:#5b6b82;font-size:11px;font-weight:600}
@@ -55,26 +76,54 @@
       <div class="container hero-content">
         <span class="eyebrow">PRACTICE • PAPERS • IMPROVE</span>
         <h1>Practice Papers</h1>
-        <p>Notes and past papers for Sindh Jail Police recruitment preparation. New items are added from the admin panel — no file upload needed.</p>
+        <p>Choose a section below. Open its information, take its mock tests, or download its MCQ notes. New papers and notes appear here by themselves when added from the admin panel.</p>
         <div class="hero-actions">
           <a class="btn btn-outline" href="index.html">← Back to Dashboard</a>
+          <a class="btn btn-gold" href="mock-tests.html">📝 All Mock Tests</a>
+          <a class="btn btn-outline" href="videos.html">🎬 Videos</a>
         </div>
       </div>
     </section>
 
     <section class="section">
       <div class="container">
-        <div class="section-heading">
-          <span class="eyebrow">NOTES</span>
-          <h2>Notes</h2>
+        <div id="sectionsWrap">
+          <div class="section-heading">
+            <span class="eyebrow">SECTIONS</span>
+            <h2>Choose a Section</h2>
+            <p>Tap a section to see its model papers and download notes.</p>
+          </div>
+          <div id="sectionsList" class="mt-grid"><p class="muted">Loading sections...</p></div>
+          <div id="otherWrap" style="display:none;margin-top:32px">
+            <div class="section-heading">
+              <span class="eyebrow">OTHER</span>
+              <h2>Other Papers &amp; Notes</h2>
+            </div>
+            <div id="otherList" class="mt-grid"></div>
+          </div>
         </div>
-        <div id="notesList" class="mt-grid"><p class="muted">Loading notes...</p></div>
-        <div class="section-heading" style="margin-top:32px">
-          <span class="eyebrow">PAST PAPERS</span>
-          <h2>Past Papers</h2>
+
+        <div id="sectionWrap" style="display:none">
+          <div id="backRow" style="margin-bottom:16px"><a class="btn btn-outline-dark" href="papers.html">← All Sections</a></div>
+          <div class="section-heading">
+            <span class="eyebrow" id="secEyebrow">PAPERS</span>
+            <h2 id="secHeading">Section</h2>
+            <p id="secSub" class="muted"></p>
+          </div>
+          <div class="sec-actions" id="secActions"></div>
+          <div class="section-heading">
+            <span class="eyebrow">MODEL PAPERS</span>
+            <h2>Model Papers</h2>
+            <p class="muted">Solved papers with answers. Practice material only — not the official paper.</p>
+          </div>
+          <div id="papersList" class="mt-grid"><p class="muted">Loading model papers...</p></div>
+          <div class="section-heading" style="margin-top:32px" id="download-notes">
+            <span class="eyebrow">DOWNLOAD NOTES</span>
+            <h2>Download Notes</h2>
+            <p class="muted">MCQ notes PDFs with answers. Open or download them.</p>
+          </div>
+          <div id="notesList" class="mt-grid"><p class="muted">Loading notes...</p></div>
         </div>
-        <div id="papersList" class="mt-grid"><p class="muted">Loading past papers...</p></div>
-        <p class="muted" style="margin-top:20px">Notes and past papers are added from the admin panel (Study Notes). For a past paper, set its category to “Past Papers” and attach the PDF.</p>
       </div>
     </section>
 
@@ -97,6 +146,14 @@
       </div>
     </section>
   </main>
+
+  <div class="mt-viewer" id="viewer" role="dialog" aria-modal="true" aria-label="Model paper">
+    <div class="mt-viewer-bar">
+      <strong id="viewerTitle"></strong>
+      <button class="btn btn-gold mt-btn" id="viewerClose" type="button">✕ Close</button>
+    </div>
+    <iframe id="viewerFrame" title="Model paper" sandbox="allow-scripts allow-forms allow-popups"></iframe>
+  </div>
 
   <footer class="site-footer">
     <div class="container">
@@ -141,15 +198,15 @@
   })();
   </script>
 
-
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
   <script src="auth-ui.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
-  // Notes + Past Papers load live from study_materials. Add one in the admin
-  // panel (Study Notes: title, category, PDF) and it appears here by itself.
+  // Papers are section-first. Sections come from site_settings mock_section_*.
+  // A model paper is a mock_tests row whose title contains "Model Paper".
+  // A download note is a study_materials row whose category is the section name.
+  // Add one of either from the admin panel and it appears here by itself.
   (function () {
     function getClient() { return window.supabaseClient || null; }
     function el(tag, cls, text) {
@@ -159,23 +216,24 @@
       return e;
     }
     function safeUrl(u) { return /^https?:\/\//i.test(u || '') ? u : null; }
+
+    function pdfHeaderFooter(doc, W, M, page) {
+      doc.setFillColor(11, 35, 65); doc.rect(0, 0, W, 26, 'F');
+      doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(13);
+      doc.text('Study with GYJ', M, 11);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+      doc.text('Practice paper — not the official paper', M, 18);
+      doc.setFillColor(201, 162, 39); doc.rect(0, 26, W, 1.2, 'F');
+      doc.setTextColor(120, 120, 120); doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+      doc.text('Study with GYJ  •  Page ' + page, M, 287);
+    }
+
     function downloadNote(item, bodyText) {
       var jsPDF = window.jspdf && window.jspdf.jsPDF;
       if (jsPDF) {
         var doc = new jsPDF({ unit: 'mm', format: 'a4' });
         var W = 210, M = 18, page = 1, y = 0;
-        function header() {
-          doc.setFillColor(11, 35, 65); doc.rect(0, 0, W, 26, 'F');
-          doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(13);
-          doc.text('Study with GYJ', M, 11);
-          doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
-          doc.text('Study with GYJ', M, 18);
-          doc.setFillColor(201, 162, 39); doc.rect(0, 26, W, 1.2, 'F');
-        }
-        function footer() {
-          doc.setTextColor(120, 120, 120); doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
-          doc.text('Study with GYJ  •  Page ' + page, M, 287);
-        }
+        function header() { pdfHeaderFooter(doc, W, M, page); }
         function bodyFont() {
           doc.setTextColor(40, 40, 40); doc.setFont('helvetica', 'normal'); doc.setFontSize(11);
         }
@@ -188,10 +246,11 @@
         doc.text(String(item.category || 'Notes'), M, y); y += 10;
         bodyFont();
         doc.splitTextToSize(bodyText, W - 2 * M).forEach(function (ln) {
-          if (y > 275) { footer(); doc.addPage(); page++; header(); y = 38; bodyFont(); }
+          if (y > 275) { doc.addPage(); page++; header(); y = 38; bodyFont(); }
           doc.text(ln, M, y); y += 6;
         });
-        footer();
+        doc.setTextColor(120, 120, 120); doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+        doc.text('Study with GYJ  •  Page ' + page, M, 287);
         doc.save((item.title || 'note').replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '.pdf');
         return;
       }
@@ -204,6 +263,109 @@
       document.body.appendChild(link); link.click(); link.remove();
       setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
     }
+
+    // Read the QUESTIONS array out of a stored test HTML page by bracket matching,
+    // so nested option arrays do not cut the match short.
+    function parseQuestions(html) {
+      var k = html.indexOf('var QUESTIONS');
+      if (k === -1) return null;
+      var s = html.indexOf('[', k);
+      if (s === -1) return null;
+      var depth = 0, inStr = false, esc = false, quote = '';
+      for (var i = s; i < html.length; i++) {
+        var ch = html[i];
+        if (inStr) {
+          if (esc) esc = false;
+          else if (ch === '\\') esc = true;
+          else if (ch === quote) inStr = false;
+          continue;
+        }
+        if (ch === '"' || ch === "'") { inStr = true; quote = ch; continue; }
+        if (ch === '[') depth++;
+        else if (ch === ']') {
+          depth--;
+          if (depth === 0) { try { return JSON.parse(html.slice(s, i + 1)); } catch (e) { return null; } }
+        }
+      }
+      return null;
+    }
+
+    // Download one model paper as a solved PDF: questions, options, correct answer.
+    function downloadPaper(t, btn) {
+      var orig = btn ? btn.textContent : '';
+      if (btn) { btn.textContent = 'Preparing…'; btn.disabled = true; }
+      function done() { if (btn) { btn.textContent = orig; btn.disabled = false; } }
+      var client = getClient();
+      if (!client) { done(); openHtml(t, false); return; }
+      client.from('mock_tests').select('html_content').eq('id', t.id).eq('published', true).single()
+        .then(function (r) {
+          var qs = (r.error || !r.data) ? null : parseQuestions(r.data.html_content || '');
+          var jsPDF = window.jspdf && window.jspdf.jsPDF;
+          if (!qs || !qs.length || !jsPDF) { done(); openHtml(t, false); return; }
+          var doc = new jsPDF({ unit: 'mm', format: 'a4' });
+          var W = 210, M = 18, page = 1, y = 0;
+          function header() { pdfHeaderFooter(doc, W, M, page); }
+          function bodyFont() {
+            doc.setTextColor(40, 40, 40); doc.setFont('helvetica', 'normal'); doc.setFontSize(11);
+          }
+          function needRoom(h) {
+            if (y + h > 275) { doc.addPage(); page++; header(); y = 38; bodyFont(); }
+          }
+          header();
+          y = 38;
+          doc.setTextColor(11, 35, 65); doc.setFont('helvetica', 'bold'); doc.setFontSize(16);
+          doc.splitTextToSize(t.title || 'Model Paper', W - 2 * M).forEach(function (ln) { doc.text(ln, M, y); y += 7; });
+          y += 2;
+          doc.setTextColor(122, 90, 0); doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
+          doc.text('Solved paper with answers  •  ' + qs.length + ' questions', M, y); y += 10;
+          qs.forEach(function (q, i) {
+            bodyFont();
+            doc.splitTextToSize('Q' + (i + 1) + '. ' + (q.q || ''), W - 2 * M).forEach(function (ln) {
+              needRoom(6); doc.text(ln, M, y); y += 6;
+            });
+            (q.options || []).forEach(function (op, oi) {
+              doc.splitTextToSize(String.fromCharCode(65 + oi) + '. ' + op, W - 2 * M).forEach(function (ln) {
+                needRoom(6); doc.text(ln, M + 4, y); y += 6;
+              });
+            });
+            var ans = (q.options || [])[q.answer];
+            doc.setTextColor(19, 115, 51); doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
+            var ansLine = 'Answer: ' + String.fromCharCode(65 + (q.answer || 0)) + (ans ? ' — ' + ans : '') + (q.why ? ' (' + q.why + ')' : '');
+            doc.splitTextToSize(ansLine, W - 2 * M).forEach(function (ln) {
+              needRoom(6); doc.text(ln, M, y); y += 6;
+            });
+            y += 4;
+          });
+          doc.setTextColor(120, 120, 120); doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+          doc.text('Study with GYJ  •  Page ' + page, M, 287);
+          doc.save((t.title || 'paper').replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '-solved.pdf');
+          done();
+        });
+    }
+
+    // Paper viewer, same as mock-tests.html: test HTML in a sandboxed iframe.
+    var viewer = document.getElementById('viewer'), frame = document.getElementById('viewerFrame');
+    function withTimer(html) {
+      var timerJs = '<scr' + 'ipt>(function(){var s=20*60;var d=document.createElement("div");d.style.cssText="position:fixed;top:10px;right:10px;z-index:9999;background:#0B2341;color:#fff;font:700 16px sans-serif;padding:8px 14px;border-radius:999px;box-shadow:0 2px 10px rgba(0,0,0,.3)";document.body.appendChild(d);function tick(){var m=Math.floor(s/60),ss=s%60;d.textContent="⏱ "+m+":"+(ss<10?"0":"")+ss;if(s<=0){d.textContent="⏱ Time up";d.style.background="#b3261e";clearInterval(iv);return;}s--;}tick();var iv=setInterval(tick,1000);})();</scr' + 'ipt>';
+      if (html.indexOf('</body>') !== -1) return html.replace('</body>', timerJs + '</body>');
+      return html + timerJs;
+    }
+    function openHtml(t, timed) {
+      document.getElementById('viewerTitle').textContent = t.title;
+      frame.srcdoc = '<p style="font-family:sans-serif;padding:20px">Loading…</p>';
+      viewer.classList.add('open'); document.body.style.overflow = 'hidden';
+      var client = getClient();
+      if (!client) { frame.srcdoc = '<p style="font-family:sans-serif;padding:20px">Could not load this paper.</p>'; return; }
+      client.from('mock_tests').select('html_content').eq('id', t.id).eq('published', true).single()
+        .then(function (r) {
+          var html = (r.error || !r.data) ? '<p style="font-family:sans-serif;padding:20px">Could not load this paper.</p>' : r.data.html_content;
+          frame.srcdoc = timed ? withTimer(html) : html;
+        });
+    }
+    function closeViewer() { viewer.classList.remove('open'); frame.srcdoc = ''; document.body.style.overflow = ''; }
+    document.getElementById('viewerClose').addEventListener('click', closeViewer);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeViewer(); });
+
     var PAPER_THUMBS = {
       'Jail Police': 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/mock-test-thumbnails/section-jail-police.webp',
       'Vaccinators': 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/mock-test-thumbnails/section-vaccinators.webp',
@@ -217,7 +379,7 @@
       if (t.indexOf('prison') !== -1 || t.indexOf('jail') !== -1 || t.indexOf('interview') !== -1) return PAPER_THUMBS['Jail Police'];
       return PAPER_THUMB_DEFAULT;
     }
-    function card(item) {
+    function noteCard(item) {
       var c = el('article', 'mt-card');
       var media = document.createElement('img');
       media.className = 'mt-thumb';
@@ -261,33 +423,191 @@
       c.appendChild(media); c.appendChild(b);
       return c;
     }
-    function fill(listId, items, emptyText) {
-      var list = document.getElementById(listId);
+
+    function parseSection(row) {
+      try {
+        var v = JSON.parse(row.setting_value || '{}');
+        if (!v.title) return null;
+        return { slug: String(row.setting_key).replace('mock_section_', ''), title: v.title, icon: v.icon || '📝', photo: v.photo || null, sort: Number(v.sort) || 0 };
+      } catch (e) { return null; }
+    }
+    function sectionCard(s, counts) {
+      var c = el('article', 'mt-card');
+      var media;
+      if (s.photo) {
+        media = document.createElement('img'); media.className = 'mt-thumb'; media.src = s.photo; media.alt = ''; media.loading = 'lazy';
+      } else {
+        media = el('div', 'mt-thumb', s.icon);
+      }
+      var b = el('div', 'mt-body');
+      b.appendChild(el('span', 'mt-badge', 'Section'));
+      b.appendChild(el('h3', null, s.title));
+      if (s.slug === 'jail-police') b.appendChild(el('p', null, 'Sindh Police — Jail / Prison Police'));
+      b.appendChild(el('p', null, counts.papers + ' model papers • ' + counts.notes + ' notes • ' + counts.tests + ' tests'));
+      var a = el('a', 'btn btn-gold mt-btn', 'Open Section →');
+      a.href = 'papers.html?section=' + s.slug;
+      var prep = el('a', 'btn btn-outline-dark mt-btn', '📖 Preparation');
+      prep.href = 'category.html?category=' + s.slug;
+      b.appendChild(a); b.appendChild(prep);
+      c.appendChild(media); c.appendChild(b);
+      return c;
+    }
+
+    function paperMeta(t, sectionTitle) {
+      var title = t.title || '';
+      var ym = title.match(/\b(19|20)\d{2}\b/);
+      var year = ym ? ym[0] : '';
+      var posts = ['Head Constable', 'Sub-Inspector', 'Lower Division Clerk', 'Upper Division Clerk', 'Lady Constable', 'Constable', 'ASI', 'Assistant'];
+      var post = '';
+      for (var i = 0; i < posts.length; i++) {
+        if (title.indexOf(posts[i]) !== -1) { post = posts[i]; break; }
+      }
+      var display = (year ? year + ' ' : '') + sectionTitle + (post ? ' ' + post : '') + ' — Model Paper';
+      return { year: year, post: post || sectionTitle, display: display };
+    }
+    function paperCard(t, section) {
+      var meta = paperMeta(t, section.title);
+      var c = el('article', 'paper-card');
+      var b = el('div', 'paper-body');
+      b.appendChild(el('h3', null, meta.display));
+      var badges = el('div', 'paper-badges');
+      badges.appendChild(el('span', 'badge-solved', 'SOLVED'));
+      badges.appendChild(el('span', 'badge-post', meta.post));
+      b.appendChild(badges);
+      b.appendChild(el('p', null, 'Solved paper with answers. Practice material only — not the official paper.'));
+      var openBtn = el('button', 'btn-paper-main', 'Open solved paper with answers →');
+      openBtn.type = 'button';
+      openBtn.addEventListener('click', function () { openHtml(t, false); });
+      b.appendChild(openBtn);
+      var row = el('div', 'paper-actions');
+      var timedBtn = el('button', 'btn btn-outline mt-btn', '⏱ Timed test →');
+      timedBtn.type = 'button';
+      timedBtn.addEventListener('click', function () { openHtml(t, true); });
+      var dlBtn = el('button', 'btn btn-outline mt-btn', '📄 Open / Download');
+      dlBtn.type = 'button';
+      dlBtn.addEventListener('click', function () { downloadPaper(t, dlBtn); });
+      row.appendChild(timedBtn); row.appendChild(dlBtn);
+      b.appendChild(row);
+      c.appendChild(b);
+      return c;
+    }
+
+    function fillEl(list, nodes, emptyText) {
       list.innerHTML = '';
-      if (!items.length) { list.appendChild(el('p', 'muted', emptyText)); return; }
-      items.forEach(function (it) { list.appendChild(card(it)); });
+      if (!nodes.length) { list.appendChild(el('p', 'muted', emptyText)); return; }
+      nodes.forEach(function (n) { list.appendChild(n); });
     }
+
     var client = getClient();
-    if (!client) {
-      fill('notesList', [], 'Notes could not be loaded (Supabase config not found).');
-      fill('papersList', [], 'Past papers could not be loaded (Supabase config not found).');
-      return;
-    }
-    client.from('study_materials')
-      .select('id,title,category,description,body,file_url,created_at')
-      .eq('published', true)
-      .order('created_at', { ascending: false })
-      .then(function (r) {
+    function loadAll() {
+      var sectionsList = document.getElementById('sectionsList');
+      var papersList = document.getElementById('papersList');
+      var notesList = document.getElementById('notesList');
+      if (!client) {
+        sectionsList.innerHTML = '';
+        sectionsList.appendChild(el('p', 'muted', 'Sections could not be loaded (Supabase config not found).'));
+        return;
+      }
+      Promise.all([
+        client.from('mock_tests')
+          .select('id,title,description,test_type,test_url,thumbnail_url,sort_order,created_at')
+          .eq('published', true)
+          .order('sort_order', { ascending: true })
+          .order('created_at', { ascending: false }),
+        client.from('site_settings')
+          .select('setting_key,setting_value')
+          .like('setting_key', 'mock_section_%'),
+        client.from('site_settings')
+          .select('setting_key,setting_value')
+          .like('setting_key', 'mock_test_section_%'),
+        client.from('study_materials')
+          .select('id,title,category,description,body,file_url,created_at')
+          .eq('published', true)
+          .order('created_at', { ascending: false })
+      ]).then(function (results) {
+        var r = results[0];
         if (r.error || !r.data) {
-          fill('notesList', [], 'Could not load notes. Please try again later.');
-          fill('papersList', [], 'Could not load past papers. Please try again later.');
+          sectionsList.innerHTML = '';
+          sectionsList.appendChild(el('p', 'muted', 'Could not load papers. Please try again later.'));
           return;
         }
-        var notes = [], papers = [];
-        r.data.forEach(function (it) { (it.category === 'Past Papers' ? papers : notes).push(it); });
-        fill('notesList', notes, 'No notes added yet.');
-        fill('papersList', papers, 'No past papers added yet.');
+        var sections = [];
+        (results[1].data || []).forEach(function (row) { var s = parseSection(row); if (s) sections.push(s); });
+        sections.sort(function (a, b) { return a.sort - b.sort || (a.title < b.title ? -1 : 1); });
+        var knownSlugs = {};
+        sections.forEach(function (s) { knownSlugs[s.slug] = true; });
+        var assign = {};
+        (results[2].data || []).forEach(function (row) {
+          if (row.setting_key && row.setting_value) assign[String(row.setting_key).replace('mock_test_section_', '')] = row.setting_value;
+        });
+        var firstSlug = sections.length ? sections[0].slug : null;
+        function sectionOf(t) {
+          var s = assign[t.id];
+          return (s && knownSlugs[s]) ? s : firstSlug;
+        }
+        function isModelPaper(t) { return /model paper/i.test(t.title || ''); }
+        function notesFor(slug, title) {
+          return (results[3].data || []).filter(function (it) {
+            if (it.category === title) return true;
+            if (slug === 'jail-police' && /prison|jail|interview/i.test(it.title || '')) return true;
+            return false;
+          });
+        }
+        var params = new URLSearchParams(window.location.search);
+        var slug = params.get('section');
+        var section = null;
+        sections.forEach(function (s) { if (s.slug === slug) section = s; });
+        if (section) {
+          document.getElementById('sectionsWrap').style.display = 'none';
+          document.getElementById('sectionWrap').style.display = '';
+          document.getElementById('secEyebrow').textContent = 'PAPERS • ' + section.title.toUpperCase();
+          document.getElementById('secHeading').textContent = section.slug === 'jail-police' ? 'Jail Police (Sindh Police)' : section.title;
+          document.getElementById('secSub').textContent = section.slug === 'jail-police'
+            ? 'Sindh Police — Jail / Prison Police. Model papers and MCQ notes for this section.'
+            : 'Model papers and MCQ notes for ' + section.title + '.';
+          var actions = document.getElementById('secActions');
+          actions.innerHTML = '';
+          var a1 = document.createElement('a'); a1.className = 'sec-action'; a1.href = 'category.html?category=' + section.slug;
+          a1.innerHTML = '<strong>📖 Open Information</strong><span>Syllabus, test pattern aur tayari ki poori maloomat</span>';
+          var a2 = document.createElement('a'); a2.className = 'sec-action'; a2.href = 'mock-tests.html?section=' + section.slug;
+          a2.innerHTML = '<strong>📝 Mock Tests</strong><span>Is section ke saare practice tests</span>';
+          var a3 = document.createElement('a'); a3.className = 'sec-action'; a3.href = '#download-notes';
+          a3.innerHTML = '<strong>⬇ Download Notes</strong><span>MCQ notes PDF — open aur download karo</span>';
+          actions.appendChild(a1); actions.appendChild(a2); actions.appendChild(a3);
+          var papers = r.data.filter(function (t) { return isModelPaper(t) && sectionOf(t) === section.slug; });
+          fillEl(papersList, papers.map(function (t) { return paperCard(t, section); }), 'No model papers in this section yet. Add one from the admin panel (Mock Tests) and it will appear here.');
+          var notes = notesFor(section.slug, section.title);
+          fillEl(notesList, notes.map(function (it) { return noteCard(it); }), 'No notes in this section yet. Add one from the admin panel (Study Notes) and it will appear here.');
+        } else {
+          var counts = {};
+          r.data.forEach(function (t) {
+            var s = sectionOf(t); if (!s) return;
+            counts[s] = counts[s] || { tests: 0, papers: 0 };
+            counts[s].tests++;
+            if (isModelPaper(t)) counts[s].papers++;
+          });
+          var cards = sections.map(function (s) {
+            var c = counts[s.slug] || { tests: 0, papers: 0 };
+            var n = notesFor(s.slug, s.title).length;
+            return sectionCard(s, { tests: c.tests, papers: c.papers, notes: n });
+          });
+          fillEl(sectionsList, cards, 'No sections yet.');
+          var titles = {};
+          sections.forEach(function (s) { titles[s.title] = true; });
+          var others = (results[3].data || []).filter(function (it) {
+            if (it.category === 'Past Papers') return true;
+            if (titles[it.category]) return false;
+            if (/prison|jail|interview/i.test(it.title || '')) return false;
+            return true;
+          });
+          if (others.length) {
+            document.getElementById('otherWrap').style.display = '';
+            fillEl(document.getElementById('otherList'), others.map(function (it) { return noteCard(it); }), '');
+          }
+        }
       });
+    }
+    loadAll();
   })();
   </script>
 </body>
