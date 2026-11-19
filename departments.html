@@ -26,6 +26,9 @@
     #sjp-bottomnav a.sjp-bn-active{color:#C9A227}
     #sjp-bottomnav .sjp-bn-item{opacity:.55}
   </style>
+  <link rel="manifest" href="/Sindh-Police-Jobs-Preparation-/manifest.json">
+  <meta name="theme-color" content="#0B2341">
+  <link rel="apple-touch-icon" href="https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/site-media/pwa/apple-touch-icon.png">
 </head>
 <body>
   <header class="site-header">
@@ -261,5 +264,8 @@
     });
   })();
   </script>
+<script>
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/Sindh-Police-Jobs-Preparation-/sw.js').catch(function(){}); }
+</script>
 </body>
 </html>

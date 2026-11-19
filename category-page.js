@@ -307,3 +307,23 @@ a.cp-link{display:inline-block;background:#0B2341;color:#fff!important;padding:9
         });
     });
 })();
+
+// PWA install files for the thin department shell pages (no <head> edits of their own).
+(function () {
+  function addLink(rel, href) {
+    if (document.querySelector('link[rel="' + rel + '"]')) return;
+    var l = document.createElement('link');
+    l.rel = rel; l.href = href;
+    document.head.appendChild(l);
+  }
+  addLink('manifest', '/Sindh-Police-Jobs-Preparation-/manifest.json');
+  addLink('apple-touch-icon', 'https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/site-media/pwa/apple-touch-icon.png');
+  if (!document.querySelector('meta[name="theme-color"]')) {
+    var m = document.createElement('meta');
+    m.name = 'theme-color'; m.content = '#0B2341';
+    document.head.appendChild(m);
+  }
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/Sindh-Police-Jobs-Preparation-/sw.js').catch(function () {});
+  }
+})();

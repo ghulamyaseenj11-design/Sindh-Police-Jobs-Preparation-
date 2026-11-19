@@ -7,6 +7,9 @@
   <title>Department | Study with GYJ</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="category.css">
+  <link rel="manifest" href="/Sindh-Police-Jobs-Preparation-/manifest.json">
+  <meta name="theme-color" content="#0B2341">
+  <link rel="apple-touch-icon" href="https://lfzogzwjrqqoojyqrnrk.supabase.co/storage/v1/object/public/site-media/pwa/apple-touch-icon.png">
 </head>
 <body data-category="">
   <header class="site-header">
@@ -102,5 +105,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
   <script src="category-page.js"></script>
+<script>
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/Sindh-Police-Jobs-Preparation-/sw.js').catch(function(){}); }
+</script>
 </body>
 </html>
