@@ -125,6 +125,15 @@
   function goLogin() { showForm('loginForm', 'Login', 'Log in to your Study with GYJ account.'); }
   function goSignup() { showForm('signupForm', 'Sign Up', 'Create your free Study with GYJ account.'); }
 
+  // Admin check: after login the admin account opens the admin panel automatically.
+  async function isAdmin() {
+    try {
+      var r = await client.rpc('is_admin');
+      var d = r.data;
+      return d === true || (d && d.is_admin === true) || (Array.isArray(d) && d.some(function (row) { return row && row.is_admin === true; }));
+    } catch (e) { return false; }
+  }
+
   document.getElementById('tabLogin').addEventListener('click', goLogin);
   document.getElementById('tabSignup').addEventListener('click', goSignup);
   document.getElementById('forgotLink').addEventListener('click', function (e) {
@@ -146,6 +155,7 @@
         password: document.getElementById('loginPassword').value
       });
       if (r.error) throw r.error;
+      if (await isAdmin()) { window.location.href = 'sjp-admin-x7k9.html'; return; }
       window.location.href = 'profile.html';
     } catch (err) {
       var text = (err && err.message) || 'Login failed. Please try again.';
@@ -231,7 +241,10 @@
       }
       return;
     }
-    if (session) window.location.href = 'profile.html';
+    if (session) {
+      if (await isAdmin()) { window.location.href = 'sjp-admin-x7k9.html'; return; }
+      window.location.href = 'profile.html';
+    }
   })();
 })();
 </script>

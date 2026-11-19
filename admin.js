@@ -131,10 +131,13 @@ async function checkExistingSession() {
 
     if (data.session) {
       await verifyAdmin();
+    } else {
+      // No login on this page any more: the panel opens only after logging in.
+      window.location.replace("auth.html");
     }
   } catch (error) {
     console.error(error);
-    showLogin();
+    window.location.replace("auth.html");
   }
 }
 
@@ -177,7 +180,7 @@ async function verifyAdmin() {
     await db().auth.getSession();
 
   if (sessionError || !sessionData.session) {
-    showLogin();
+    window.location.replace("auth.html");
     return false;
   }
 
@@ -185,8 +188,7 @@ async function verifyAdmin() {
 
   if (error) {
     await db().auth.signOut();
-    showLogin();
-    showMessage("loginMessage", error.message, true);
+    window.location.replace("auth.html");
     return false;
   }
 
@@ -197,8 +199,7 @@ async function verifyAdmin() {
 
   if (!allowed) {
     await db().auth.signOut();
-    showLogin();
-    showMessage("loginMessage", "Access denied. This account is not an admin.", true);
+    window.location.replace("auth.html");
     return false;
   }
 
