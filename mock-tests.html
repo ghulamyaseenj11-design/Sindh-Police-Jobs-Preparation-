@@ -257,6 +257,12 @@
     // HTML tests: fetched on demand, shown in an iframe WITHOUT allow-same-origin,
     // so test code cannot read this site's cookies, storage, Supabase keys or admin session.
     var viewer = document.getElementById('viewer'), frame = document.getElementById('viewerFrame');
+    // Every test opens with a 4-minute countdown, same as the timed test on Papers.
+    function withTimer(html) {
+      var timerJs = '<scr' + 'ipt>(function(){var s=4*60;var d=document.createElement("div");d.style.cssText="position:fixed;top:10px;right:10px;z-index:9999;background:#0B2341;color:#fff;font:700 16px sans-serif;padding:8px 14px;border-radius:999px;box-shadow:0 2px 10px rgba(0,0,0,.3)";document.body.appendChild(d);function tick(){var m=Math.floor(s/60),ss=s%60;d.textContent="⏱ "+m+":"+(ss<10?"0":"")+ss;if(s<=0){d.textContent="⏱ Time up";d.style.background="#b3261e";clearInterval(iv);return;}s--;}tick();var iv=setInterval(tick,1000);})();</scr' + 'ipt>';
+      if (html.indexOf('</body>') !== -1) return html.replace('</body>', timerJs + '</body>');
+      return html + timerJs;
+    }
     function openHtml(t) {
       if (window.SJPView) { try { SJPView.track(section ? section.title : '', t.title); } catch (e) {} }
       document.getElementById('viewerTitle').textContent = t.title;
@@ -264,7 +270,7 @@
       viewer.classList.add('open'); document.body.style.overflow = 'hidden';
       client.from('mock_tests').select('html_content').eq('id', t.id).eq('published', true).single()
         .then(function (r) {
-          frame.srcdoc = (r.error || !r.data) ? '<p style="font-family:sans-serif;padding:20px">Could not load this test.</p>' : r.data.html_content;
+          frame.srcdoc = (r.error || !r.data) ? '<p style="font-family:sans-serif;padding:20px">Could not load this test.</p>' : withTimer(r.data.html_content);
         });
     }
     function closeViewer() { viewer.classList.remove('open'); frame.srcdoc = ''; document.body.style.overflow = ''; }

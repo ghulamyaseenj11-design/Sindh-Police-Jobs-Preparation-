@@ -159,6 +159,7 @@
   <div class="mt-viewer" id="viewer" role="dialog" aria-modal="true" aria-label="Model paper">
     <div class="mt-viewer-bar">
       <strong id="viewerTitle"></strong>
+      <span id="viewerTimer" style="display:none;background:#C9A227;color:#0B2341;font-weight:700;padding:6px 12px;border-radius:999px;white-space:nowrap">⏱ 4:00</span>
       <button class="btn btn-gold mt-btn" id="viewerClose" type="button">✕ Close</button>
     </div>
     <iframe id="viewerFrame" title="Model paper" sandbox="allow-scripts allow-forms allow-popups"></iframe>
@@ -384,6 +385,7 @@
     function openHtml(t, timed) {
       if (window.SJPView) { try { SJPView.track(new URLSearchParams(location.search).get('section') || '', t.title); } catch (e) {} }
       document.getElementById('viewerTitle').textContent = t.title;
+      frame.removeAttribute('src');
       frame.srcdoc = '<p style="font-family:sans-serif;padding:20px">Loading…</p>';
       viewer.classList.add('open'); document.body.style.overflow = 'hidden';
       var client = getClient();
@@ -394,7 +396,28 @@
           frame.srcdoc = timed ? withTimer(html) : html;
         });
     }
-    function closeViewer() { viewer.classList.remove('open'); frame.srcdoc = ''; document.body.style.overflow = ''; }
+    var viewerTimerEl = document.getElementById('viewerTimer'), viewerTimerIv = null;
+    function stopViewerTimer() { if (viewerTimerIv) { clearInterval(viewerTimerIv); viewerTimerIv = null; } if (viewerTimerEl) { viewerTimerEl.style.display = 'none'; } }
+    function startViewerTimer() {
+      stopViewerTimer();
+      var s = 4 * 60;
+      if (!viewerTimerEl) return;
+      viewerTimerEl.style.display = '';
+      viewerTimerEl.style.background = '#C9A227'; viewerTimerEl.style.color = '#0B2341';
+      function tick() { var m = Math.floor(s / 60), ss = s % 60; viewerTimerEl.textContent = '⏱ ' + m + ':' + (ss < 10 ? '0' : '') + ss; if (s <= 0) { viewerTimerEl.textContent = '⏱ Time up'; viewerTimerEl.style.background = '#b3261e'; viewerTimerEl.style.color = '#fff'; clearInterval(viewerTimerIv); viewerTimerIv = null; return; } s--; }
+      tick(); viewerTimerIv = setInterval(tick, 1000);
+    }
+    // Open a notes PDF in the viewer (the solved paper itself); timed shows the 4-minute countdown in the viewer bar.
+    function openPdf(item, timed) {
+      if (window.SJPView) { try { SJPView.track(item.category || '', item.title); } catch (e) {} }
+      if (window.SJPAuth) { try { SJPAuth.recordRecentNote({ id: item.id, title: item.title, category: item.category }); } catch (e) {} }
+      document.getElementById('viewerTitle').textContent = item.title;
+      frame.removeAttribute('srcdoc');
+      frame.src = item.file_url;
+      viewer.classList.add('open'); document.body.style.overflow = 'hidden';
+      if (timed) startViewerTimer(); else stopViewerTimer();
+    }
+    function closeViewer() { stopViewerTimer(); viewer.classList.remove('open'); frame.removeAttribute('srcdoc'); frame.removeAttribute('src'); document.body.style.overflow = ''; }
     document.getElementById('viewerClose').addEventListener('click', closeViewer);
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeViewer(); });
 
@@ -414,6 +437,32 @@
       return PAPER_THUMB_DEFAULT;
     }
     function noteCard(item) {
+      // PDF notes use the same card format as model papers (photo): SOLVED badge + 3 buttons.
+      if (safeUrl(item.file_url)) {
+        var pc = el('article', 'paper-card');
+        var pb = el('div', 'paper-body');
+        pb.appendChild(el('h3', null, item.title || 'Untitled'));
+        var pbd = el('div', 'paper-badges');
+        pbd.appendChild(el('span', 'badge-solved', 'SOLVED'));
+        pbd.appendChild(el('span', 'badge-post', String(item.category || 'Notes').replace(/ MCQs$/, '')));
+        pb.appendChild(pbd);
+        pb.appendChild(el('p', null, item.description || 'Solved MCQs with answers. Practice material only — not the official paper.'));
+        var pOpen = el('button', 'btn-paper-main', 'Open solved paper with answers →');
+        pOpen.type = 'button';
+        pOpen.addEventListener('click', function () { openPdf(item, false); });
+        pb.appendChild(pOpen);
+        var pRow = el('div', 'paper-actions');
+        var pTimed = el('button', 'btn-timed mt-btn', '⏱ Timed test →');
+        pTimed.type = 'button';
+        pTimed.addEventListener('click', function () { openPdf(item, true); });
+        var pDl = el('a', 'btn-notes mt-btn', '📄 Open / Download');
+        pDl.href = item.file_url; pDl.target = '_blank'; pDl.rel = 'noopener noreferrer';
+        pDl.addEventListener('click', function () { if (window.SJPView) { try { SJPView.track(item.category || '', item.title); } catch (e) {} } if (window.SJPAuth) { try { SJPAuth.recordRecentNote({ id: item.id, title: item.title, category: item.category }); } catch (e) {} } });
+        pRow.appendChild(pTimed); pRow.appendChild(pDl);
+        pb.appendChild(pRow);
+        pc.appendChild(pb);
+        return pc;
+      }
       var c = el('article', 'mt-card');
       var media = document.createElement('img');
       media.className = 'mt-thumb';
