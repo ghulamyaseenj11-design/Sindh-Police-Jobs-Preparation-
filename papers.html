@@ -353,6 +353,11 @@
         });
     }
 
+    // Google Drive links: viewer uses the /preview embed, download uses the direct link. Supabase URLs pass through unchanged.
+    function driveId(u) { var m = String(u || '').match(/drive\.google\.com\/(?:file\/d\/|uc\?id=)([A-Za-z0-9_-]+)/); return m ? m[1] : null; }
+    function viewUrl(u) { var id = driveId(u); return id ? 'https://drive.google.com/file/d/' + id + '/preview' : u; }
+    function dlUrl(u) { var id = driveId(u); return id ? 'https://drive.google.com/uc?id=' + id + '&export=download' : u; }
+
     // Open / Download: newest MCQ notes PDF of this section first (the ones being made now);
     // if the section has no MCQ PDF yet, fall back to the solved-paper PDF.
     function openLatestNotesPdf(t, section, btn) {
@@ -367,7 +372,7 @@
         .then(function (r) {
           if (!r.error && r.data && r.data.length && r.data[0].file_url) {
             done();
-            window.open(r.data[0].file_url, '_blank', 'noopener');
+            window.open(dlUrl(r.data[0].file_url), '_blank', 'noopener');
           } else {
             done();
             downloadPaper(t, btn);
@@ -413,7 +418,7 @@
       if (window.SJPAuth) { try { SJPAuth.recordRecentNote({ id: item.id, title: item.title, category: item.category }); } catch (e) {} }
       document.getElementById('viewerTitle').textContent = item.title;
       frame.removeAttribute('srcdoc');
-      frame.src = item.file_url;
+      frame.src = viewUrl(item.file_url);
       viewer.classList.add('open'); document.body.style.overflow = 'hidden';
       if (timed) startViewerTimer(); else stopViewerTimer();
     }
@@ -456,7 +461,7 @@
         pTimed.type = 'button';
         pTimed.addEventListener('click', function () { openPdf(item, true); });
         var pDl = el('a', 'btn-notes mt-btn', '📄 Open / Download');
-        pDl.href = item.file_url; pDl.target = '_blank'; pDl.rel = 'noopener noreferrer';
+        pDl.href = dlUrl(item.file_url); pDl.target = '_blank'; pDl.rel = 'noopener noreferrer';
         pDl.addEventListener('click', function () { if (window.SJPView) { try { SJPView.track(item.category || '', item.title); } catch (e) {} } if (window.SJPAuth) { try { SJPAuth.recordRecentNote({ id: item.id, title: item.title, category: item.category }); } catch (e) {} } });
         pRow.appendChild(pTimed); pRow.appendChild(pDl);
         pb.appendChild(pRow);
