@@ -416,6 +416,11 @@
     function openPdf(item, timed) {
       if (window.SJPView) { try { SJPView.track(item.category || '', item.title); } catch (e) {} }
       if (window.SJPAuth) { try { SJPAuth.recordRecentNote({ id: item.id, title: item.title, category: item.category }); } catch (e) {} }
+      if (driveId(item.file_url)) {
+        // Drive preview does not render inside the sandboxed viewer (shows "Could not preview the file"); as a full page it renders fine, so open it in a new tab.
+        window.open(item.file_url, '_blank', 'noopener');
+        return;
+      }
       document.getElementById('viewerTitle').textContent = item.title;
       frame.removeAttribute('srcdoc');
       frame.src = viewUrl(item.file_url);
