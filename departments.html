@@ -173,6 +173,7 @@
       b.appendChild(el('p', null, desc || (known ? known.intro : 'Preparation resources.')));
       var a = el('a', 'btn btn-gold mt-btn', 'Open');
       a.href = known ? known.file : 'category.html?category=' + encodeURIComponent(slug);
+      a.addEventListener('click', function (e) { if (!loggedIn) { e.preventDefault(); window.location.href = 'auth.html'; } });
       b.appendChild(a);
       // Every department also links straight to its mock tests, so the
       // Departments page and the Mock Tests page connect both ways.
@@ -186,6 +187,10 @@
     var list = document.getElementById('deptList');
     var client = getClient();
     if (!client) { list.innerHTML = ''; list.appendChild(el('p', 'muted', 'Departments could not be loaded (Supabase config not found).')); return; }
+    // Department pages open only after login (the list stays visible).
+    var loggedIn = false;
+    client.auth.getSession().then(function (r) { loggedIn = !!(r.data && r.data.session); }).catch(function () {});
+    client.auth.onAuthStateChange(function (event, session) { loggedIn = !!session; });
     var sectionsPromise = client.from('category_sections')
       .select('category,section_type,title,content,sort_order')
       .eq('published', true)

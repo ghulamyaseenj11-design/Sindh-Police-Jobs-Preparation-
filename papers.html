@@ -85,7 +85,7 @@
       <div class="container hero-content">
         <span class="eyebrow">PRACTICE • PAPERS • IMPROVE</span>
         <h1>Practice Papers</h1>
-        <p>Choose a section below. Open its information, take its mock tests, or download its MCQ notes. New papers and notes appear here by themselves when added from the admin panel.</p>
+        <p>Choose a section below. Open its information, take its mock tests, or download its MCQ notes. New papers and notes appear here by themselves when added from the admin panel. Notes show here for everyone — reading the full note or downloading needs a login.</p>
         <div class="hero-actions">
           <a class="btn btn-outline" href="index.html">← Back to Dashboard</a>
           <a class="btn btn-gold" href="mock-tests.html">📝 All Mock Tests</a>
@@ -361,6 +361,7 @@
     // Open / Download: newest MCQ notes PDF of this section first (the ones being made now);
     // if the section has no MCQ PDF yet, fall back to the solved-paper PDF.
     function openLatestNotesPdf(t, section, btn) {
+      if (!loggedIn) { window.location.href = 'auth.html'; return; }
       if (window.SJPView) { try { SJPView.track(section ? section.title : '', t.title); } catch (e) {} }
       var orig = btn ? btn.textContent : '';
       if (btn) { btn.textContent = 'Opening…'; btn.disabled = true; }
@@ -388,6 +389,7 @@
       return html + timerJs;
     }
     function openHtml(t, timed) {
+      if (!loggedIn) { window.location.href = 'auth.html'; return; }
       if (window.SJPView) { try { SJPView.track(new URLSearchParams(location.search).get('section') || '', t.title); } catch (e) {} }
       document.getElementById('viewerTitle').textContent = t.title;
       frame.removeAttribute('src');
@@ -414,6 +416,7 @@
     }
     // Open a notes PDF in the viewer (the solved paper itself); timed shows the 4-minute countdown in the viewer bar.
     function openPdf(item, timed) {
+      if (!loggedIn) { window.location.href = 'auth.html'; return; }
       if (window.SJPView) { try { SJPView.track(item.category || '', item.title); } catch (e) {} }
       if (window.SJPAuth) { try { SJPAuth.recordRecentNote({ id: item.id, title: item.title, category: item.category }); } catch (e) {} }
       if (driveId(item.file_url)) {
@@ -467,7 +470,7 @@
         pTimed.addEventListener('click', function () { openPdf(item, true); });
         var pDl = el('a', 'btn-notes mt-btn', '📄 Open / Download');
         pDl.href = dlUrl(item.file_url); pDl.target = '_blank'; pDl.rel = 'noopener noreferrer';
-        pDl.addEventListener('click', function () { if (window.SJPView) { try { SJPView.track(item.category || '', item.title); } catch (e) {} } if (window.SJPAuth) { try { SJPAuth.recordRecentNote({ id: item.id, title: item.title, category: item.category }); } catch (e) {} } });
+        pDl.addEventListener('click', function (e) { if (!loggedIn) { e.preventDefault(); window.location.href = 'auth.html'; return; } if (window.SJPView) { try { SJPView.track(item.category || '', item.title); } catch (e) {} } if (window.SJPAuth) { try { SJPAuth.recordRecentNote({ id: item.id, title: item.title, category: item.category }); } catch (e) {} } });
         pRow.appendChild(pTimed); pRow.appendChild(pDl);
         pb.appendChild(pRow);
         pc.appendChild(pb);
@@ -492,7 +495,9 @@
       if (safeUrl(item.file_url)) {
         var a = el('a', 'btn btn-gold mt-btn', 'Open / Download PDF');
         a.href = item.file_url; a.target = '_blank'; a.rel = 'noopener noreferrer';
-        a.addEventListener('click', function () { if (window.SJPView) { try { SJPView.track(item.category || '', item.title); } catch (e) {} } if (window.SJPAuth) { try { SJPAuth.recordRecentNote({ id: item.id, title: item.title, category: item.category }); } catch (e) {} } });
+        a.addEventListener('click', function (e) {
+          if (!loggedIn) { e.preventDefault(); window.location.href = 'auth.html'; return; }
+          if (window.SJPView) { try { SJPView.track(item.category || '', item.title); } catch (e) {} } if (window.SJPAuth) { try { SJPAuth.recordRecentNote({ id: item.id, title: item.title, category: item.category }); } catch (e) {} } });
         b.appendChild(a);
       } else if (bodyText) {
         var row = el('div', 'note-actions');
@@ -500,6 +505,7 @@
           var readBtn = el('button', 'btn btn-gold mt-btn', 'Read Full Note');
           readBtn.type = 'button';
           readBtn.addEventListener('click', function () {
+            if (!loggedIn) { window.location.href = 'auth.html'; return; }
             var open = bodyP.classList.toggle('open');
             bodyP.textContent = open ? bodyText : bodyText.slice(0, 200) + '…';
             readBtn.textContent = open ? 'Show Less' : 'Read Full Note';
@@ -509,7 +515,7 @@
         }
         var dlBtn = el('button', 'btn-notes mt-btn', 'Download PDF');
         dlBtn.type = 'button';
-        dlBtn.addEventListener('click', function () { if (window.SJPView) { try { SJPView.track(item.category || '', item.title); } catch (e) {} } downloadNote(item, bodyText); });
+        dlBtn.addEventListener('click', function () { if (!loggedIn) { window.location.href = 'auth.html'; return; } if (window.SJPView) { try { SJPView.track(item.category || '', item.title); } catch (e) {} } downloadNote(item, bodyText); });
         row.appendChild(dlBtn);
         b.appendChild(row);
       }
@@ -592,6 +598,12 @@
     }
 
     var client = getClient();
+    // Notes show to everyone, but opening one needs a login.
+    var loggedIn = false;
+    if (client) {
+      client.auth.getSession().then(function (r) { loggedIn = !!(r.data && r.data.session); }).catch(function () {});
+      client.auth.onAuthStateChange(function (event, session) { loggedIn = !!session; });
+    }
     function loadAll() {
       var sectionsList = document.getElementById('sectionsList');
       var papersList = document.getElementById('papersList');
