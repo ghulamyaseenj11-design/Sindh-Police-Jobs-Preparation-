@@ -257,6 +257,13 @@
           var shown = 0;
           r.data.forEach(function (t) { if (sectionOf(t) === section.slug) { list.appendChild(card(t)); shown++; } });
           if (!shown) msg('No tests in this section yet.');
+          // Deep link: ?section=<slug>&test=<id> opens that test directly.
+          var openId = params.get('test');
+          if (openId) {
+            var found = null;
+            r.data.forEach(function (t) { if (t.id === openId && sectionOf(t) === section.slug) found = t; });
+            if (found) openHtml(found);
+          }
         } else {
           var counts = {};
           r.data.forEach(function (t) { var s = sectionOf(t); if (s) counts[s] = (counts[s] || 0) + 1; });
