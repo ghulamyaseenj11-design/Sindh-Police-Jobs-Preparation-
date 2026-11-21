@@ -85,7 +85,7 @@
       <div class="container hero-content">
         <span class="eyebrow">PRACTICE • PAPERS • IMPROVE</span>
         <h1>Practice Papers</h1>
-        <p>Choose a section below. Open its information, take its mock tests, or download its MCQ notes. New papers and notes appear here by themselves when added from the admin panel. Notes show here for everyone — reading the full note or downloading needs a login.</p>
+        <p>Choose Jobs Wise or Subject Wise below. Open a section's information, take its mock tests, or download its MCQ notes. New papers and notes appear here by themselves when added from the admin panel. Notes show here for everyone — reading the full note or downloading needs a login.</p>
         <div class="hero-actions">
           <a class="btn btn-outline" href="index.html">← Back to Dashboard</a>
           <a class="btn btn-gold" href="mock-tests.html">📝 All Mock Tests</a>
@@ -96,11 +96,39 @@
 
     <section class="section">
       <div class="container">
+        <div id="modeWrap" style="display:none">
+          <div class="section-heading">
+            <span class="eyebrow">PAPERS</span>
+            <h2>Choose Papers</h2>
+            <p>Jobs Wise — apne job ke hisaab se, ya Subject Wise — apne subject ke hisaab se.</p>
+          </div>
+          <div class="mt-grid">
+            <article class="mt-card">
+              <div class="mt-thumb">🚨</div>
+              <div class="mt-body">
+                <span class="mt-badge">Jobs Wise</span>
+                <h3>Jobs Wise Sections</h3>
+                <p>Jail Police, Vaccinators, Islamabad Police, PST JST aur PAA — apne job ke section ke model papers aur notes.</p>
+                <a class="btn btn-gold mt-btn" href="papers.html?view=jobs">Open Jobs Wise →</a>
+              </div>
+            </article>
+            <article class="mt-card">
+              <div class="mt-thumb">📚</div>
+              <div class="mt-body">
+                <span class="mt-badge">Subject Wise</span>
+                <h3>Subject Wise Sections</h3>
+                <p>English, Mathematics, Science, GK &amp; Current Affairs aur Computer — apne subject ke mock tests aur notes.</p>
+                <a class="btn btn-gold mt-btn" href="papers.html?view=subjects">Open Subject Wise →</a>
+              </div>
+            </article>
+          </div>
+        </div>
+
         <div id="sectionsWrap">
           <div class="section-heading">
-            <span class="eyebrow">SECTIONS</span>
-            <h2>Choose a Section</h2>
-            <p>Tap a section to see its model papers and download notes.</p>
+            <span class="eyebrow" id="sectionsEyebrow">SECTIONS</span>
+            <h2 id="sectionsHeading">Choose a Section</h2>
+            <p id="sectionsSub">Tap a section to see its model papers and download notes.</p>
           </div>
           <div id="sectionsList" class="mt-grid"><p class="muted">Loading sections...</p></div>
           <div id="otherWrap" style="display:none;margin-top:32px">
@@ -113,17 +141,17 @@
         </div>
 
         <div id="sectionWrap" style="display:none">
-          <div id="backRow" style="margin-bottom:16px"><a class="btn btn-outline-dark" href="papers.html">← All Sections</a></div>
+          <div id="backRow" style="margin-bottom:16px"><a class="btn btn-outline-dark" id="backLink" href="papers.html">← All Sections</a></div>
           <div class="section-heading">
             <span class="eyebrow" id="secEyebrow">PAPERS</span>
             <h2 id="secHeading">Section</h2>
             <p id="secSub" class="muted"></p>
           </div>
           <div class="sec-actions" id="secActions"></div>
-          <div class="section-heading">
-            <span class="eyebrow">MODEL PAPERS</span>
-            <h2>Model Papers</h2>
-            <p class="muted">Solved papers with answers. Practice material only — not the official paper.</p>
+          <div class="section-heading" id="papersBlock">
+            <span class="eyebrow" id="papersEyebrow">MODEL PAPERS</span>
+            <h2 id="papersHeading">Model Papers</h2>
+            <p class="muted" id="papersSub">Solved papers with answers. Practice material only — not the official paper.</p>
           </div>
           <div id="papersList" class="mt-grid"><p class="muted">Loading model papers...</p></div>
           <div class="section-heading" style="margin-top:32px" id="download-notes">
@@ -592,6 +620,62 @@
       return c;
     }
 
+    // Subject Wise: a test belongs to a subject when its title names that
+    // subject (e.g. "Jail Police English Practice Test" -> English).
+    // Mixed tests (Tough Practice Tests, model papers) stay in Jobs Wise only.
+    var SUBJECTS = {
+      english: { key: 'english', title: 'English', icon: '🔤', re: /english/i },
+      mathematics: { key: 'mathematics', title: 'Mathematics', icon: '🔢', re: /mathematic|maths/i },
+      science: { key: 'science', title: 'Science', icon: '🔬', re: /science/i },
+      gk: { key: 'gk', title: 'GK & Current Affairs', icon: '🌍', re: /gk|general knowledge|current affair/i },
+      computer: { key: 'computer', title: 'Computer', icon: '💻', re: /computer/i }
+    };
+    var SUBJECT_ORDER = ['english', 'mathematics', 'science', 'gk', 'computer'];
+    function subjectMatch(t, key) {
+      var s = SUBJECTS[key];
+      return s ? s.re.test(t.title || '') : false;
+    }
+    function subjectCard(s, counts) {
+      var c = el('article', 'mt-card');
+      var media = el('div', 'mt-thumb', s.icon);
+      var b = el('div', 'mt-body');
+      b.appendChild(el('span', 'mt-badge', 'Subject'));
+      b.appendChild(el('h3', null, s.title));
+      b.appendChild(el('p', null, counts.tests + ' mock tests • ' + counts.notes + ' notes'));
+      var a = el('a', 'btn btn-gold mt-btn', 'Open Subject →');
+      a.href = 'papers.html?subject=' + s.key;
+      b.appendChild(a);
+      c.appendChild(media); c.appendChild(b);
+      return c;
+    }
+    // Subject test card: same 3 buttons as a model paper card — Open solved
+    // paper, Timed test (4-minute timer), Open / Download (solved PDF).
+    function subjectTestCard(t, subject) {
+      var c = el('article', 'paper-card');
+      var b = el('div', 'paper-body');
+      b.appendChild(el('h3', null, t.title || 'Untitled'));
+      var badges = el('div', 'paper-badges');
+      badges.appendChild(el('span', 'badge-solved', 'SOLVED'));
+      badges.appendChild(el('span', 'badge-post', subject.title));
+      b.appendChild(badges);
+      b.appendChild(el('p', null, 'Solved test with answers. Practice material only — not the official paper.'));
+      var openBtn = el('button', 'btn-paper-main', 'Open solved paper with answers →');
+      openBtn.type = 'button';
+      openBtn.addEventListener('click', function () { openHtml(t, false); });
+      b.appendChild(openBtn);
+      var row = el('div', 'paper-actions');
+      var timedBtn = el('button', 'btn-timed mt-btn', '⏱ Timed test →');
+      timedBtn.type = 'button';
+      timedBtn.addEventListener('click', function () { openHtml(t, true); });
+      var dlBtn = el('button', 'btn-notes mt-btn', '📄 Open / Download');
+      dlBtn.type = 'button';
+      dlBtn.addEventListener('click', function () { downloadPaper(t, dlBtn); });
+      row.appendChild(timedBtn); row.appendChild(dlBtn);
+      b.appendChild(row);
+      c.appendChild(b);
+      return c;
+    }
+
     function fillEl(list, nodes, emptyText) {
       list.innerHTML = '';
       if (!nodes.length) { list.appendChild(el('p', 'muted', emptyText)); return; }
@@ -662,11 +746,23 @@
         }
         var params = new URLSearchParams(window.location.search);
         var slug = params.get('section');
+        var view = params.get('view');
+        var subjectKey = params.get('subject');
         var section = null;
         sections.forEach(function (s) { if (s.slug === slug) section = s; });
+        var subject = SUBJECTS[subjectKey] || null;
+        var modeWrapEl = document.getElementById('modeWrap');
+        var sectionsWrapEl = document.getElementById('sectionsWrap');
+        var sectionWrapEl = document.getElementById('sectionWrap');
+        function showOnly(which) {
+          modeWrapEl.style.display = which === 'mode' ? '' : 'none';
+          sectionsWrapEl.style.display = which === 'list' ? '' : 'none';
+          sectionWrapEl.style.display = which === 'detail' ? '' : 'none';
+        }
         if (section) {
-          document.getElementById('sectionsWrap').style.display = 'none';
-          document.getElementById('sectionWrap').style.display = '';
+          showOnly('detail');
+          document.getElementById('backLink').href = 'papers.html?view=jobs';
+          document.getElementById('backLink').textContent = '← All Sections';
           document.getElementById('secEyebrow').textContent = 'PAPERS • ' + section.title.toUpperCase();
           document.getElementById('secHeading').textContent = section.slug === 'jail-police' ? 'Jail Police (Sindh Police)' : section.title;
           document.getElementById('secSub').textContent = section.slug === 'jail-police'
@@ -693,7 +789,48 @@
           }
           var notes = notesFor(section.slug, section.title);
           fillEl(notesList, notes.map(function (it) { return noteCard(it, attachForNote(it)); }), 'No notes in this section yet. Add one from the admin panel (Study Notes) and it will appear here.');
-        } else {
+        } else if (subject) {
+          // Subject detail: this subject's mock tests + all notes (notes are
+          // mixed sets, so the same notes show in every subject, as in Jobs Wise).
+          showOnly('detail');
+          document.getElementById('backLink').href = 'papers.html?view=subjects';
+          document.getElementById('backLink').textContent = '← All Subjects';
+          document.getElementById('secEyebrow').textContent = 'SUBJECT • ' + subject.title.toUpperCase();
+          document.getElementById('secHeading').textContent = subject.title;
+          document.getElementById('secSub').textContent = subject.title + ' ke saare mock tests aur notes. Tests aur notes dono yahan bhi hain aur Jobs Wise sections mein bhi.';
+          var sActions = document.getElementById('secActions');
+          sActions.innerHTML = '';
+          var sa1 = document.createElement('a'); sa1.className = 'sec-action'; sa1.href = '#papersBlock';
+          sa1.innerHTML = '<strong>📝 Mock Tests</strong><span>Is subject ke saare mock tests</span>';
+          var sa2 = document.createElement('a'); sa2.className = 'sec-action'; sa2.href = '#download-notes';
+          sa2.innerHTML = '<strong>⬇ Download Notes</strong><span>MCQ notes PDF — open aur download karo</span>';
+          sActions.appendChild(sa1); sActions.appendChild(sa2);
+          document.getElementById('papersEyebrow').textContent = 'MOCK TESTS';
+          document.getElementById('papersHeading').textContent = 'Mock Tests';
+          document.getElementById('papersSub').textContent = 'Solved tests with answers. Practice material only — not the official paper.';
+          var subjTests = r.data.filter(function (t) { return subjectMatch(t, subject.key); });
+          fillEl(papersList, subjTests.map(function (t) { return subjectTestCard(t, subject); }), 'Is subject mein abhi koi mock test nahi hai.');
+          var allNotes = results[3].data || [];
+          function attachForNoteSub(it) {
+            var m = String(it.title || '').match(/Set\s+(\d+)/i);
+            if (m && subjTests.length) return subjTests[(parseInt(m[1], 10) - 1) % subjTests.length];
+            return subjTests.length ? subjTests[0] : null;
+          }
+          fillEl(notesList, allNotes.map(function (it) { return noteCard(it, attachForNoteSub(it)); }), 'No notes yet. Add one from the admin panel (Study Notes) and it will appear here.');
+        } else if (view === 'subjects') {
+          showOnly('list');
+          document.getElementById('sectionsEyebrow').textContent = 'SUBJECTS';
+          document.getElementById('sectionsHeading').textContent = 'Choose a Subject';
+          document.getElementById('sectionsSub').textContent = 'Tap a subject to see its mock tests and notes.';
+          var allNotes2 = results[3].data || [];
+          var scards = SUBJECT_ORDER.map(function (key) {
+            var s = SUBJECTS[key];
+            var n = r.data.filter(function (t) { return subjectMatch(t, key); }).length;
+            return subjectCard(s, { tests: n, notes: allNotes2.length });
+          });
+          fillEl(sectionsList, scards, 'No subjects yet.');
+        } else if (view === 'jobs') {
+          showOnly('list');
           var counts = {};
           r.data.forEach(function (t) {
             var s = sectionOf(t); if (!s) return;
@@ -720,6 +857,8 @@
             document.getElementById('otherWrap').style.display = '';
             fillEl(document.getElementById('otherList'), others.map(function (it) { return noteCard(it); }), '');
           }
+        } else {
+          showOnly('mode');
         }
       });
     }
