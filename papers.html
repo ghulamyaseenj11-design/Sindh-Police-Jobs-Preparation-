@@ -683,14 +683,16 @@
           actions.appendChild(a1); actions.appendChild(a2); actions.appendChild(a3);
           var papers = r.data.filter(function (t) { return isModelPaper(t) && sectionOf(t) === section.slug; });
           fillEl(papersList, papers.map(function (t) { return paperCard(t, section); }), 'No model papers in this section yet. Add one from the admin panel (Mock Tests) and it will appear here.');
-          // Note cards attach the section's already-added test: newest model paper (first in sort order), else the section's first test (PAA has no model papers).
-          var attachTest = papers.length ? papers[0] : null;
-          if (!attachTest) {
-            var sectionTests = r.data.filter(function (t) { return sectionOf(t) === section.slug; });
-            attachTest = sectionTests.length ? sectionTests[0] : null;
+          // Each note card attaches a DIFFERENT test from the section: Set N opens the section's Nth test (in sort order), cycling if there are more sets than tests. Notes without a set number fall back to the newest model paper, else the section's first test (PAA has no model papers).
+          var sectionTests = r.data.filter(function (t) { return sectionOf(t) === section.slug; });
+          function attachForNote(it) {
+            var m = String(it.title || '').match(/Set\s+(\d+)/i);
+            if (m && sectionTests.length) return sectionTests[(parseInt(m[1], 10) - 1) % sectionTests.length];
+            if (papers.length) return papers[0];
+            return sectionTests.length ? sectionTests[0] : null;
           }
           var notes = notesFor(section.slug, section.title);
-          fillEl(notesList, notes.map(function (it) { return noteCard(it, attachTest); }), 'No notes in this section yet. Add one from the admin panel (Study Notes) and it will appear here.');
+          fillEl(notesList, notes.map(function (it) { return noteCard(it, attachForNote(it)); }), 'No notes in this section yet. Add one from the admin panel (Study Notes) and it will appear here.');
         } else {
           var counts = {};
           r.data.forEach(function (t) {
