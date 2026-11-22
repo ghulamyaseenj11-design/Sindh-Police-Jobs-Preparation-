@@ -61,6 +61,7 @@
           <button type="button" data-target="categoryManager"><span class="nav-ico">📚</span> Preparation Pages</button>
           <button type="button" data-target="deptPhotosManager"><span class="nav-ico">🏛️</span> Department Photos</button>
           <button type="button" data-target="testSectionsManager"><span class="nav-ico">🧩</span> Test Sections</button>
+          <button type="button" data-target="subjectSectionsManager"><span class="nav-ico">🔤</span> Subject Sections</button>
           <button type="button" data-target="mockTestsManager"><span class="nav-ico">📝</span> Mock Tests</button>
           <button type="button" data-target="navigationManager"><span class="nav-ico">🧭</span> Navigation</button>
           <button type="button" data-target="settingsManager"><span class="nav-ico">⚙️</span> Settings</button>
@@ -457,6 +458,45 @@
     </div>
 
 
+    <!-- SUBJECT SECTIONS -->
+    <div class="admin-card admin-section" id="subjectSectionsManager">
+      <div class="admin-section-head"><h2>Subject Sections</h2></div>
+      <p class="muted">Subject Wise sections on the Papers page — English, Mathematics, Science, GK &amp; Current Affairs, Computer. Change the title, icon, order or thumbnail photo here. The section key cannot be changed (it is tied to the Papers page).</p>
+
+            <div class="admin-form-wrap" id="subjectSectionsManagerFormWrap">
+<form id="subjectSectionForm">
+        <input type="hidden" id="subjectSectionKey">
+
+        <label for="subjectSectionSlug">Section Key (fixed)</label>
+        <input id="subjectSectionSlug" type="text" maxlength="60" disabled>
+
+        <label for="subjectSectionTitle">Section Title</label>
+        <input id="subjectSectionTitle" type="text" maxlength="100" placeholder="English" required>
+
+        <label for="subjectSectionIcon">Icon (emoji)</label>
+        <input id="subjectSectionIcon" type="text" maxlength="10" placeholder="🔤">
+
+        <label for="subjectSectionPhoto">Thumbnail Photo (optional)</label>
+        <input id="subjectSectionPhoto" type="file" accept="image/jpeg,image/png,image/webp">
+        <input type="hidden" id="subjectSectionPhotoUrl">
+        <div id="subjectSectionPhotoPreview" style="margin-top:8px"></div>
+
+        <label for="subjectSectionOrder">Display Order</label>
+        <input id="subjectSectionOrder" type="number" value="0">
+
+        <div class="admin-actions">
+          <button class="btn btn-gold" id="saveSubjectSectionButton" type="submit">Save Section</button>
+          <button class="btn btn-outline-dark" id="cancelSubjectSectionEdit" data-form-close type="button">Cancel</button>
+        </div>
+      </div>
+      </form>
+
+      <p id="subjectSectionMessage" class="form-message" aria-live="polite"></p>
+      <h3>All Subject Sections</h3>
+      <div id="adminSubjectSectionsList">Loading...</div>
+    </div>
+
+
     <!-- MOCK TESTS -->
     <div class="admin-card admin-section" id="mockTestsManager">
       <div class="admin-section-head"><h2>Manage Mock Tests</h2><button type="button" class="btn btn-gold admin-add-btn" data-form-toggle="mockTestsManager">+ Add New</button></div>
@@ -606,6 +646,7 @@
 <script src="category-admin.js"></script>
 <script src="department-photos-admin.js"></script>
 <script src="test-sections-admin.js"></script>
+<script src="subject-sections-admin.js"></script>
 <script>
 // Sidebar section switching: show only the clicked section, hide the rest
 function showAdminSection(id) {

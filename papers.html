@@ -637,7 +637,12 @@
     }
     function subjectCard(s, counts) {
       var c = el('article', 'mt-card');
-      var media = el('div', 'mt-thumb', s.icon);
+      var media;
+      if (s.photo) {
+        media = document.createElement('img'); media.className = 'mt-thumb'; media.src = s.photo; media.alt = ''; media.loading = 'lazy';
+      } else {
+        media = el('div', 'mt-thumb', s.icon);
+      }
       var b = el('div', 'mt-body');
       b.appendChild(el('span', 'mt-badge', 'Subject'));
       b.appendChild(el('h3', null, s.title));
@@ -710,6 +715,9 @@
         client.from('site_settings')
           .select('setting_key,setting_value')
           .like('setting_key', 'mock_test_section_%'),
+        client.from('site_settings')
+          .select('setting_key,setting_value')
+          .like('setting_key', 'subject_section_%'),
         client.from('study_materials')
           .select('id,title,category,description,body,file_url,created_at')
           .eq('published', true)
@@ -730,6 +738,27 @@
         (results[2].data || []).forEach(function (row) {
           if (row.setting_key && row.setting_value) assign[String(row.setting_key).replace('mock_test_section_', '')] = row.setting_value;
         });
+        // Subject Wise sections are admin-controlled too (site_settings
+        // subject_section_<key>): title, icon, sort and thumbnail photo
+        // come from the admin panel; the matching rule (which test titles
+        // belong to a subject) stays in SUBJECTS. Missing rows fall back
+        // to the built-in title/icon/order.
+        var subjectRows = {};
+        (results[3].data || []).forEach(function (row) {
+          try {
+            var v = JSON.parse(row.setting_value || '{}');
+            var k = String(row.setting_key).replace('subject_section_', '');
+            if (SUBJECTS[k] && v.title) subjectRows[k] = { title: v.title, icon: v.icon || SUBJECTS[k].icon, sort: Number(v.sort) || 0, photo: v.photo || null };
+          } catch (e) {}
+        });
+        function subjectView(k) {
+          var base = SUBJECTS[k];
+          var o = subjectRows[k] || {};
+          return { key: k, title: o.title || base.title, icon: o.icon || base.icon, photo: o.photo || null, re: base.re, sort: o.sort || 0 };
+        }
+        var subjectOrder = SUBJECT_ORDER.slice().sort(function (a, b) {
+          return (subjectView(a).sort - subjectView(b).sort) || (SUBJECT_ORDER.indexOf(a) - SUBJECT_ORDER.indexOf(b));
+        });
         var firstSlug = sections.length ? sections[0].slug : null;
         function sectionOf(t) {
           var s = assign[t.id];
@@ -737,7 +766,7 @@
         }
         function isModelPaper(t) { return /model paper/i.test(t.title || ''); }
         function notesFor(slug, title) {
-          return (results[3].data || []).filter(function (it) {
+          return (results[4].data || []).filter(function (it) {
             if (it.category === title) return true;
             if (it.category === title + ' MCQs') return true;
             if (slug === 'jail-police' && /prison|jail|interview/i.test(it.title || '')) return true;
@@ -750,7 +779,7 @@
         var subjectKey = params.get('subject');
         var section = null;
         sections.forEach(function (s) { if (s.slug === slug) section = s; });
-        var subject = SUBJECTS[subjectKey] || null;
+        var subject = (subjectKey && SUBJECTS[subjectKey]) ? subjectView(subjectKey) : null;
         var modeWrapEl = document.getElementById('modeWrap');
         var sectionsWrapEl = document.getElementById('sectionsWrap');
         var sectionWrapEl = document.getElementById('sectionWrap');
@@ -810,7 +839,7 @@
           document.getElementById('papersSub').textContent = 'Solved tests with answers. Practice material only — not the official paper.';
           var subjTests = r.data.filter(function (t) { return subjectMatch(t, subject.key); });
           fillEl(papersList, subjTests.map(function (t) { return subjectTestCard(t, subject); }), 'Is subject mein abhi koi mock test nahi hai.');
-          var allNotes = results[3].data || [];
+          var allNotes = results[4].data || [];
           function attachForNoteSub(it) {
             var m = String(it.title || '').match(/Set\s+(\d+)/i);
             if (m && subjTests.length) return subjTests[(parseInt(m[1], 10) - 1) % subjTests.length];
@@ -822,9 +851,9 @@
           document.getElementById('sectionsEyebrow').textContent = 'SUBJECTS';
           document.getElementById('sectionsHeading').textContent = 'Choose a Subject';
           document.getElementById('sectionsSub').textContent = 'Tap a subject to see its mock tests and notes.';
-          var allNotes2 = results[3].data || [];
-          var scards = SUBJECT_ORDER.map(function (key) {
-            var s = SUBJECTS[key];
+          var allNotes2 = results[4].data || [];
+          var scards = subjectOrder.map(function (key) {
+            var s = subjectView(key);
             var n = r.data.filter(function (t) { return subjectMatch(t, key); }).length;
             return subjectCard(s, { tests: n, notes: allNotes2.length });
           });
@@ -846,7 +875,7 @@
           fillEl(sectionsList, cards, 'No sections yet.');
           var titles = {};
           sections.forEach(function (s) { titles[s.title] = true; });
-          var others = (results[3].data || []).filter(function (it) {
+          var others = (results[4].data || []).filter(function (it) {
             if (it.category === 'Past Papers') return true;
             if (titles[it.category]) return false;
             if (/ MCQs$/.test(it.category || '')) return false;
