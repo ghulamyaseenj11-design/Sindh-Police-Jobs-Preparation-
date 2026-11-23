@@ -62,6 +62,7 @@
           <button type="button" data-target="deptPhotosManager"><span class="nav-ico">🏛️</span> Department Photos</button>
           <button type="button" data-target="testSectionsManager"><span class="nav-ico">🧩</span> Test Sections</button>
           <button type="button" data-target="subjectSectionsManager"><span class="nav-ico">🔤</span> Subject Sections</button>
+          <button type="button" data-target="aiChatManager"><span class="nav-ico">🤖</span> AI Chat</button>
           <button type="button" data-target="mockTestsManager"><span class="nav-ico">📝</span> Mock Tests</button>
           <button type="button" data-target="navigationManager"><span class="nav-ico">🧭</span> Navigation</button>
           <button type="button" data-target="settingsManager"><span class="nav-ico">⚙️</span> Settings</button>
@@ -634,6 +635,31 @@
       <p id="settingsMessage" class="form-message" aria-live="polite"></p>
     </div>
 
+    <!-- AI CHAT SETTINGS -->
+    <div class="admin-card admin-section" id="aiChatManager">
+      <h2>AI Chat Settings</h2>
+      <p class="muted">Homepage par neeche side mein AI Helper button — students sawal poochhte hain, AI jawab deta hai. Rozana limit har login user par lagti hai.</p>
+
+      <form id="aiChatForm">
+        <label><input id="aiEnabled" type="checkbox" checked> AI Chat on hai</label>
+
+        <label for="aiGeminiKey">Gemini API Key (free wali)</label>
+        <input id="aiGeminiKey" type="password" autocomplete="off"
+          placeholder="Google AI Studio se free key paste karo">
+        <p class="muted">Ye key website par sab ko nazar aa sakti hai, is liye sirf FREE key use karo — Google Cloud Console mein key ko sirf Generative Language API tak mehdood rakho aur quota kam rakho. Paid key yahan kabhi mat dalo.</p>
+
+        <label for="aiDailyLimit">Rozana limit (har user, jawab per day)</label>
+        <input id="aiDailyLimit" type="number" min="1" max="100" value="10">
+
+        <button class="btn btn-gold" type="submit" id="aiChatSaveBtn">
+          Save AI Chat Settings
+        </button>
+      </form>
+
+      <p id="aiChatMessage" class="form-message" aria-live="polite"></p>
+      <p class="muted">Limit ginne ke liye ai_usage table chahiye — wo SQL Supabase mein ek dafa chalana hai (file: ai-usage-table.sql). Jab tak table nahi banti, limit sirf usi device par gini jayegi.</p>
+    </div>
+
       </div>
     </div>
   </section>
@@ -647,6 +673,7 @@
 <script src="department-photos-admin.js"></script>
 <script src="test-sections-admin.js"></script>
 <script src="subject-sections-admin.js"></script>
+<script src="ai-chat-admin.js"></script>
 <script>
 // Sidebar section switching: show only the clicked section, hide the rest
 function showAdminSection(id) {
