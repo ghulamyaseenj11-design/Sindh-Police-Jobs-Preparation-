@@ -179,7 +179,11 @@
   }
 
   /* ---------- ask Gemini ---------- */
-  function askGemini(q) {
+  /* Google free tier par 3.8-flash kabhi kabhi "high demand / overloaded"
+     (503) kehta hai — ye aam tor par chand minute ka hota hai. Is liye
+     overload par khud 3 dafa dobara try karo, har dafa thora zyada wait
+     kar ke, phir bhi na ho to saaf batao. */
+  function callGeminiOnce(q) {
     var url = "https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(settings.model) +
       ":generateContent?key=" + encodeURIComponent(settings.key);
     return fetch(url, {
@@ -192,13 +196,34 @@
       })
     }).then(function (res) {
       return res.json().then(function (data) {
-        if (!res.ok) throw new Error((data && data.error && data.error.message) || ("Error " + res.status));
+        if (!res.ok) {
+          var err = new Error((data && data.error && data.error.message) || ("Error " + res.status));
+          err.status = res.status;
+          throw err;
+        }
         var parts = data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts;
         var text = parts && parts.map(function (p) { return p.text || ""; }).join("").trim();
         if (!text) throw new Error("Koi jawab nahi mila.");
         return text;
       });
     });
+  }
+
+  function askGemini(q) {
+    var attempt = 0;
+    function tryOnce() {
+      attempt++;
+      return callGeminiOnce(q).catch(function (err) {
+        var msg = String((err && err.message) || "");
+        var overloaded = err.status === 503 || err.status === 429 ||
+          /overload|high demand|temporar|unavailable|rate limit/i.test(msg);
+        if (overloaded && attempt < 3) {
+          return new Promise(function (resolve) { setTimeout(resolve, attempt * 4000); }).then(tryOnce);
+        }
+        throw err;
+      });
+    }
+    return tryOnce();
   }
 
   function sendQuestion() {
@@ -228,7 +253,12 @@
       setLimitLine();
     }).catch(function (err) {
       typing.remove();
-      addMsg("Maaf karo, jawab nahi mila: " + (err && err.message ? err.message : "error"), "sys");
+      var msg = (err && err.message) ? err.message : "error";
+      if (/overload|high demand|temporar|unavailable/i.test(msg)) {
+        addMsg("Google ke server abhi busy hain, is liye jawab nahi mila. Thori der baad dobara poochho, aksar chand minute mein theek ho jata hai.", "sys");
+      } else {
+        addMsg("Maaf karo, jawab nahi mila: " + msg, "sys");
+      }
     }).finally(function () {
       send.disabled = false;
       input.focus();
