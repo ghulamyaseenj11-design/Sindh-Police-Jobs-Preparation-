@@ -638,7 +638,7 @@
     <!-- AI CHAT SETTINGS -->
     <div class="admin-card admin-section" id="aiChatManager">
       <h2>AI Chat Settings</h2>
-      <p class="muted">Homepage par neeche side mein AI Helper button — students sawal poochhte hain, AI jawab deta hai. Rozana limit har login user par lagti hai.</p>
+      <p class="muted">Homepage par neeche side mein AI Helper button — students sawal poochhte hain, AI jawab deta hai. Limit 0 rakho to unlimited jawab milenge.</p>
 
       <form id="aiChatForm">
         <label><input id="aiEnabled" type="checkbox" checked> AI Chat on hai</label>
@@ -648,8 +648,11 @@
           placeholder="Google AI Studio se free key paste karo">
         <p class="muted">Ye key website par sab ko nazar aa sakti hai, is liye sirf FREE key use karo — Google Cloud Console mein key ko sirf Generative Language API tak mehdood rakho aur quota kam rakho. Paid key yahan kabhi mat dalo.</p>
 
-        <label for="aiDailyLimit">Rozana limit (har user, jawab per day)</label>
-        <input id="aiDailyLimit" type="number" min="1" max="100" value="10">
+        <label for="aiModel">Model (Google kabhi purana band kar de to yahan naya naam likh do)</label>
+        <input id="aiModel" type="text" autocomplete="off" value="gemini-3.8-flash">
+
+        <label for="aiDailyLimit">Rozana limit (har user, jawab per day) — 0 likho to unlimited</label>
+        <input id="aiDailyLimit" type="number" min="0" max="1000" value="0">
 
         <button class="btn btn-gold" type="submit" id="aiChatSaveBtn">
           Save AI Chat Settings

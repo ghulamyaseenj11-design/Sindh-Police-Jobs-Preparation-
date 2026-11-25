@@ -11,11 +11,11 @@
 (function () {
   "use strict";
 
-  var DEFAULT_LIMIT = 10;
-  var GEMINI_MODEL = "gemini-2.0-flash";
+  var DEFAULT_LIMIT = 0; /* 0 = unlimited, koi limit nahi */
+  var GEMINI_MODEL = "gemini-3.8-flash"; /* Google ne 2.0-flash band kar diya, 3.8-flash naya hai */
   var SYS = "You are a short, plain exam-preparation helper for Pakistani government job tests (Sindh Jail Police, Vaccinators, Islamabad Police, PST JST, PAA, FIA). Answer briefly in the same language as the question (Urdu, English or Sindhi). Keep answers short and simple, like a teacher. If you are not sure, say so honestly instead of guessing. Never invent exam dates, results or official notices.";
 
-  var settings = { enabled: true, key: "", limit: DEFAULT_LIMIT };
+  var settings = { enabled: true, key: "", limit: DEFAULT_LIMIT, model: GEMINI_MODEL };
   var userId = null;
   var usedToday = 0;
   var tableReady = false;
@@ -116,6 +116,10 @@
     return m;
   }
   function setLimitLine() {
+    if (settings.limit === 0) {
+      limitLine.textContent = "Unlimited jawab — jitne marzi sawal poochho";
+      return;
+    }
     var left = Math.max(0, settings.limit - usedToday);
     limitLine.textContent = "Aaj ke " + left + " / " + settings.limit + " jawab baqi hain";
   }
@@ -130,7 +134,11 @@
         if (row.setting_key === "ai_gemini_key") settings.key = (row.setting_value || "").trim();
         if (row.setting_key === "ai_daily_limit") {
           var n = parseInt(row.setting_value, 10);
-          if (!isNaN(n) && n > 0) settings.limit = n;
+          if (!isNaN(n) && n >= 0) settings.limit = n;
+        }
+        if (row.setting_key === "ai_model") {
+          var m = (row.setting_value || "").trim();
+          if (m) settings.model = m;
         }
       });
     }).catch(function () {});
@@ -172,7 +180,7 @@
 
   /* ---------- ask Gemini ---------- */
   function askGemini(q) {
-    var url = "https://generativelanguage.googleapis.com/v1beta/models/" + GEMINI_MODEL +
+    var url = "https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(settings.model) +
       ":generateContent?key=" + encodeURIComponent(settings.key);
     return fetch(url, {
       method: "POST",
@@ -203,7 +211,7 @@
       window.location.href = "auth.html";
       return;
     }
-    if (usedToday >= settings.limit) {
+    if (settings.limit > 0 && usedToday >= settings.limit) {
       addMsg("Aaj ki limit (" + settings.limit + " jawab) khatam ho gayi hai. Kal phir poochhna.", "sys");
       return;
     }

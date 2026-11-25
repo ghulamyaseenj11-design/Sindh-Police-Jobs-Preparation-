@@ -29,7 +29,10 @@
           $("aiGeminiKey").value = row.setting_value || "";
         }
         if (row.setting_key === "ai_daily_limit" && $("aiDailyLimit")) {
-          $("aiDailyLimit").value = row.setting_value || "10";
+          $("aiDailyLimit").value = row.setting_value || "0";
+        }
+        if (row.setting_key === "ai_model" && $("aiModel")) {
+          $("aiModel").value = row.setting_value || "gemini-3.8-flash";
         }
       });
     } catch (e) {
@@ -44,11 +47,12 @@
     try {
       if (!db()) throw new Error("Supabase connected nahi hai.");
       var limit = parseInt(value("aiDailyLimit"), 10);
-      if (isNaN(limit) || limit < 1) limit = 10;
+      if (isNaN(limit) || limit < 0) limit = 0;
       var rows = [
         { setting_key: "ai_enabled", setting_value: $("aiEnabled") && $("aiEnabled").checked ? "true" : "false" },
         { setting_key: "ai_gemini_key", setting_value: value("aiGeminiKey") },
-        { setting_key: "ai_daily_limit", setting_value: String(limit) }
+        { setting_key: "ai_daily_limit", setting_value: String(limit) },
+        { setting_key: "ai_model", setting_value: value("aiModel") || "gemini-3.8-flash" }
       ];
       var res = await db().from("site_settings").upsert(rows, { onConflict: "setting_key" });
       if (res.error) throw res.error;
