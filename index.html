@@ -80,6 +80,10 @@
     .cx-footer a:hover{color:#f5b83d;padding-left:4px}
     .cx-copy{border-top:1px solid rgba(255,255,255,.1);padding-top:18px;text-align:center;font-size:.82rem}
     @media(max-width:760px){.cx-fgrid{grid-template-columns:1fr}}
+
+    /* ===================== FLOATING WHATSAPP GROUP BUTTON ===================== */
+    .wa-float{position:fixed;right:16px;bottom:84px;z-index:1001;width:56px;height:56px;border-radius:50%;background:#25d366;color:#fff;font-size:26px;display:grid;place-items:center;text-decoration:none;box-shadow:0 8px 22px rgba(37,211,102,.45)}
+    .wa-float .wa-badge{position:absolute;top:-4px;right:-4px;background:#C9A227;color:#0B2341;font-size:10px;font-weight:800;border-radius:999px;padding:2px 6px;border:2px solid #fff}
   </style>
   <link rel="manifest" href="/Sindh-Police-Jobs-Preparation-/manifest.json">
   <meta name="theme-color" content="#0B2341">
@@ -341,7 +345,6 @@
   <script src="config.js"></script>
   <script src="auth-ui.js"></script>
   <script src="app.js"></script>
-  <script src="ai-chat.js"></script>
   <script src="effects.js"></script>
 
   <script>
@@ -358,6 +361,7 @@
     document.getElementById("cWa").href = waLink("Assalam o Alaikum, I need help with Sindh Jail Police preparation.");
     document.getElementById("cGroup").href = SITE.group;
     document.getElementById("fGroup").href = SITE.group;
+    document.getElementById("waFloat").href = SITE.group;
 
     /* Footer year */
     document.getElementById("year").textContent = new Date().getFullYear();
@@ -382,5 +386,8 @@
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/Sindh-Police-Jobs-Preparation-/sw.js').catch(function(){}); }
 </script>
 <script src="track-view.js"></script>
+
+  <!-- Floating WhatsApp group button (same spot as the old AI button) -->
+  <a class="wa-float" id="waFloat" href="#" target="_blank" rel="noopener" aria-label="WhatsApp group join karo" title="WhatsApp Group">💬<span class="wa-badge">Group</span></a>
 </body>
 </html>
