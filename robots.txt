@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /sjp-admin-x7k9.html
+Disallow: /admin.html
+Disallow: /auth.html
+Disallow: /profile.html
+
+Sitemap: https://ghulamyaseenj11-design.github.io/Sindh-Police-Jobs-Preparation-/sitemap.xml
